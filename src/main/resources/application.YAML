@@ -1,0 +1,51 @@
+#spring.application.name=blockchain-record-keeping
+server:
+  port: ${PORT:8080}
+
+api:
+  prefix: api/v1
+
+spring:
+  datasource:
+    url: ${SPRING_DATASOURCE_URL}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
+
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 10MB
+      max-request-size: 10MB
+
+  mail:
+    host: smtp-relay.brevo.com
+    port: 587
+    username: ${YOUR_BREVO_EMAIL}
+    password: ${YOUR_BREVO_SMTP_KEY}
+    protocol: smtp
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+#  mail:
+#    host: smtp-relay.brevo.com
+#    port: 587
+#    username: hoangdoanviet81@gmail.com
+#    password: mSjrU7w6z1EFLDdG
+#    protocol: smtp
+#    properties:
+#      mail:
+#        smtp:
+#          auth: true
+#          starttls:
+#            enable: true
+
+brevo:
+  apiKey: ${BREVO_API_KEY}
+
+myapp:
+  alchemy-url: ${ALCHEMY_URL}

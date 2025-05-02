@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thông Báo Cấp Chứng Chỉ</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        h2 {
+            color: #4CAF50;
+            text-align: center;
+        }
+        p {
+            font-size: 16px;
+            line-height: 1.6;
+        }
+        .button {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            text-align: center;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Chúc Mừng Bạn!</h2>
+    <p>
+        Xin chào <span th:text="${studentName}">Sinh viên</span>,
+    </p>
+    <p>
+        Chúng tôi vui mừng thông báo rằng bạn đã hoàn thành khóa học và được cấp chứng chỉ tốt nghiệp.
+    </p>
+    <p>
+        Chứng chỉ của bạn đã được cấp và lưu trữ trên blockchain. Bạn có thể xem và kiểm tra thông tin chứng chỉ của mình bằng cách nhấp vào liên kết dưới đây.
+    </p>
+    <p>
+        <a th:href="${certificateUrl}" class="button">Xem Chứng Chỉ</a>
+    </p>
+    <p>
+        Nếu bạn có bất kỳ câu hỏi nào, vui lòng liên hệ với chúng tôi qua email hoặc điện thoại.
+    </p>
+    <p>
+        Chúc bạn thành công trong hành trình tương lai!
+    </p>
+</div>
+
+</body>
+</html>
