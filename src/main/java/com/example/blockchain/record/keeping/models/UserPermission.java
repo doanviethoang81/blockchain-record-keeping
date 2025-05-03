@@ -10,19 +10,19 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@Table( name ="role_permissions")
-public class RolePermission {
+@Table( name ="user_permissions")
+public class UserPermission {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name ="role_id")
-    private Role role;
+    @JoinColumn(name ="user_id")
+    private User user;
 
     @ManyToOne
     @JoinColumn(name ="permission_id")
-    private Permission department;
+    private Permission permission;
 
 }

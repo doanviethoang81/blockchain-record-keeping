@@ -16,6 +16,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -32,6 +33,7 @@ public class CertificateController {
     private final StudentRepository studentRepository;
     private final CertificateRepository certificateRepository;
 
+//    @PreAuthorize("hasAuthority('WRITE')")
     @PostMapping("/create")
     public ResponseEntity<?> createCertificate(@RequestBody JsonNode jsonNode) {
         try {

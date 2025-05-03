@@ -18,9 +18,6 @@ public class UserDTO {
     @JsonProperty("university_id")
     private Long universityId;
 
-    @JsonProperty("username")
-    private String username;
-
     @JsonProperty("password")
     private String password;
 

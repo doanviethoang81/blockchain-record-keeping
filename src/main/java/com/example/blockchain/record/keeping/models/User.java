@@ -29,9 +29,6 @@ public class User {
     @JoinColumn(name ="university_id")
     private University university;
 
-    @Column(name ="username")
-    private String username;
-
     @Column(name ="password")
     private String password;
 
