@@ -32,8 +32,13 @@ public class CertificateController {
     private final BrevoApiEmailService brevoApiEmailService;
     private final StudentRepository studentRepository;
     private final CertificateRepository certificateRepository;
+//---------------------------- ADMIN -------------------------------------------------------
 
-//    @PreAuthorize("hasAuthority('WRITE')")
+
+
+
+//---------------------------- KHOA -------------------------------------------------------
+    @PreAuthorize("hasAuthority('WRITE')")
     @PostMapping("/create")
     public ResponseEntity<?> createCertificate(@RequestBody JsonNode jsonNode) {
         try {
@@ -64,7 +69,7 @@ public class CertificateController {
             }
 
             // nào chạy thì mở
-//            brevoApiEmailService.sendEmailsToStudents(validStudents);
+            brevoApiEmailService.sendEmailsToStudents(validStudents);
             return ResponseEntity.ok("Đã đọc thành công " + listener.getDataList().size() + " dòng.");
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());

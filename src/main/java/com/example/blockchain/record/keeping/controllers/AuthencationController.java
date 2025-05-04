@@ -128,7 +128,11 @@ public class AuthencationController {
                     .map(up -> up.getPermission().getName())
                     .collect(Collectors.toList());
 
-            String token = jwtUtil.generateToken(user.getEmail(), List.of(role));// Tạo JWT token từ email và roles
+            if( authorities == null || authorities.isEmpty()){
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Tài khoản đã bị khóa");
+            }
+
+            String token = jwtUtil.generateToken(user.getEmail(), List.of(role), authorities);// Tạo JWT token từ email và roles
 
             // Xác định URL chuyển hướng dựa trên vai trò
             String redirectUrl;

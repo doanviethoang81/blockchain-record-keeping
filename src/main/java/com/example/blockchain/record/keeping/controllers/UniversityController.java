@@ -9,5 +9,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("${api.prefix:/api/v1}/university")
 @RequiredArgsConstructor
 public class UniversityController {
+//---------------------------- ADMIN -------------------------------------------------------
 
 }

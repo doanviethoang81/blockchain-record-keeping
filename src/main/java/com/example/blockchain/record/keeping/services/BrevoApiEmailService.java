@@ -35,12 +35,13 @@ public class BrevoApiEmailService {
     }
 
     @Async
-    public void sendEmail(String toEmail, String subject, String templateData) {
+    public void sendEmail(String toEmail, String name, String templateData) {
         String url = "https://api.brevo.com/v3/smtp/email";
 
         // 1. Render template từ Thymeleaf
         Context context = new Context();
         context.setVariable("certificateUrl", templateData);
+        context.setVariable("studentName", name);
         String contentHtml = templateEngine.process("email-template", context);
 
         // 2. Gửi email qua Brevo API
@@ -51,9 +52,9 @@ public class BrevoApiEmailService {
         headers.setContentType(MediaType.APPLICATION_JSON);
 
         Map<String, Object> body = new HashMap<>();
-        body.put("sender", Map.of("name", "Your Company", "email", "hoangdoanviet81@gmail.com"));
+        body.put("sender", Map.of("name", "Thông Báo Cấp Chứng Chỉ", "email", "hoangdoanviet81@gmail.com"));
         body.put("to", List.of(Map.of("email", toEmail)));
-        body.put("subject", subject);
+        body.put("subject", name);
         body.put("htmlContent", contentHtml);
 
         HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);

@@ -2,13 +2,12 @@ package com.example.blockchain.record.keeping.utils;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
-import io.jsonwebtoken.security.SignatureException;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Component;
 
 import java.security.Key;
-import java.util.Date;
-import java.util.List;
-import java.util.function.Function;
+import java.util.*;
 
 @Component
 public class JWTUtil {
@@ -17,63 +16,110 @@ public class JWTUtil {
 
     private final long EXPIRATION_TIME = 1000 * 60 * 60 * 10; // 10 tiếng
     // Tạo token
-    public String generateToken(String email, List<String> roles) {
+    public String generateToken(String email, List<String> roles, List<String> permissions) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("roles", roles);
+        claims.put("permissions", permissions);
+
         return Jwts.builder()
+                .setClaims(claims)
                 .setSubject(email)
-                .claim("roles", roles)
+//                .claim("roles", roles)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME)) // 1 ngày
                 .signWith(SECRET_KEY, SignatureAlgorithm.HS256)
                 .compact();
     }
 
-    //Trích xuất email (subject) từ token
+
+    public Claims getAllClaimsFromToken(String token) {
+        return Jwts.parser()
+                .setSigningKey(SECRET_KEY)
+                .parseClaimsJws(token)
+                .getBody();
+    }
+
     public String getEmailFromToken(String token) {
-        return extractClaim(token, Claims::getSubject);
+        return getAllClaimsFromToken(token).getSubject();
     }
 
-    //Trích xuất roles hoặc authorities từ token (nếu có)
-    @SuppressWarnings("unchecked")
-    public List<String> getAuthoritiesFromToken(String token) {
-        Claims claims = extractAllClaims(token);
-        return (List<String>) claims.get("authorities");
-    }
-
-    //Kiểm tra token có hết hạn không
     public boolean isTokenExpired(String token) {
-        return extractExpiration(token).before(new Date());
+        Date expiration = getAllClaimsFromToken(token).getExpiration();
+        return expiration.before(new Date());
     }
 
-    //Trích xuất thời gian hết hạn
-    private Date extractExpiration(String token) {
-        return extractClaim(token, Claims::getExpiration);
-    }
+    //Phương thức thêm mới để lấy GrantedAuthority
+    public List<GrantedAuthority> getAuthoritiesFromToken(String token) {
+        Claims claims = getAllClaimsFromToken(token);
 
-    //Hàm hỗ trợ
-    public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
-        final Claims claims = extractAllClaims(token);
-        return claimsResolver.apply(claims);
-    }
+        List<String> roles = claims.get("roles", List.class);
+        List<String> permissions = claims.get("permissions", List.class);
 
-    public Claims extractAllClaims(String token) {
-        try {
-            return Jwts.parser()
-                    .setSigningKey(SECRET_KEY)
-                    .parseClaimsJws(token)
-                    .getBody();
-        } catch (ExpiredJwtException e) {
-            System.out.println("Token hết hạn");
-            throw e;
-        } catch (SignatureException e) {
-            System.out.println("Sai chữ ký token");
-            throw e;
-        } catch (MalformedJwtException e) {
-            System.out.println("Token sai định dạng");
-            throw e;
-        } catch (Exception e) {
-            System.out.println("Lỗi token: " + e.getMessage());
-            throw e;
+        List<GrantedAuthority> authorities = new ArrayList<>();
+
+        if (roles != null) {
+            authorities.addAll(roles.stream()
+                    .map(role -> new SimpleGrantedAuthority("ROLE_" + role))
+                    .toList());
         }
+
+        if (permissions != null) {
+            authorities.addAll(permissions.stream()
+                    .map(SimpleGrantedAuthority::new)
+                    .toList());
+        }
+
+        return authorities;
     }
+
+//    //Trích xuất email (subject) từ token
+//    public String getEmailFromToken(String token) {
+//        return extractClaim(token, Claims::getSubject);
+//    }
+//
+//    //Trích xuất roles hoặc authorities từ token (nếu có)
+//    @SuppressWarnings("unchecked")
+//    public List<String> getAuthoritiesFromToken(String token) {
+//        Claims claims = extractAllClaims(token);
+//        return (List<String>) claims.get("authorities");
+//    }
+//
+//    //Kiểm tra token có hết hạn không
+//    public boolean isTokenExpired(String token) {
+//        return extractExpiration(token).before(new Date());
+//    }
+//
+//    //Trích xuất thời gian hết hạn
+//    private Date extractExpiration(String token) {
+//        return extractClaim(token, Claims::getExpiration);
+//    }
+//
+//    //Hàm hỗ trợ
+//    public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
+//        final Claims claims = extractAllClaims(token);
+//        return claimsResolver.apply(claims);
+//    }
+//
+//    public Claims extractAllClaims(String token) {
+//        try {
+//            return Jwts.parser()
+//                    .setSigningKey(SECRET_KEY)
+//                    .parseClaimsJws(token)
+//                    .getBody();
+//        } catch (ExpiredJwtException e) {
+//            System.out.println("Token hết hạn");
+//            throw e;
+//        } catch (SignatureException e) {
+//            System.out.println("Sai chữ ký token");
+//            throw e;
+//        } catch (MalformedJwtException e) {
+//            System.out.println("Token sai định dạng");
+//            throw e;
+//        } catch (Exception e) {
+//            System.out.println("Lỗi token: " + e.getMessage());
+//            throw e;
+//        }
+//    }
+
 
 }

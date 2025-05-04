@@ -1,23 +1,43 @@
-package com.example.blockchain.record.keeping.controllers.admin;
+package com.example.blockchain.record.keeping.controllers;
 
 import com.example.blockchain.record.keeping.models.CertificateType;
 import com.example.blockchain.record.keeping.services.CertificateTypeService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Collection;
 
 
 @RestController
-@RequestMapping("${api.prefix:/api/v1}/admin/certificate_type")
+@RequestMapping("${api.prefix:/api/v1}")
 @RequiredArgsConstructor
 public class CertificateTypeController {
 
     private final CertificateTypeService certificateTypeService;
 
+//    @PreAuthorize("hasAuthority('PDT')")
+    @GetMapping("/check-role")
+    public ResponseEntity<?> checkRole(Authentication authentication) {
+        Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
+        return ResponseEntity.ok(authorities);  // Kết quả sẽ là: ROLE_PDT, WRITE, READ
+    }
+
+    @GetMapping("/debug")
+    public ResponseEntity<?> debug(Authentication authentication) {
+        authentication.getAuthorities().forEach(auth -> System.out.println("Quyền: " + auth.getAuthority()));
+        return ResponseEntity.ok(authentication.getAuthorities());
+    }
+
+    //---------------------------- ADMIN -------------------------------------------------------
     @GetMapping("")
     private ResponseEntity<?> getCertificateType(
             @RequestParam(defaultValue = "0") int page,
@@ -32,7 +52,8 @@ public class CertificateTypeController {
         }
     }
 
-    @PostMapping("/create")
+//    @PreAuthorize("hasAuthority('WRITE')")
+    @PostMapping("/pdt/certificate_type/create")
     private ResponseEntity<?> createCertificateType(@RequestBody CertificateType certificateType){
         try {
             if (    certificateType.getName() == null ||
@@ -42,11 +63,18 @@ public class CertificateTypeController {
 
             CertificateType certificateTypeNew = certificateTypeService.createCertificateType(certificateType);
 
-            return ResponseEntity.ok("Thêm chứng chỉ thành công");
+            return ResponseEntity.ok("Thêm loại chứng chỉ thành công");
         } catch (Exception e) {
+            e.printStackTrace(); // thêm dòng này
             return ResponseEntity.internalServerError().body("Có lỗi xảy ra: " + e.getMessage());
         }
     }
+//---------------------------- PDT -------------------------------------------------------
+
+
+
+//---------------------------- KHOA -------------------------------------------------------
+
 
 
 }

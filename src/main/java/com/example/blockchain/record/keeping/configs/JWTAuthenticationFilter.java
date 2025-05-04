@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.util.Pair;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
@@ -19,6 +20,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 @Component
@@ -66,17 +68,32 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter {
             if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                 UserDetails userDetails = customUserDetailService.loadUserByUsername(email);
 
+//                if (!jwtUtil.isTokenExpired(jwt)) {
+//                    UsernamePasswordAuthenticationToken authToken =
+//                            new UsernamePasswordAuthenticationToken(
+//                                    userDetails,
+//                                    null,
+//                                    userDetails.getAuthorities()
+//                            );
+//
+//                    authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+//                    SecurityContextHolder.getContext().setAuthentication(authToken);
+//                }
+
                 if (!jwtUtil.isTokenExpired(jwt)) {
+                    List<GrantedAuthority> authorities = jwtUtil.getAuthoritiesFromToken(jwt);
+
                     UsernamePasswordAuthenticationToken authToken =
                             new UsernamePasswordAuthenticationToken(
                                     userDetails,
                                     null,
-                                    userDetails.getAuthorities()
+                                    authorities // <-- phân quyền từ token
                             );
 
                     authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(authToken);
-                } else {
+                }
+                else {
                     throw new RuntimeException("Token đã hết hạn");
                 }
             }
