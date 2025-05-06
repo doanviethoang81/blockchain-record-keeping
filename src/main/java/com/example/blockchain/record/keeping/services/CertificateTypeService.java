@@ -16,7 +16,6 @@ public class CertificateTypeService implements ICertificateTypeService{
 
     private final CertificateTypeRepository certificateTypeRepository;
 
-
     @Override
     public Page<CertificateType> getAll(Pageable pageable) {
         return certificateTypeRepository.findAll(pageable);

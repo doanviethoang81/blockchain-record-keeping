@@ -24,6 +24,7 @@ public class CertificateService implements ICertificateService{
 
     private final CertificateRepository certificateRepository;
     private final StudentRepository studentRepository;
+    private final BrevoApiEmailService brevoApiEmailService;
 
     @Autowired
     private Web3j web3j;
@@ -107,5 +108,14 @@ public class CertificateService implements ICertificateService{
 
         // Lưu certificate
         certificateRepository.save(certificate);
+
+        //sửa lại đường dẫn chứng chỉ
+        String certificateUrl = "https://yourdomain.com/certificates/" + student.getStudentCode();
+        try {
+//            brevoApiEmailService.sendEmail(student.getEmail(), student.getName(), certificateUrl);
+        } catch (Exception e) {
+            System.err.println("Lỗi khi gửi email cho sinh viên: " + student.getEmail());
+            e.printStackTrace(); // Hoặc ghi log nếu bạn có hệ thống logging
+        }
     }
 }

@@ -23,7 +23,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 
 @RestController
-@RequestMapping("${api.prefix:/api/v1}/certificate")
+@RequestMapping("${api.prefix:/api/v1}")
 @RequiredArgsConstructor
 public class CertificateController {
 
@@ -38,13 +38,11 @@ public class CertificateController {
 
 
 //---------------------------- KHOA -------------------------------------------------------
-    @PreAuthorize("hasAuthority('WRITE')")
-    @PostMapping("/create")
+//    @PreAuthorize("hasAuthority('WRITE')")
+    @PostMapping("/pdt/certificate/create")
     public ResponseEntity<?> createCertificate(@RequestBody JsonNode jsonNode) {
         try {
             certificateService.createCertificate(jsonNode);
-            // nào chạy thì mở gửi gmail
-//            brevoApiEmailService.sendEmailsToStudents(validStudents);
             return ResponseEntity.ok("Tạo chứng chỉ thành công");
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -54,7 +52,7 @@ public class CertificateController {
     }
 
 
-    @PostMapping("/upload-excel")
+    @PostMapping("/pdt/certificate/upload-excel")
     public ResponseEntity<?> uploadExcel(@RequestParam("file") MultipartFile file) {
         try {
             CertificateExcelListener listener = new CertificateExcelListener(studentRepository, certificateRepository);
@@ -69,7 +67,7 @@ public class CertificateController {
             }
 
             // nào chạy thì mở
-            brevoApiEmailService.sendEmailsToStudents(validStudents);
+//            brevoApiEmailService.sendEmailsToStudentsExcel(validStudents);
             return ResponseEntity.ok("Đã đọc thành công " + listener.getDataList().size() + " dòng.");
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());

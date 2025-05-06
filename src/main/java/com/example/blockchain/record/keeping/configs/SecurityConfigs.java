@@ -25,7 +25,9 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import org.springframework.security.web.authentication.Http403ForbiddenEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfigurationSource;
 
@@ -76,16 +78,12 @@ public class SecurityConfigs {
                 .csrf(csrf -> csrf.disable())
                 .cors(cors -> cors.configurationSource(corsConfigurationSource))
                 .exceptionHandling(exception -> exception
-                        .authenticationEntryPoint((req, res, ex) ->
-                                res.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Chưa đăng nhập"))
-                        .accessDeniedHandler((req, res, ex) ->
-                                res.sendError(HttpServletResponse.SC_FORBIDDEN, "Bạn không có quyền thực hiện hành động này!"))
+                        .accessDeniedHandler(customAccessDeniedHandler())
+                        .authenticationEntryPoint(new Http403ForbiddenEntryPoint()) // nếu không đăng nhập
                 )
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers("/api/v1/certificate_type/check-role").permitAll()
-                                .requestMatchers("/api/v1/certificate_type/debug").permitAll()
-
+                                .requestMatchers("/api/v1/check-role").permitAll()
 ////                    .requestMatchers("/images/**").permitAll()
 //                                .requestMatchers("/api/v1/**").permitAll()
 //                                .requestMatchers("/api/v1/admin/**").hasAuthority("ADMIN")
@@ -98,37 +96,16 @@ public class SecurityConfigs {
         return http.build();
     }
 
-//    private JwtAuthenticationConverter jwtAuthenticationConverter() {
-//        JwtAuthenticationConverter converter = new JwtAuthenticationConverter();
-//
-//        converter.setJwtGrantedAuthoritiesConverter(jwt -> {
-//            List<GrantedAuthority> authorities = new ArrayList<>();
-//
-//            // Add roles (with prefix ROLE_)
-//            List<String> roles = jwt.getClaimAsStringList("roles");
-//            if (roles != null) {
-//                authorities.addAll(
-//                        roles.stream()
-//                                .map(role -> new SimpleGrantedAuthority("ROLE_" + role))
-//                                .toList()
-//                );
-//            }
-//
-//            // Add permissions (authorities)
-//            List<String> perms = jwt.getClaimAsStringList("authorities");
-//            if (perms != null) {
-//                authorities.addAll(
-//                        perms.stream()
-//                                .map(SimpleGrantedAuthority::new)
-//                                .toList()
-//                );
-//            }
-//
-//            return authorities;
-//        });
-//
-//        return converter;
-//    }
+    @Bean
+    public AccessDeniedHandler customAccessDeniedHandler() {
+        return (request, response, accessDeniedException) -> {
+            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            response.setContentType("application/json");
+            response.setCharacterEncoding("UTF-8");
+            response.setContentType("application/json;charset=UTF-8");
+            response.getWriter().write("{\"error\": \"Bạn không có quyền thực hiện hành động này!\"}");
+        };
+    }
 
 
 }

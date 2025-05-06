@@ -64,7 +64,7 @@ public class BrevoApiEmailService {
     }
 
 
-    public void sendEmailsToStudents(List<CertificateExcelRowDTO> students) {
+    public void sendEmailsToStudentsExcel(List<CertificateExcelRowDTO> students) {
         List<CompletableFuture<Void>> futures = new ArrayList<>();
         for (CertificateExcelRowDTO student : students) {
             String email = student.getEmail();

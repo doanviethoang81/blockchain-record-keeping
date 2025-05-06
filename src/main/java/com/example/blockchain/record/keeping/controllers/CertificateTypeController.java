@@ -24,7 +24,7 @@ public class CertificateTypeController {
 
     private final CertificateTypeService certificateTypeService;
 
-//    @PreAuthorize("hasAuthority('PDT')")
+    @PreAuthorize("hasAuthority('WRITE')")
     @GetMapping("/check-role")
     public ResponseEntity<?> checkRole(Authentication authentication) {
         Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
@@ -38,8 +38,8 @@ public class CertificateTypeController {
     }
 
     //---------------------------- ADMIN -------------------------------------------------------
-    @GetMapping("")
-    private ResponseEntity<?> getCertificateType(
+    @GetMapping("/pdt/certificate_type")
+    public ResponseEntity<?> getCertificateType(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ){
@@ -52,17 +52,15 @@ public class CertificateTypeController {
         }
     }
 
-//    @PreAuthorize("hasAuthority('WRITE')")
+    @PreAuthorize("hasAuthority('WRITE')")
     @PostMapping("/pdt/certificate_type/create")
-    private ResponseEntity<?> createCertificateType(@RequestBody CertificateType certificateType){
+    public ResponseEntity<?> createCertificateType(@RequestBody CertificateType certificateType){
         try {
             if (    certificateType.getName() == null ||
                     certificateType.getName().isEmpty()) {
                 return ResponseEntity.badRequest().body("Vui lòng nhập đầy đủ thông tin!");
             }
-
-            CertificateType certificateTypeNew = certificateTypeService.createCertificateType(certificateType);
-
+            certificateTypeService.createCertificateType(certificateType);
             return ResponseEntity.ok("Thêm loại chứng chỉ thành công");
         } catch (Exception e) {
             e.printStackTrace(); // thêm dòng này
