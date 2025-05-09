@@ -36,8 +36,6 @@ import java.util.List;
 
 @Configuration
 @EnableWebSecurity
-//@EnableMethodSecurity(prePostEnabled = true)
-//@EnableGlobalMethodSecurity(prePostEnabled = true)
 @EnableGlobalMethodSecurity(prePostEnabled = true, proxyTargetClass = true)
 public class SecurityConfigs {
 
@@ -86,7 +84,7 @@ public class SecurityConfigs {
                                 .requestMatchers("/api/v1/check-role").permitAll()
 ////                    .requestMatchers("/images/**").permitAll()
 //                                .requestMatchers("/api/v1/**").permitAll()
-//                                .requestMatchers("/api/v1/admin/**").hasAuthority("ADMIN")
+                                .requestMatchers("/api/v1/admin/**").hasAuthority("ADMIN")
                         .requestMatchers("/api/v1/pdt/**").hasRole("PDT")
                         .requestMatchers("/api/v1/khoa/**").hasRole("KHOA")
                         .anyRequest().authenticated()

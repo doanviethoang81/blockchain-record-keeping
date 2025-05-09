@@ -34,7 +34,7 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter {
     private JWTUtil jwtUtil;
 
     @Autowired
-    private CustomUserDetailService customUserDetailService; // Tải User từ DB bằng email
+    private CustomUserDetailService customUserDetailService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -68,18 +68,6 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter {
             if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                 UserDetails userDetails = customUserDetailService.loadUserByUsername(email);
 
-//                if (!jwtUtil.isTokenExpired(jwt)) {
-//                    UsernamePasswordAuthenticationToken authToken =
-//                            new UsernamePasswordAuthenticationToken(
-//                                    userDetails,
-//                                    null,
-//                                    userDetails.getAuthorities()
-//                            );
-//
-//                    authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-//                    SecurityContextHolder.getContext().setAuthentication(authToken);
-//                }
-
                 if (!jwtUtil.isTokenExpired(jwt)) {
                     List<GrantedAuthority> authorities = jwtUtil.getAuthoritiesFromToken(jwt);
 
@@ -87,7 +75,7 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter {
                             new UsernamePasswordAuthenticationToken(
                                     userDetails,
                                     null,
-                                    authorities // <-- phân quyền từ token
+                                    authorities //phân quyền từ token
                             );
 
                     authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));

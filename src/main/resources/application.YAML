@@ -41,8 +41,19 @@ spring:
           starttls:
             enable: true
 
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: 6379
+      password: ${REDIS_PASSWORD}
+      ssl:
+        enabled: true
+
+
+
 brevo:
   apiKey: ${BREVO_API_KEY}
 
 myapp:
   alchemy-url: ${ALCHEMY_URL}
+

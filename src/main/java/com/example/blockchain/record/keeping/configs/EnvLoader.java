@@ -17,6 +17,9 @@ public class EnvLoader {
         setEnvIfMissing("YOUR_BREVO_EMAIL", dotenv);
         setEnvIfMissing("YOUR_BREVO_SMTP_KEY", dotenv);
 
+        setEnvIfMissing("REDIS_HOST", dotenv);
+        setEnvIfMissing("REDIS_PASSWORD", dotenv);
+
 //        setEnvIfMissing("CLOUDINARY_NAME", dotenv);
 //        setEnvIfMissing("CLOUDINARY_KEY", dotenv);
 //        setEnvIfMissing("CLOUDINARY_SECRET", dotenv);

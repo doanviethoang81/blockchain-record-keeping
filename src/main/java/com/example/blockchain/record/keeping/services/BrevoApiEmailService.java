@@ -3,8 +3,10 @@ package com.example.blockchain.record.keeping.services;
 import ch.qos.logback.core.util.EnvUtil;
 import com.example.blockchain.record.keeping.dtos.CertificateExcelRowDTO;
 import io.github.cdimascio.dotenv.Dotenv;
+import jakarta.mail.internet.MimeMessage;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.ResponseEntity;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -78,5 +80,40 @@ public class BrevoApiEmailService {
 
         // Đợi tất cả các tác vụ bất đồng bộ hoàn thành
         CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+    }
+
+
+    @Async
+    public void sendActivationEmail(String toEmail, String otpCode) {
+        try {
+            String url = "https://api.brevo.com/v3/smtp/email";
+
+            // 1. Render template từ Thymeleaf
+            Context context = new Context();
+            context.setVariable("otpCode", otpCode);
+            context.setVariable("email", toEmail);
+            String contentHtml = templateEngine.process("otp-email-template", context); // tên file template
+
+            // 2. Gửi email qua Brevo API
+            RestTemplate restTemplate = new RestTemplate();
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("api-key", API_KEY);
+            headers.setContentType(MediaType.APPLICATION_JSON);
+
+            Map<String, Object> body = new HashMap<>();
+            body.put("sender", Map.of("name", "Xác Minh Tài Khoản", "email", "hoangdoanviet81@gmail.com"));
+            body.put("to", List.of(Map.of("email", toEmail)));
+            body.put("subject", "Mã OTP xác minh tài khoản của bạn");
+            body.put("htmlContent", contentHtml);
+
+            HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
+
+            ResponseEntity<String> response = restTemplate.postForEntity(url, entity, String.class);
+            System.out.println("Kết quả gửi OTP: " + response.getStatusCode());
+        } catch (Exception e) {
+            System.err.println("Lỗi khi gửi OTP tới " + toEmail + ": " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 }

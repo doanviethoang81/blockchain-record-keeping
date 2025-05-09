@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Mã OTP Kích Hoạt Tài Khoản</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            text-align: center;
+            padding: 20px 0;
+            background-color: #2e6c80;
+            color: #ffffff;
+            border-radius: 8px 8px 0 0;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+        .content {
+            padding: 20px;
+        }
+        .otp-code {
+            font-size: 32px;
+            font-weight: bold;
+            color: #2e6c80;
+            margin: 20px 0;
+            letter-spacing: 5px;
+        }
+        .content p {
+            font-size: 16px;
+            color: #333333;
+            line-height: 1.6;
+        }
+        .footer {
+            padding: 20px;
+            font-size: 14px;
+            color: #777777;
+        }
+        .footer a {
+            color: #2e6c80;
+            text-decoration: none;
+        }
+        @media only screen and (max-width: 600px) {
+            .container {
+                padding: 10px;
+            }
+            .otp-code {
+                font-size: 24px;
+                letter-spacing: 3px;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>Mã OTP Kích Hoạt</h1>
+    </div>
+    <div class="content">
+        <p>Xin chào</span>,</p>
+        <p>Bạn vừa yêu cầu kích hoạt tài khoản trên hệ thống của chúng tôi. Dưới đây là mã OTP của bạn:</p>
+        <div class="otp-code"  th:text="${otpCode}">123456</div>
+        <p>Mã OTP này sẽ hết hạn sau 10 phút. Vui lòng sử dụng mã này để hoàn tất quá trình kích hoạt.</p>
+        <p>Nếu bạn không yêu cầu mã này, vui lòng bỏ qua email này hoặc liên hệ với chúng tôi.</p>
+    </div>
+    <div class="footer">
+        <p>Trân trọng,<br/>Đội ngũ hỗ trợ</p>
+    </div>
+</div>
+</body>
+</html>

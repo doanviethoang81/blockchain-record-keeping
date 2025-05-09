@@ -7,15 +7,22 @@ import com.example.blockchain.record.keeping.dtos.StudentDTO;
 import com.example.blockchain.record.keeping.models.*;
 import com.example.blockchain.record.keeping.repositorys.CertificateRepository;
 import com.example.blockchain.record.keeping.repositorys.StudentRepository;
+import com.example.blockchain.record.keeping.repositorys.UniversityCertificateTypeRepository;
+import com.example.blockchain.record.keeping.repositorys.UniversityRepository;
 import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.etsi.uri.x01903.v13.CertificateValuesType;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 import org.web3j.crypto.Credentials;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 
+import javax.swing.plaf.multi.MultiInternalFrameUI;
 import java.time.LocalDate;
 
 @Service
@@ -25,6 +32,10 @@ public class CertificateService implements ICertificateService{
     private final CertificateRepository certificateRepository;
     private final StudentRepository studentRepository;
     private final BrevoApiEmailService brevoApiEmailService;
+    private final UniversityService universityService;
+    private final UniversityCertificateTypeService universityCertificateTypeService;
+    private final UserService userService;
+    private final CertificateTypeService certificateTypeService;
 
     @Autowired
     private Web3j web3j;
@@ -41,20 +52,23 @@ public class CertificateService implements ICertificateService{
     }
 
     @Transactional
-    public void createCertificate(JsonNode jsonNode) {
+    public void createCertificate(JsonNode jsonNode, MultipartFile image) {
         // Lấy ra node student và certificate
         JsonNode studentNode = jsonNode.get("student");
         JsonNode certificateNode = jsonNode.get("certificate");
 
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+
+        User user= userService.findByUser(username);
+        Department department=user.getDepartment();
+
+//        Long idKhoa =
         String studentCode = studentNode.get("student_code").asText();
 
         //kiem tra trung mssv
         Student student = studentRepository.findByStudentCode(studentCode)
                 .orElseGet(() -> {
-                    //fake khoa nhớ đổi lại khoa reald
-                    Department department = new Department();
-                    department.setId(1L);
-
                     Student newStudent = new Student();
                     newStudent.setDepartment(department);//này đổi
                     newStudent.setName(studentNode.get("name").asText());
@@ -66,14 +80,15 @@ public class CertificateService implements ICertificateService{
                     return studentRepository.save(newStudent); // lưu nếu chưa có
                 });
 
-        // Tạo Certificate entity
         Certificate certificate = new Certificate();
-        certificate.setStudent(student); // Liên kết với student đã lưu
+        certificate.setStudent(student);
 
-        UniversityCertificateType certificateType = new UniversityCertificateType();
-        certificateType.setId(certificateNode.get("university_certificate_type_id").asLong());
-        certificate.setUniversityCertificateType(certificateType);
+        //lấy thong tin loai chung chi
+        Long id = Long.valueOf(certificateNode.get("name_certificate_type").asText());
+        CertificateType certificateType= certificateTypeService.findById(id);
+        UniversityCertificateType universityCertificateType = universityCertificateTypeService.findByCartificateType(certificateType);
 
+        certificate.setUniversityCertificateType(universityCertificateType);
         certificate.setIssueDate(LocalDate.parse(certificateNode.get("issue_date").asText()));
         certificate.setGraduationYear(certificateNode.get("graduation_year").asText());
         certificate.setEducationMode(certificateNode.get("education_mode").asText());
@@ -88,7 +103,6 @@ public class CertificateService implements ICertificateService{
         certificate.setStatus("1");
         certificate.setRating(certificateNode.get("rating").asText());
         certificate.setDegreeTitle(certificateNode.get("degree_title").asText());
-
 
         // Lưu dữ liệu lên blockchain
 //            String contractAddress = "0x3D9433e04432406335CBEf89cB39784fC1Fd7d7B"; // Thay bằng địa chỉ hợp đồng của bạn
@@ -112,7 +126,7 @@ public class CertificateService implements ICertificateService{
         //sửa lại đường dẫn chứng chỉ
         String certificateUrl = "https://yourdomain.com/certificates/" + student.getStudentCode();
         try {
-//            brevoApiEmailService.sendEmail(student.getEmail(), student.getName(), certificateUrl);
+            brevoApiEmailService.sendEmail(student.getEmail(), student.getName(), certificateUrl);
         } catch (Exception e) {
             System.err.println("Lỗi khi gửi email cho sinh viên: " + student.getEmail());
             e.printStackTrace(); // Hoặc ghi log nếu bạn có hệ thống logging

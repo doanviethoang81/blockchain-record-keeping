@@ -8,11 +8,9 @@ import com.example.blockchain.record.keeping.models.Certificate;
 import com.example.blockchain.record.keeping.models.Student;
 import com.example.blockchain.record.keeping.repositorys.CertificateRepository;
 import com.example.blockchain.record.keeping.repositorys.StudentRepository;
-import com.example.blockchain.record.keeping.services.BrevoApiEmailService;
-import com.example.blockchain.record.keeping.services.CertificateExcelListener;
-import com.example.blockchain.record.keeping.services.CertificateService;
-import com.example.blockchain.record.keeping.services.EmailService;
+import com.example.blockchain.record.keeping.services.*;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -32,17 +30,28 @@ public class CertificateController {
     private final BrevoApiEmailService brevoApiEmailService;
     private final StudentRepository studentRepository;
     private final CertificateRepository certificateRepository;
+    private final UniversityService universityService;
+    private final UniversityCertificateTypeService universityCertificateTypeService;
+    private final UserService userService;
+    private final CertificateTypeService certificateTypeService;
+
+
 //---------------------------- ADMIN -------------------------------------------------------
 
 
 
 
 //---------------------------- KHOA -------------------------------------------------------
-//    @PreAuthorize("hasAuthority('WRITE')")
-    @PostMapping("/pdt/certificate/create")
-    public ResponseEntity<?> createCertificate(@RequestBody JsonNode jsonNode) {
+    @PreAuthorize("hasAuthority('WRITE')")
+    @PostMapping("/khoa/certificate/create")
+    public ResponseEntity<?> createCertificate(
+            @RequestParam("data") String dataJson,
+            @RequestParam("img") MultipartFile image
+    ) {
         try {
-            certificateService.createCertificate(jsonNode);
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode jsonNode = mapper.readTree(dataJson);
+            certificateService.createCertificate(jsonNode,image);
             return ResponseEntity.ok("Tạo chứng chỉ thành công");
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -52,11 +61,22 @@ public class CertificateController {
     }
 
 
-    @PostMapping("/pdt/certificate/upload-excel")
-    public ResponseEntity<?> uploadExcel(@RequestParam("file") MultipartFile file) {
+    @PostMapping("/khoa/certificate/upload-excel")
+    public ResponseEntity<?> uploadExcel(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam("img") MultipartFile image,
+            @RequestParam("name_certificate_type") String certificateTypeName) {
         try {
-            CertificateExcelListener listener = new CertificateExcelListener(studentRepository, certificateRepository);
-
+            CertificateExcelListener listener = new CertificateExcelListener(
+                                studentRepository,
+                                certificateRepository,
+                                universityService,
+                                universityCertificateTypeService,
+                                userService,
+                                certificateTypeService,
+                                certificateTypeName,
+                                image
+                        );
             EasyExcel.read(file.getInputStream(), CertificateExcelRowDTO.class, listener)
                     .sheet()
                     .doRead();
@@ -67,7 +87,7 @@ public class CertificateController {
             }
 
             // nào chạy thì mở
-//            brevoApiEmailService.sendEmailsToStudentsExcel(validStudents);
+            brevoApiEmailService.sendEmailsToStudentsExcel(validStudents);
             return ResponseEntity.ok("Đã đọc thành công " + listener.getDataList().size() + " dòng.");
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
