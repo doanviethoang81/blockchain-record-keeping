@@ -26,13 +26,6 @@ public class CustomUserDetailService implements UserDetailsService {
 
     private final UserRepository userRepository;
     private final UserPermissionRepository userPermissionRepository;
-    private final RoleRepository roleRepository;
-
-//    @Autowired
-//    public CustomUserDetailService(UserRepository userRepository1, UserPermissionRepository userPermissionRepository) {
-//        this.userRepository = userRepository1;
-//        this.userPermissionRepository = userPermissionRepository;
-//    }
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {

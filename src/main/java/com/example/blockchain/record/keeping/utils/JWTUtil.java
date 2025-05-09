@@ -33,10 +33,14 @@ public class JWTUtil {
 
 
     public Claims getAllClaimsFromToken(String token) {
-        return Jwts.parser()
-                .setSigningKey(SECRET_KEY)
-                .parseClaimsJws(token)
-                .getBody();
+        try {
+            return Jwts.parser()
+                    .setSigningKey(SECRET_KEY)
+                    .parseClaimsJws(token)
+                    .getBody();
+        } catch (JwtException e) {
+            throw new RuntimeException("Token không hợp lệ: " + e.getMessage());
+        }
     }
 
     public String getEmailFromToken(String token) {

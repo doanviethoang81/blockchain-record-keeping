@@ -5,6 +5,11 @@ server:
 api:
   prefix: api/v1
 
+logging:
+  level:
+    org:
+      springframework: DEBUG
+
 spring:
   datasource:
     url: ${SPRING_DATASOURCE_URL}

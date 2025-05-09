@@ -2,15 +2,10 @@ package com.example.blockchain.record.keeping.configs;
 
 import com.example.blockchain.record.keeping.services.CustomUserDetailService;
 import com.example.blockchain.record.keeping.utils.JWTUtil;
-import jakarta.annotation.Nonnull;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.util.Pair;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -20,16 +15,10 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 
 @Component
 public class JWTAuthenticationFilter extends OncePerRequestFilter {
-
-
-    @Value("${api.prefix}")
-    private String apiPrefix;
 
     private final JWTUtil jwtUtil;
     private final CustomUserDetailService customUserDetailService;
