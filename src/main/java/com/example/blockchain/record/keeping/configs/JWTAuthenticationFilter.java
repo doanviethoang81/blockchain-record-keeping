@@ -7,6 +7,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.util.Pair;
@@ -30,11 +31,13 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter {
     @Value("${api.prefix}")
     private String apiPrefix;
 
-    @Autowired
-    private JWTUtil jwtUtil;
+    private final JWTUtil jwtUtil;
+    private final CustomUserDetailService customUserDetailService;
 
-    @Autowired
-    private CustomUserDetailService customUserDetailService;
+    public JWTAuthenticationFilter(JWTUtil jwtUtil, CustomUserDetailService customUserDetailService) {
+        this.jwtUtil = jwtUtil;
+        this.customUserDetailService = customUserDetailService;
+    }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,

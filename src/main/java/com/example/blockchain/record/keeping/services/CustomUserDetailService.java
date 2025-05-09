@@ -44,12 +44,5 @@ public class CustomUserDetailService implements UserDetailsService {
                 user.getPassword(),
                 Collections.singletonList(new SimpleGrantedAuthority(user.getRole().getName()))
         );
-//        Role role = user.getRole();
-//        List<UserPermission> userPermissions = userPermissionRepository.findByUserId(user.getId());
-//        List<String> permissions = userPermissions.stream()
-//                .map(up -> up.getPermission().getName()) // "READ", "WRITE"
-//                .collect(Collectors.toList());
-//
-//        return new CustomUserDetails(user,role, permissions);
     }
 }
