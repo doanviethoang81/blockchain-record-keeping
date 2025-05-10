@@ -7,14 +7,11 @@ import com.example.blockchain.record.keeping.dtos.request.VerifyOtpRequest;
 import com.example.blockchain.record.keeping.models.*;
 import com.example.blockchain.record.keeping.repositorys.*;
 import com.example.blockchain.record.keeping.services.BrevoApiEmailService;
-import com.example.blockchain.record.keeping.services.EmailService;
 import com.example.blockchain.record.keeping.services.OtpService;
 import com.example.blockchain.record.keeping.services.UserService;
 import com.example.blockchain.record.keeping.utils.JWTUtil;
-import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
-import org.hibernate.validator.internal.util.logging.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,12 +22,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.validation.BindingResult;
-import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
 import java.util.*;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 @RestController
