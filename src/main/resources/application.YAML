@@ -7,8 +7,8 @@ api:
 
 logging:
   level:
-    org:
-      springframework: DEBUG
+    org.springframework: DEBUG
+    io.lettuce: DEBUG
 
 spring:
   datasource:
