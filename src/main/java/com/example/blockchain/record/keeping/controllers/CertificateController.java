@@ -26,7 +26,6 @@ import java.util.List;
 public class CertificateController {
 
     private final CertificateService certificateService;
-    private final EmailService emailService;
     private final BrevoApiEmailService brevoApiEmailService;
     private final StudentRepository studentRepository;
     private final CertificateRepository certificateRepository;
