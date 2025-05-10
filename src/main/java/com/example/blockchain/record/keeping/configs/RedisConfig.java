@@ -1,6 +1,6 @@
 package com.example.blockchain.record.keeping.configs;
 
-import io.github.cdimascio.dotenv.Dotenv;
+import com.example.blockchain.record.keeping.utils.EnvUtil;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -15,20 +15,13 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 @EnableRedisRepositories
 public class RedisConfig {
 
-//    Dotenv dotenv = Dotenv.configure().ignoreIfMissing().load();
-//    String host = dotenv.get("REDIS_HOST");
-//    String password = dotenv.get("REDIS_PASSWORD");
-
-    @Value("${spring.data.redis.host}")
-    private String host;
+    private final String host = EnvUtil.get("REDIS_HOST");
+    private final String password = EnvUtil.get("REDIS_PASSWORD");
 
     @Value("${spring.data.redis.port}")
     private int port;
 
-    @Value("${spring.data.redis.password:}")
-    private String password;
-
-    @Value("${spring.data.redis.ssl.enabled:false}")
+    @Value("${spring.data.redis.ssl.enabled:true}")
     private boolean sslEnabled;
 
     @Bean
