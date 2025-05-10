@@ -6,16 +6,22 @@ public class EnvUtil {
     private static final Dotenv dotenv = Dotenv.configure().ignoreIfMissing().load();
 
     public static String get(String key) {
-        // 1. Lấy từ biến môi trường thật (Render)
         String value = System.getenv(key);
-        if (value != null && !value.isEmpty()) return value;
-
-        // 2. Lấy từ system property nếu có truyền -D
+        if (value != null && !value.isEmpty()) {
+            System.out.println("EnvUtil: " + key + "=" + value + " (from System.getenv)");
+            return value;
+        }
         value = System.getProperty(key);
-        if (value != null && !value.isEmpty()) return value;
-
-        // 3. Lấy từ file .env (local)
+        if (value != null && !value.isEmpty()) {
+            System.out.println("EnvUtil: " + key + "=" + value + " (from System.getProperty)");
+            return value;
+        }
         value = dotenv.get(key);
-        return value;
+        if (value != null && !value.isEmpty()) {
+            System.out.println("EnvUtil: " + key + "=" + value + " (from .env)");
+            return value;
+        }
+        System.err.println("Error: Environment variable " + key + " is not set");
+        throw new IllegalStateException("Missing required environment variable: " + key);
     }
 }

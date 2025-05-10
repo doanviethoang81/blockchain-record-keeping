@@ -20,6 +20,13 @@ public class RedisConfig {
     private int port = 6379;
     private boolean sslEnabled = true;
 
+    public RedisConfig() {
+        if (host == null || host.isEmpty() || password == null || password.isEmpty()) {
+            throw new IllegalStateException("REDIS_HOST or REDIS_PASSWORD is not set. Host: " + host + ", Password: " + password);
+        }
+        System.out.println("Redis Config: host=" + host + ", port=" + port + ", sslEnabled=" + sslEnabled);
+    }
+
     @Bean
     public LettuceConnectionFactory redisConnectionFactory() {
         RedisStandaloneConfiguration redisConfig = new RedisStandaloneConfiguration(host, port);
