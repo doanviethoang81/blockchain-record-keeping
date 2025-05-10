@@ -17,12 +17,8 @@ public class RedisConfig {
 
     private final String host = EnvUtil.get("REDIS_HOST");
     private final String password = EnvUtil.get("REDIS_PASSWORD");
-
-    @Value("${spring.data.redis.port}")
-    private int port;
-
-    @Value("${spring.data.redis.ssl.enabled:true}")
-    private boolean sslEnabled;
+    private int port = 6379;
+    private boolean sslEnabled = true;
 
     @Bean
     public LettuceConnectionFactory redisConnectionFactory() {
