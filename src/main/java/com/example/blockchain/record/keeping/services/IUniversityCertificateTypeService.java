@@ -4,6 +4,8 @@ import com.example.blockchain.record.keeping.models.CertificateType;
 import com.example.blockchain.record.keeping.models.University;
 import com.example.blockchain.record.keeping.models.UniversityCertificateType;
 
+import java.util.List;
+
 public interface IUniversityCertificateTypeService {
 
     UniversityCertificateType save(UniversityCertificateType universityCertificateType);
@@ -11,5 +13,8 @@ public interface IUniversityCertificateTypeService {
     UniversityCertificateType findById(Long id);
 
     UniversityCertificateType findByCartificateType(CertificateType id);
+
+    List<UniversityCertificateType> listUniversityCertificateType(University university);
+
 
 }

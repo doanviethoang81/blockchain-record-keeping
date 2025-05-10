@@ -6,6 +6,8 @@ import com.example.blockchain.record.keeping.dtos.RegisterRequest;
 import com.example.blockchain.record.keeping.dtos.request.VerifyOtpRequest;
 import com.example.blockchain.record.keeping.models.*;
 import com.example.blockchain.record.keeping.repositorys.*;
+import com.example.blockchain.record.keeping.response.ApiResponse;
+import com.example.blockchain.record.keeping.response.ApiResponseBuilder;
 import com.example.blockchain.record.keeping.services.BrevoApiEmailService;
 import com.example.blockchain.record.keeping.services.OtpService;
 import com.example.blockchain.record.keeping.services.UserService;
@@ -52,24 +54,20 @@ public class AuthencationController {
     @PostMapping("/register")
     public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest request, BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Vui lòng nhập đúng đầy đủ thông tin!");
+            return ApiResponseBuilder.badRequest("Vui lòng nhập đúng đầy đủ thông tin!");
         }
         try{
             Optional<University> existingUniversity = universityRepository.findByEmail(request.getEmail());
             if (existingUniversity.isPresent()) {
-                // Nếu email đã tồn tại
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Email đã được đăng ký!");
+                return ApiResponseBuilder.badRequest("Email đã được đăng ký!");
             }
-
-
-//            LocalDateTime expiryTime = LocalDateTime.now().plusMinutes(10);  // Mã có hiệu lực trong 10 phút plusMinutes
             // Tạo user mới
             University university = new University();
             university.setName(request.getName());
             university.setAddress(request.getAddress());
             university.setEmail(request.getEmail());
-            university.setTaxCode(request.getTaxCode()); // Ban đầu tài khoản chưa kích hoạt
-            university.setWebsite(request.getWebsite()); // Gán role cho user
+            university.setTaxCode(request.getTaxCode());
+            university.setWebsite(request.getWebsite());
             university.setLogo(request.getLogo());
             universityRepository.save(university);
 
@@ -83,15 +81,13 @@ public class AuthencationController {
             user.setEmail(request.getEmail());
             userRepository.save(user);
 
-
-
             //tạo random 6 số
             String otp = String.format("%06d", new Random().nextInt(999999));
-            otpService.saveOtp(request.getEmail(), otp);  // Lưu vào Redis 10 phút
-            brevoApiEmailService.sendActivationEmail(request.getEmail(), otp);  // Gửi email
-            return ResponseEntity.ok("Đăng ký thành công! Vui lòng kiểm tra email để kích hoạt tài khoản");
+            otpService.saveOtp(request.getEmail(), otp);
+            brevoApiEmailService.sendActivationEmail(request.getEmail(), otp);
+            return ApiResponseBuilder.success("Đăng ký thành công! Vui lòng kiểm tra email để kích hoạt tài khoản", null, null);
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            return ApiResponseBuilder.internalError("Đã xảy ra lỗi trong quá trình đăng ký");
         }
     }
 
@@ -122,7 +118,7 @@ public class AuthencationController {
                     .collect(Collectors.toList());
 
             if( authorities == null || authorities.isEmpty()){
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Tài khoản đã bị khóa hoặc chưa xác thực!");
+                return ApiResponseBuilder.badRequest("Tài khoản đã bị khóa hoặc chưa xác thực!");
             }
 
             String token = jwtUtil.generateToken(user.getEmail(), List.of(role), authorities);// Tạo JWT token từ email và roles
@@ -130,29 +126,29 @@ public class AuthencationController {
             // Xác định URL chuyển hướng dựa trên vai trò
             String redirectUrl;
             switch (role) {
-                case "ADMIN":
-                    redirectUrl = "/admin/dashboard";
-                    break;
-                case "PDT":
-                    redirectUrl = "/pdt/dashboard";
-                    break;
-                case "KHOA":
-                    redirectUrl = "/khoa/dashboard";
-                    break;
-                default:
-                    redirectUrl = "/error";
-                    break;
+                case "ADMIN" -> redirectUrl = "/admin/dashboard";
+                case "PDT" -> redirectUrl = "/pdt/dashboard";
+                case "KHOA" -> redirectUrl = "/khoa/dashboard";
+                default -> redirectUrl = "/error";
             }
-            return ResponseEntity.ok(new LoginResponse(
+            LoginResponse response = new LoginResponse(
                     university.get().getName(),
                     user.getEmail(),
                     token,
                     role,
                     redirectUrl,
                     authorities
-            ));
+            );
+
+            return ApiResponseBuilder.success("Đăng nhập thành công!", response, null);
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Email hoặc mật khẩu không đúng!");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
+                    ApiResponse.<LoginResponse>builder()
+                            .status(HttpStatus.UNAUTHORIZED.value())
+                            .message("Email hoặc mật khẩu không đúng!")
+                            .data(null)
+                            .build()
+            );
         }
     }
 
@@ -171,9 +167,9 @@ public class AuthencationController {
                 userPermission.setPermission(permission);
                 userPermissionRepository.save(userPermission);
             }
-            return ResponseEntity.ok("OTP hợp lệ!");
+            return ApiResponseBuilder.success("OTP hợp lệ!", null, null);
         }else{
-            return ResponseEntity.status(400).body("OTP sai hoặc đã hết hạn");
+            return ApiResponseBuilder.badRequest("OTP sai hoặc đã hết hạn");
         }
     }
 }

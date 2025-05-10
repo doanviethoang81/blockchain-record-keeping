@@ -5,11 +5,11 @@ server:
 api:
   prefix: api/v1
 
-logging:
-  level:
-    org.springframework: DEBUG
-    io.lettuce: DEBUG
-    com.example.blockchain.record.keeping: DEBUG
+#logging:
+#  level:
+#    org.springframework: DEBUG
+#    io.lettuce: DEBUG
+#    com.example.blockchain.record.keeping: DEBUG
 
 spring:
   datasource:

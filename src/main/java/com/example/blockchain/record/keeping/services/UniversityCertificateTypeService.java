@@ -7,6 +7,8 @@ import com.example.blockchain.record.keeping.repositorys.UniversityCertificateTy
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class UniversityCertificateTypeService implements IUniversityCertificateTypeService{
@@ -28,6 +30,11 @@ public class UniversityCertificateTypeService implements IUniversityCertificateT
     public UniversityCertificateType findByCartificateType(CertificateType certificateType) {
         return universityCertificateTypeRepository.findByCertificateType(certificateType)
                 .orElseThrow(()-> new RuntimeException("Không tìm thấy loại chứng chỉ! "));
+    }
+
+    @Override
+    public List<UniversityCertificateType> listUniversityCertificateType(University university) {
+        return universityCertificateTypeRepository.findByUniversity(university);
     }
 
 

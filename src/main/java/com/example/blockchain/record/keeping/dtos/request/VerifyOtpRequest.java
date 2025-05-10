@@ -5,7 +5,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class VerifyOtpRequest {
+public class VerifyOtpRequest {//DTO nhận dữ liệu từ client (FE gửi lên)
     private String email;
     private String otp;
 }

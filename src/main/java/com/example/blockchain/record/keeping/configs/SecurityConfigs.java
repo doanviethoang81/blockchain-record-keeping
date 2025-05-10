@@ -4,13 +4,17 @@ package com.example.blockchain.record.keeping.configs;
 import com.example.blockchain.record.keeping.models.University;
 import com.example.blockchain.record.keeping.repositorys.RoleRepository;
 import com.example.blockchain.record.keeping.repositorys.UniversityRepository;
+import com.example.blockchain.record.keeping.response.ApiResponse;
+import com.example.blockchain.record.keeping.response.ApiResponseBuilder;
 import com.example.blockchain.record.keeping.services.CustomUserDetailService;
 import com.example.blockchain.record.keeping.utils.JWTUtil;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.Customizer;
@@ -84,10 +88,10 @@ public class SecurityConfigs {
                         .requestMatchers("/api/auth/**").permitAll()
                                 .requestMatchers("/api/v1/check-role").permitAll()
 ////                    .requestMatchers("/images/**").permitAll()
-//                                .requestMatchers("/api/v1/**").permitAll()
                                 .requestMatchers("/api/v1/admin/**").hasAuthority("ADMIN")
                         .requestMatchers("/api/v1/pdt/**").hasRole("PDT")
-                        .requestMatchers("/api/v1/khoa/**").hasRole("KHOA")
+                                .requestMatchers("/api/v1/khoa/**").hasRole("KHOA")
+                                .requestMatchers("/api/v1/pdt-khoa/**").hasAnyRole("PDT", "KHOA")
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtTokenFilter, UsernamePasswordAuthenticationFilter.class);
@@ -101,10 +105,32 @@ public class SecurityConfigs {
             response.setStatus(HttpServletResponse.SC_FORBIDDEN);
             response.setContentType("application/json");
             response.setCharacterEncoding("UTF-8");
-            response.setContentType("application/json;charset=UTF-8");
-            response.getWriter().write("{\"error\": \"Bạn không có quyền thực hiện hành động này!\"}");
+
+            ApiResponse<?> apiResponse = ApiResponse.builder()
+                    .status(HttpStatus.FORBIDDEN.value())
+                    .message("Bạn không có quyền thực hiện hành động này!")
+                    .data(null)
+                    .paginationInfo(null)
+                    .build();
+
+            String json = new ObjectMapper().writeValueAsString(apiResponse);
+
+            response.getWriter().write(json);
+            response.getWriter().flush();
         };
     }
+
+//    @Bean
+//    public AccessDeniedHandler customAccessDeniedHandler() {
+//        return (request, response, accessDeniedException) -> {
+//            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+//            response.setContentType("application/json");
+//            response.setCharacterEncoding("UTF-8");
+//            response.setContentType("application/json;charset=UTF-8");
+//            response.getWriter().write("{\"error\": \"Bạn không có quyền thực hiện hành động này!\"}");
+//        };
+//    }
+
 
 
 }

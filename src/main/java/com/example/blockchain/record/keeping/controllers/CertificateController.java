@@ -8,6 +8,7 @@ import com.example.blockchain.record.keeping.models.Certificate;
 import com.example.blockchain.record.keeping.models.Student;
 import com.example.blockchain.record.keeping.repositorys.CertificateRepository;
 import com.example.blockchain.record.keeping.repositorys.StudentRepository;
+import com.example.blockchain.record.keeping.response.ApiResponseBuilder;
 import com.example.blockchain.record.keeping.services.*;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -50,12 +51,14 @@ public class CertificateController {
         try {
             ObjectMapper mapper = new ObjectMapper();
             JsonNode jsonNode = mapper.readTree(dataJson);
+            JsonNode studentNode = jsonNode.get("student");
+            String studentEmail = studentNode.get("email").asText();
             certificateService.createCertificate(jsonNode,image);
-            return ResponseEntity.ok("Tạo chứng chỉ thành công");
+            return ApiResponseBuilder.success("Tạo chứng chỉ thành công, đã gửi email tới "+ studentEmail, null,null);
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            return ApiResponseBuilder.badRequest(e.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Lỗi hệ thống");
+            return ApiResponseBuilder.internalError("Lỗi hệ thống");
         }
     }
 
@@ -82,14 +85,14 @@ public class CertificateController {
             List<CertificateExcelRowDTO> validStudents = listener.getDataList();
             List<String> errors = listener.getErrorMessages();
             if (!errors.isEmpty()) {
-                return ResponseEntity.badRequest().body(errors);
+                return ApiResponseBuilder.listBadRequest("Có lỗi xảy ra", errors);
             }
 
             // nào chạy thì mở
             brevoApiEmailService.sendEmailsToStudentsExcel(validStudents);
-            return ResponseEntity.ok("Đã đọc thành công " + listener.getDataList().size() + " dòng.");
+            return ApiResponseBuilder.success("Đã đọc thành công " + listener.getDataList().size() + " dòng.", null, null);
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            return ApiResponseBuilder.badRequest(e.getMessage());
         }
     }
 }

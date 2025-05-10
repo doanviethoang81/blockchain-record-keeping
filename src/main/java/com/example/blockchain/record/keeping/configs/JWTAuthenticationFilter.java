@@ -1,7 +1,9 @@
 package com.example.blockchain.record.keeping.configs;
 
+import com.example.blockchain.record.keeping.response.ApiResponseBuilder;
 import com.example.blockchain.record.keeping.services.CustomUserDetailService;
 import com.example.blockchain.record.keeping.utils.JWTUtil;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -84,9 +86,15 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter {
             response.setContentType("application/json");
             response.setCharacterEncoding("UTF-8");
 
-            String errorJson = String.format("{\"error\": \"%s\"}", ex.getMessage());
+            String errorJson = new ObjectMapper().writeValueAsString(
+                    ApiResponseBuilder.unauthorized(ex.getMessage()).getBody()
+            );
+
             response.getWriter().write(errorJson);
             response.getWriter().flush();
+//            String errorJson = String.format("{\"error\": \"%s\"}", ex.getMessage());
+//            response.getWriter().write(errorJson);
+//            response.getWriter().flush();
         }
     }
 }
