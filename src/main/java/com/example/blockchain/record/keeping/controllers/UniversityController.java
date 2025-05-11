@@ -1,15 +1,13 @@
 package com.example.blockchain.record.keeping.controllers;
 
+import com.example.blockchain.record.keeping.dtos.CertificateTypeDTO;
 import com.example.blockchain.record.keeping.dtos.request.UserKhoaRequest;
-import com.example.blockchain.record.keeping.models.Department;
-import com.example.blockchain.record.keeping.models.Role;
-import com.example.blockchain.record.keeping.models.University;
-import com.example.blockchain.record.keeping.models.User;
+import com.example.blockchain.record.keeping.models.*;
+import com.example.blockchain.record.keeping.repositorys.PermissionRepository;
 import com.example.blockchain.record.keeping.response.ApiResponseBuilder;
-import com.example.blockchain.record.keeping.services.DepartmentService;
-import com.example.blockchain.record.keeping.services.RoleService;
-import com.example.blockchain.record.keeping.services.UniversityService;
-import com.example.blockchain.record.keeping.services.UserService;
+import com.example.blockchain.record.keeping.response.PaginationInfo;
+import com.example.blockchain.record.keeping.response.UserReponse;
+import com.example.blockchain.record.keeping.services.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -19,10 +17,11 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("${api.prefix:/api/v1}")
@@ -33,8 +32,12 @@ public class UniversityController {
     private final UserService userService;
     private final DepartmentService departmentService;
     private final RoleService roleService;
+    private final PermissionService permissionService;
+    private final UserPermissionService userPermissionService;
 
 //---------------------------- ADMIN -------------------------------------------------------
+//---------------------------- PDT -------------------------------------------------------
+    //k trùng gmail
     @PreAuthorize("hasAuthority('WRITE')")
     @PostMapping("/pdt/create-user")
     public ResponseEntity<?> verifyOtp(@RequestBody UserKhoaRequest request) {
@@ -49,6 +52,9 @@ public class UniversityController {
             }
             if (departmentService.existsByNameAndUniversity(request.getName(), university.getId())) {
                 return ApiResponseBuilder.badRequest("Tên khoa đã tồn tại trong trường này!");
+            }
+            if (userService.isEmailRegistered(request.getEmail())) {
+                return ApiResponseBuilder.badRequest("Email này đã được đăng ký!");
             }
             Role role =roleService.findByName("KHOA");
 
@@ -65,7 +71,68 @@ public class UniversityController {
             user.setDepartment(department);
 
             userService.save(user);
+
+            List<Permission> allPermissions = permissionService.listPermission();
+            for (Permission permission : allPermissions) {
+                UserPermission userPermission = new UserPermission();
+                userPermission.setUser(user);
+                userPermission.setPermission(permission);
+                userPermissionService.save(userPermission);
+            }
+
             return ApiResponseBuilder.success("Tạo tài khoản khoa thành công", null,null);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @PreAuthorize("hasAuthority('READ')")
+    @GetMapping("/pdt/user")
+    public ResponseEntity<?> getListUserOfUniversity(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ){
+        try{
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String username = authentication.getName();
+            University university = universityService.getUniversityByEmail(username);
+
+            User currentUser = userService.findByUser(username);
+//            List<Department> listDepartment = departmentService.listDepartmentOfUniversity(university);
+//            List<User> listUser = userService.listUser(university);
+            List<User> listUser = userService.listUser(university).stream()
+                    .filter(user -> user.getDepartment() != null) // chỉ lấy user có khoa
+                    .filter(user -> !user.getId().equals(currentUser.getId())) // loại bỏ user đang đăng nhập
+                    .collect(Collectors.toList());
+            List<UserReponse> userReponses = new ArrayList<>();
+
+            for (User user : listUser) {
+                List<UserPermission> userPermissions = userPermissionService.listUserPermissions(user);
+
+                List<String> permissions = userPermissions.stream()
+                        .map(up -> up.getPermission().getName())
+                        .collect(Collectors.toList());
+
+                UserReponse userReponse = new UserReponse(
+                        user.getDepartment().getName(),
+                        user.getEmail(),
+                        permissions
+                );
+                userReponses.add(userReponse);
+            }
+
+            int start = page * size;
+            int end = Math.min(start + size, userReponses.size());
+            if (start >= userReponses.size()) {
+                return ApiResponseBuilder.success("Chưa có khoa nào", null, null);
+            }
+
+            List<UserReponse> pagedResult = userReponses.subList(start, end);
+            return ApiResponseBuilder.success(
+                    "Lấy danh sách user khoa thành công.",
+                    pagedResult,
+                    new PaginationInfo(page, size, userReponses.size(), (int) Math.ceil((double) userReponses.size() / size))
+            );
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

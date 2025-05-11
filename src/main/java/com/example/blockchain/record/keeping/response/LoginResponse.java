@@ -1,4 +1,4 @@
-package com.example.blockchain.record.keeping.dtos;
+package com.example.blockchain.record.keeping.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

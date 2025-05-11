@@ -1,20 +1,17 @@
 package com.example.blockchain.record.keeping.controllers;
 
 import com.example.blockchain.record.keeping.dtos.LoginRequest;
-import com.example.blockchain.record.keeping.dtos.LoginResponse;
+import com.example.blockchain.record.keeping.response.LoginResponse;
 import com.example.blockchain.record.keeping.dtos.RegisterRequest;
 import com.example.blockchain.record.keeping.dtos.request.VerifyOtpRequest;
 import com.example.blockchain.record.keeping.models.*;
 import com.example.blockchain.record.keeping.repositorys.*;
 import com.example.blockchain.record.keeping.response.ApiResponse;
 import com.example.blockchain.record.keeping.response.ApiResponseBuilder;
-import com.example.blockchain.record.keeping.services.BrevoApiEmailService;
-import com.example.blockchain.record.keeping.services.OtpService;
-import com.example.blockchain.record.keeping.services.UserService;
+import com.example.blockchain.record.keeping.services.*;
 import com.example.blockchain.record.keeping.utils.JWTUtil;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -39,7 +36,8 @@ public class AuthencationController {
     private final UniversityRepository universityRepository;
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
-    private final PermissionRepository permissionRepository;
+    private final PermissionService permissionService;
+    private final UserPermissionService userPermissionService;
     private final UserPermissionRepository userPermissionRepository;
     private final JWTUtil jwtUtil;
     private final OtpService otpService;
@@ -50,7 +48,7 @@ public class AuthencationController {
     @PostMapping("/register")
     public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest request, BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
-            return ApiResponseBuilder.badRequest("Vui lòng nhập đúng đầy đủ thông tin!");
+            return ApiResponseBuilder.badRequest("Vui lòng nhập đúng đầy đủ thông tin và đúng định dạng!");
         }
         try{
             Optional<University> existingUniversity = universityRepository.findByEmail(request.getEmail());
@@ -127,6 +125,7 @@ public class AuthencationController {
                 case "KHOA" -> redirectUrl = "/khoa/dashboard";
                 default -> redirectUrl = "/error";
             }
+
             LoginResponse response = new LoginResponse(
                     university.get().getName(),
                     user.getEmail(),
@@ -135,16 +134,9 @@ public class AuthencationController {
                     redirectUrl,
                     authorities
             );
-
             return ApiResponseBuilder.success("Đăng nhập thành công!", response, null);
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
-                    ApiResponse.<LoginResponse>builder()
-                            .status(HttpStatus.UNAUTHORIZED.value())
-                            .message("Email hoặc mật khẩu không đúng!")
-                            .data(null)
-                            .build()
-            );
+            return ApiResponseBuilder.unauthorized("Email hoặc mật khẩu không đúng!");
         }
     }
 
@@ -156,15 +148,16 @@ public class AuthencationController {
         boolean valid = otpService.verifyOtp(email, otp);
         if(valid){
             User user = userService.findByUser(email);
-            List<Permission> allPermissions = permissionRepository.findAll();
+            List<Permission> allPermissions = permissionService.listPermission();
             for (Permission permission : allPermissions) {
                 UserPermission userPermission = new UserPermission();
                 userPermission.setUser(user);
                 userPermission.setPermission(permission);
-                userPermissionRepository.save(userPermission);
+                userPermissionService.save(userPermission);
             }
             return ApiResponseBuilder.success("OTP hợp lệ!", null, null);
-        }else{
+        }
+        else{
             return ApiResponseBuilder.badRequest("OTP sai hoặc đã hết hạn");
         }
     }
