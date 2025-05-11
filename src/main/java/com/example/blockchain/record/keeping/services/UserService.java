@@ -15,4 +15,9 @@ public class UserService implements IUserService{
         return userRepository.findByEmail(email)
                 .orElseThrow(()-> new RuntimeException("Không tìm thấy user!"));
     }
+
+    @Override
+    public User save(User user) {
+        return userRepository.save(user);
+    }
 }

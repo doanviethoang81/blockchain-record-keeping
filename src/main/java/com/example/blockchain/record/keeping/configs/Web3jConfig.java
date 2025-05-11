@@ -11,10 +11,7 @@ import org.web3j.protocol.http.HttpService;
 public class Web3jConfig {
     @Bean
     public Web3j web3j() {
-//        Dotenv dotenv = Dotenv.configure().ignoreIfMissing().load();
-//        String alchemyUrl = dotenv.get("ALCHEMY_URL");
         String alchemyUrl = EnvUtil.get("ALCHEMY_URL");
-
         return Web3j.build(new HttpService(alchemyUrl));
     }
 }

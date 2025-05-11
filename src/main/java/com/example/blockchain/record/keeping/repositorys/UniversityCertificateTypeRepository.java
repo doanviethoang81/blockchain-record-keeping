@@ -19,4 +19,7 @@ public interface UniversityCertificateTypeRepository extends JpaRepository<Unive
     Optional<UniversityCertificateType> findByCertificateType(CertificateType certificateType);
 
     List<UniversityCertificateType> findByUniversity(University university);
+
+    boolean existsByUniversityAndCertificateType_NameIgnoreCase(University university, String name);
+
 }

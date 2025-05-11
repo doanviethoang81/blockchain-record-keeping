@@ -34,12 +34,8 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 public class AuthencationController {
 
-    @Autowired
-    private PasswordEncoder passwordEncoder;
-
-    @Autowired
-    private AuthenticationManager authenticationManager;
-
+    private final PasswordEncoder passwordEncoder;
+    private final AuthenticationManager authenticationManager;
     private final UniversityRepository universityRepository;
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;

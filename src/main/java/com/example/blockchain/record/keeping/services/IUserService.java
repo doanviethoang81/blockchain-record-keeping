@@ -6,4 +6,5 @@ import java.util.Optional;
 
 public interface IUserService {
     User findByUser(String email);
+    User save(User user);
 }

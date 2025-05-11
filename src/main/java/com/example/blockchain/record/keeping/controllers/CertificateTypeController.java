@@ -1,6 +1,7 @@
 package com.example.blockchain.record.keeping.controllers;
 
 import com.example.blockchain.record.keeping.dtos.CertificateTypeDTO;
+import com.example.blockchain.record.keeping.dtos.request.CertificateTypeRequest;
 import com.example.blockchain.record.keeping.models.CertificateType;
 import com.example.blockchain.record.keeping.models.University;
 import com.example.blockchain.record.keeping.models.UniversityCertificateType;
@@ -26,6 +27,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Collection;
@@ -115,23 +117,29 @@ public class CertificateTypeController {
         }
     }
 
-    //thêm điều kiện nếu trùng tên chứng chỉ
     @PreAuthorize("hasAuthority('WRITE')")
     @PostMapping("/pdt/certificate_type/create")
-    public ResponseEntity<?> createCertificateType(@RequestBody CertificateType certificateType){
+    public ResponseEntity<?> createCertificateType(@RequestBody CertificateTypeRequest certificateType){
         try {
-            if (    certificateType.getName() == null ||
-                    certificateType.getName().isEmpty()) {
-                return ApiResponseBuilder.badRequest("Vui lòng nhập đầy đủ thông tin!");
-            }
-            certificateTypeService.createCertificateType(certificateType);
-
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             String username = authentication.getName();
-
             University university = universityService.getUniversityByEmail(username);
+
+            if (certificateType == null ||
+                    !StringUtils.hasText(certificateType.getName())){
+                return ApiResponseBuilder.badRequest("Vui lòng nhập đầy đủ thông tin!");
+            }
+            boolean exists = universityCertificateTypeService.existsByUniversityAndCertificateName(university, certificateType.getName());
+            if (exists) {
+                return ApiResponseBuilder.badRequest("Tên chứng chỉ đã tồn tại trong trường này!");
+            }
+
+            CertificateType certificateTypeNew = new CertificateType();
+            certificateTypeNew.setName(certificateType.getName());
+            certificateTypeService.createCertificateType(certificateTypeNew);
+
             UniversityCertificateType universityCertificateType = new UniversityCertificateType();
-            universityCertificateType.setCertificateType(certificateType);
+            universityCertificateType.setCertificateType(certificateTypeNew);
             universityCertificateType.setUniversity(university);
             universityCertificateTypeService.save(universityCertificateType);
             return ApiResponseBuilder.success("Thêm loại chứng chỉ thành công", null,null);

@@ -38,4 +38,7 @@ public class UniversityCertificateTypeService implements IUniversityCertificateT
     }
 
 
+    public boolean existsByUniversityAndCertificateName(University university, String certificateName) {
+        return universityCertificateTypeRepository.existsByUniversityAndCertificateType_NameIgnoreCase(university, certificateName.trim());
+    }
 }
