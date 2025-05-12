@@ -1,7 +1,10 @@
 package com.example.blockchain.record.keeping.services;
 
+import com.example.blockchain.record.keeping.models.Department;
+import com.example.blockchain.record.keeping.models.Student;
 import com.example.blockchain.record.keeping.models.University;
 import com.example.blockchain.record.keeping.models.User;
+import com.example.blockchain.record.keeping.repositorys.StudentRepository;
 import com.example.blockchain.record.keeping.repositorys.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -33,4 +36,6 @@ public class UserService implements IUserService{
     public boolean isEmailRegistered(String email) {
         return userRepository.existsByEmail(email);
     }
+
+
 }

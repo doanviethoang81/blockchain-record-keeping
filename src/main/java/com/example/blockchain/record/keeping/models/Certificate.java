@@ -30,12 +30,6 @@ public class Certificate {
     @JoinColumn(name = "university_certificate_type_id")
     private UniversityCertificateType universityCertificateType;
 
-//    @Column(name = "student_id")
-//    private Long student;
-//
-//    @Column(name = "university_certificate_type_id")
-//    private Long universityCertificateType;
-
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     @Column(name = "issue_date")
     private LocalDate issueDate;
@@ -61,12 +55,16 @@ public class Certificate {
     @Column(name = "blockchain_tx_hash")
     private String blockchainTxHash;
 
-    @Column(name = "status")
-    private String status;
-
     @Column(name ="rating")
     private String rating; // xếp loại
 
     @Column(name ="degree_title")
     private String degreeTitle;// loại bằng cử nhân ...
+
+    @Column(name = "status")
+    private String status;
+
+    @Column(name = "image_url")
+    private String imageUrl;
+    //thêm url image
 }

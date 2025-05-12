@@ -46,7 +46,7 @@ public class AuthencationController {
 
 
     @PostMapping("/register")
-    public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest request, BindingResult bindingResult) {
+    public ResponseEntity<?> register(@Valid @ModelAttribute RegisterRequest request, BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             return ApiResponseBuilder.badRequest("Vui lòng nhập đúng đầy đủ thông tin và đúng định dạng!");
         }
@@ -73,6 +73,7 @@ public class AuthencationController {
             user.setUniversity(university);
             user.setPassword(passwordEncoder.encode(request.getPassword()));
             user.setEmail(request.getEmail());
+            user.setLocked(false);
             userRepository.save(user);
 
             //tạo random 6 số
@@ -89,7 +90,6 @@ public class AuthencationController {
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request) {
         try {
-            // Xác thực tài khoản
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
             );
@@ -98,26 +98,25 @@ public class AuthencationController {
             UserDetails userDetails = (UserDetails) authentication.getPrincipal();
             String email = userDetails.getUsername();
 
-            // Kiểm tra user trong database
             Optional<User> optionalUser =userRepository.findByEmail(email);
             User user = optionalUser.get();
+            if (user.isLocked()) {
+                return ApiResponseBuilder.forbidden("Tài khoản của bạn đã bị khóa!");
+            }
+
             Optional<University> university= universityRepository.findByEmail(user.getEmail());
-
-            // Lấy danh sách quyền của user
             String role = user.getRole().getName();
-
             List<UserPermission> userPermissions = userPermissionRepository.findByUserId(user.getId());
             List<String> authorities = userPermissions.stream()
                     .map(up -> up.getPermission().getName())
                     .collect(Collectors.toList());
 
             if( authorities == null || authorities.isEmpty()){
-                return ApiResponseBuilder.badRequest("Tài khoản đã bị khóa hoặc chưa xác thực!");
+                return ApiResponseBuilder.forbidden("Tài khoản chưa xác thực!");
             }
 
             String token = jwtUtil.generateToken(user.getEmail(), List.of(role), authorities);// Tạo JWT token từ email và roles
 
-            // Xác định URL chuyển hướng dựa trên vai trò
             String redirectUrl;
             switch (role) {
                 case "ADMIN" -> redirectUrl = "/admin/dashboard";

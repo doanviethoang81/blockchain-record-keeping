@@ -24,6 +24,7 @@ import org.web3j.protocol.core.methods.response.TransactionReceipt;
 
 import javax.swing.plaf.multi.MultiInternalFrameUI;
 import java.time.LocalDate;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -49,6 +50,11 @@ public class CertificateService implements ICertificateService{
 //        certificate.setStudent(student);
 
         return null;
+    }
+
+    @Override
+    public List<Certificate> listCertificateOfStudent(Student student) {
+        return certificateRepository.findByStudent(student);
     }
 
     @Transactional

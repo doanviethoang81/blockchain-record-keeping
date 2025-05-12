@@ -98,8 +98,6 @@ public class UniversityController {
             University university = universityService.getUniversityByEmail(username);
 
             User currentUser = userService.findByUser(username);
-//            List<Department> listDepartment = departmentService.listDepartmentOfUniversity(university);
-//            List<User> listUser = userService.listUser(university);
             List<User> listUser = userService.listUser(university).stream()
                     .filter(user -> user.getDepartment() != null) // chỉ lấy user có khoa
                     .filter(user -> !user.getId().equals(currentUser.getId())) // loại bỏ user đang đăng nhập
@@ -137,4 +135,6 @@ public class UniversityController {
             throw new RuntimeException(e);
         }
     }
+
+
 }

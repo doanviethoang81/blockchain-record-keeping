@@ -32,9 +32,6 @@ public class StudentDTO {
     @JsonProperty("birth_date")
     private LocalDate birthDate;
 
-    @JsonProperty("faculty")
-    private String faculty;
-
     @JsonProperty("course")
     private String course;
 }

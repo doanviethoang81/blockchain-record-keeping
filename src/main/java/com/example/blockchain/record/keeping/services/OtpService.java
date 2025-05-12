@@ -5,7 +5,6 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
-import java.util.concurrent.TimeUnit;
 
 @Service
 public class OtpService {
@@ -18,10 +17,6 @@ public class OtpService {
         redisTemplate.opsForValue().set("otp:" + email, otpCode, Duration.ofSeconds(EXPIRE_TIME));
     }
 
-//    public boolean verifyOtp(String email, String inputOtp) {
-//        String savedOtp = redisTemplate.opsForValue().get("otp:" + email);
-//        return inputOtp.equals(savedOtp);
-//    }
     public boolean verifyOtp(String email, String otp) {
         String key = "otp:" + email;
         String savedOtp = redisTemplate.opsForValue().get(key);
@@ -30,7 +25,6 @@ public class OtpService {
             redisTemplate.delete(key); //xóa
             return true;
         }
-
         return false;
     }
 }

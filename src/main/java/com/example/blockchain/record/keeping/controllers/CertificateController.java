@@ -42,6 +42,8 @@ public class CertificateController {
 
 
 //---------------------------- KHOA -------------------------------------------------------
+    // kiểm tra chứng chỉ đó đã cấp chưa cho sv đó chưa
+    // kiểm tra sinh viên xem mssv trong file excel có trùng k gmail trùng k
     @PreAuthorize("hasAuthority('WRITE')")
     @PostMapping("/khoa/certificate/create")
     public ResponseEntity<?> createCertificate(

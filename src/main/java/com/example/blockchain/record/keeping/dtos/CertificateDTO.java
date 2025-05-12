@@ -15,12 +15,6 @@ import java.util.Date;
 @Builder
 public class CertificateDTO {
 
-    @JsonProperty("student_id")
-    private Long studentId;
-
-    @JsonProperty("university_certificate_type_id")
-    private Long universityCertificateTypeId;
-
     @JsonProperty("issue_date")
     private LocalDate issueDate;
 
@@ -45,12 +39,15 @@ public class CertificateDTO {
     @JsonProperty("blockchain_tx_hash")
     private String blockchainTxHash;
 
-    @JsonProperty("status")
-    private String status;
-
     @JsonProperty("rating")
     private String rating; // xếp loại
 
     @JsonProperty("degree_title")
     private String degreeTitle;// loại bằng
+
+    private String imageUrl;
+
+    @JsonProperty("status")
+    private String status;
+
 }

@@ -35,4 +35,6 @@ public class User {
     @Column(name ="email")
     private String email;
 
+    @Column(name ="is_locked")
+    private boolean isLocked;
 }
