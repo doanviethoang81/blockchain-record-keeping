@@ -45,6 +45,7 @@ public class AuthencationController {
     private final OtpService otpService;
     private final BrevoApiEmailService brevoApiEmailService;
     private final UserService userService;
+    private final ImageLogoService imageLogoService;
 
 
     @PostMapping("/register")
@@ -59,6 +60,14 @@ public class AuthencationController {
             if (existingUniversity.isPresent()) {
                 return ApiResponseBuilder.badRequest("Email đã được đăng ký!");
             }
+            String normalizedName = request.getName().trim().toLowerCase();
+            List<University> universities = universityRepository.findAll();
+            boolean nameExists = universities.stream()
+                    .anyMatch(u -> u.getName() != null && u.getName().trim().toLowerCase().equals(normalizedName));
+            if (nameExists) {
+                return ApiResponseBuilder.badRequest("Tên trường đã tồn tại!");
+            }
+
             // Tạo user mới
             University university = new University();
             university.setName(request.getName());
@@ -66,7 +75,14 @@ public class AuthencationController {
             university.setEmail(request.getEmail());
             university.setTaxCode(request.getTaxCode());
             university.setWebsite(request.getWebsite());
-            university.setLogo(request.getLogo());
+            if (request.getLogo() != null && !request.getLogo().isEmpty()) {
+                String contentType = request.getLogo().getContentType();
+                if (!contentType.startsWith("image/")) {
+                    return ApiResponseBuilder.badRequest("File tải lên không phải là ảnh!");
+                }
+                String imageUrl = imageLogoService.uploadImage(request.getLogo());
+                university.setLogo(imageUrl);
+            }
             university.setCreatedAt(vietnamTime.toLocalDateTime());
             university.setUpdatedAt(vietnamTime.toLocalDateTime());
             universityRepository.save(university);

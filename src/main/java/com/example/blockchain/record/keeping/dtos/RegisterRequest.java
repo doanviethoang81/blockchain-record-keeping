@@ -6,6 +6,9 @@ import lombok.Getter;
 import lombok.Setter;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.File;
 
 @Getter
 @Setter
@@ -33,11 +36,14 @@ public class RegisterRequest {
     @JsonProperty("website")
     private String website;
 
-    @NotBlank(message = "Logo không được để trống!")
     @JsonProperty("logo")
-    private String logo;
+    private MultipartFile logo;
 
     @NotBlank(message = "Mật khẩu không được để trống!")
     @JsonProperty("password")
     private String password;
+
+    public void setName(String name) {
+        this.name = name != null ? name.trim() : null;
+    }
 }
