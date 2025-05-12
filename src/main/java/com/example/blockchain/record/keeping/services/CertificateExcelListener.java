@@ -16,6 +16,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.lang.reflect.Field;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -97,6 +99,9 @@ public class CertificateExcelListener extends AnalysisEventListener<CertificateE
     @Override
     @Transactional
     public void doAfterAllAnalysed(AnalysisContext context) {
+        ZonedDateTime vietnamTime = ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
+
+
         System.out.println("Loại chứng chỉ được chọn: " + nameCertificateType);
         System.out.println("Loại chứng chỉ được chọn: " + imageFile);
 
@@ -134,6 +139,8 @@ public class CertificateExcelListener extends AnalysisEventListener<CertificateE
                         newStudent.setClassName(dto.getClassName());
                         newStudent.setBirthDate(dto.getDateOfBirth());
                         newStudent.setCourse(dto.getCourse());
+                        newStudent.setCreatedAt(vietnamTime.toLocalDateTime());
+                        newStudent.setUpdatedAt(vietnamTime.toLocalDateTime());
                         return studentRepository.save(newStudent);
                     });
 
@@ -157,6 +164,7 @@ public class CertificateExcelListener extends AnalysisEventListener<CertificateE
             certificate.setLotteryNumber(dto.getLotteryNumber());
             certificate.setBlockchainTxHash("76123"); // sua lai sau
             certificate.setStatus("1");// sua lai
+            certificate.setCreatedAt(vietnamTime.toLocalDateTime());
 
             certificateRepository.save(certificate);
         }

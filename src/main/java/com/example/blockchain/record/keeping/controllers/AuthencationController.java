@@ -23,6 +23,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -51,6 +53,8 @@ public class AuthencationController {
             return ApiResponseBuilder.badRequest("Vui lòng nhập đúng đầy đủ thông tin và đúng định dạng!");
         }
         try{
+            ZonedDateTime vietnamTime = ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
+
             Optional<University> existingUniversity = universityRepository.findByEmail(request.getEmail());
             if (existingUniversity.isPresent()) {
                 return ApiResponseBuilder.badRequest("Email đã được đăng ký!");
@@ -63,6 +67,8 @@ public class AuthencationController {
             university.setTaxCode(request.getTaxCode());
             university.setWebsite(request.getWebsite());
             university.setLogo(request.getLogo());
+            university.setCreatedAt(vietnamTime.toLocalDateTime());
+            university.setUpdatedAt(vietnamTime.toLocalDateTime());
             universityRepository.save(university);
 
             Optional<Role> userRole = roleRepository.findByName("PDT");
@@ -74,6 +80,8 @@ public class AuthencationController {
             user.setPassword(passwordEncoder.encode(request.getPassword()));
             user.setEmail(request.getEmail());
             user.setLocked(false);
+            user.setCreatedAt(vietnamTime.toLocalDateTime());
+            user.setUpdatedAt(vietnamTime.toLocalDateTime());
             userRepository.save(user);
 
             //tạo random 6 số

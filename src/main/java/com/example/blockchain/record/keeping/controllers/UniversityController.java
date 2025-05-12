@@ -17,6 +17,8 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -35,11 +37,13 @@ public class UniversityController {
 
 //---------------------------- ADMIN -------------------------------------------------------
 //---------------------------- PDT -------------------------------------------------------
-    //k trùng gmail
+    //tạo khoa
     @PreAuthorize("hasAuthority('WRITE')")
     @PostMapping("/pdt/create-user")
     public ResponseEntity<?> verifyOtp(@RequestBody UserKhoaRequest request) {
         try{
+            ZonedDateTime vietnamTime = ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
+
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             String username = authentication.getName();
             University university = universityService.getUniversityByEmail(username);
@@ -59,6 +63,8 @@ public class UniversityController {
             Department department = new Department();
             department.setName(request.getName());
             department.setUniversity(university);
+            department.setCreatedAt(vietnamTime.toLocalDateTime());
+            department.setUpdatedAt(vietnamTime.toLocalDateTime());
             departmentService.save(department);
 
             User user = new User();
@@ -67,6 +73,8 @@ public class UniversityController {
             user.setPassword(passwordEncoder.encode(request.getPassword()));
             user.setRole(role);
             user.setDepartment(department);
+            user.setCreatedAt(vietnamTime.toLocalDateTime());
+            user.setUpdatedAt(vietnamTime.toLocalDateTime());
 
             userService.save(user);
 
@@ -77,13 +85,13 @@ public class UniversityController {
                 userPermission.setPermission(permission);
                 userPermissionService.save(userPermission);
             }
-
             return ApiResponseBuilder.success("Tạo tài khoản khoa thành công", null);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
+    //các khoa của trường đại học
     @PreAuthorize("hasAuthority('READ')")
     @GetMapping("/pdt/user")
     public ResponseEntity<?> getListUserOfUniversity(
@@ -129,7 +137,7 @@ public class UniversityController {
                             (int) Math.ceil((double) userReponses.size() / size)));
 
             return ApiResponseBuilder.success(
-                    "Lấy danh sách user khoa thành công.",data);
+                    "Lấy danh sách các khoa của trường thành công.",data);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

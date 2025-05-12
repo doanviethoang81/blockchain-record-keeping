@@ -24,6 +24,8 @@ import org.web3j.protocol.core.methods.response.TransactionReceipt;
 
 import javax.swing.plaf.multi.MultiInternalFrameUI;
 import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.List;
 
 @Service
@@ -59,7 +61,8 @@ public class CertificateService implements ICertificateService{
 
     @Transactional
     public void createCertificate(JsonNode jsonNode, MultipartFile image) {
-        // Lấy ra node student và certificate
+        ZonedDateTime vietnamTime = ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
+
         JsonNode studentNode = jsonNode.get("student");
         JsonNode certificateNode = jsonNode.get("certificate");
 
@@ -83,6 +86,8 @@ public class CertificateService implements ICertificateService{
                     newStudent.setClassName(studentNode.get("class_name").asText());
                     newStudent.setBirthDate(LocalDate.parse(studentNode.get("birth_date").asText()));
                     newStudent.setCourse(studentNode.get("course").asText());
+                    newStudent.setCreatedAt(vietnamTime.toLocalDateTime());
+                    newStudent.setUpdatedAt(vietnamTime.toLocalDateTime());
                     return studentRepository.save(newStudent); // lưu nếu chưa có
                 });
 
@@ -109,6 +114,7 @@ public class CertificateService implements ICertificateService{
         certificate.setStatus("1");
         certificate.setRating(certificateNode.get("rating").asText());
         certificate.setDegreeTitle(certificateNode.get("degree_title").asText());
+        certificate.setCreatedAt(vietnamTime.toLocalDateTime());
 
         // Lưu dữ liệu lên blockchain
 //            String contractAddress = "0x3D9433e04432406335CBEf89cB39784fC1Fd7d7B"; // Thay bằng địa chỉ hợp đồng của bạn

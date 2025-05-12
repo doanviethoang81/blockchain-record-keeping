@@ -198,7 +198,8 @@ public class StudentController {
                             (int) Math.ceil((double) studentWithCertificateResponseList.size() / size)));
 
             return ApiResponseBuilder.success(
-                    "Lấy danh sách user khoa thành công.",data);
+                    "Lấy danh sách sinh viên khoa thành công.",
+                    data);
         } catch (Exception e) {
             return ApiResponseBuilder.badRequest("Lỗi không lấy được dữ liệu!");
         }

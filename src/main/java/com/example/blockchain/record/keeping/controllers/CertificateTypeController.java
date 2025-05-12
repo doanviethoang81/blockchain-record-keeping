@@ -86,7 +86,7 @@ public class CertificateTypeController {
                     new PaginationMeta(allResult.size(), pagedResult.size(), size, page + 1,
                             (int) Math.ceil((double) allResult.size() / size)));
 
-            return ApiResponseBuilder.success("Lấy danh sách loại chứng chỉ thành công.", data);
+            return ApiResponseBuilder.success("Lấy danh sách loại chứng chỉ cho trường thành công.", data);
         } catch (Exception e) {
             return ApiResponseBuilder.internalError("Lỗi: " + e.getMessage());
         }
@@ -150,7 +150,7 @@ public class CertificateTypeController {
                 return ApiResponseBuilder.success("Không có giấy chứng nhận nào!", null);
             }
 
-            return ApiResponseBuilder.success("Lấy danh sách loại chứng chỉ thành công.", result);
+            return ApiResponseBuilder.success("Lấy danh sách loại chứng chỉ cho khoa thành công.", result);
         } catch (Exception e) {
             return ApiResponseBuilder.internalError("Lỗi: " + e.getMessage());
         }
