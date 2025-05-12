@@ -3,6 +3,8 @@ package com.example.blockchain.record.keeping.models;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Data
 @Setter
@@ -19,4 +21,10 @@ public class CertificateType {
 
     @Column(name = "name")
     private String name;
+
+    @Column(name="created_at")
+    private LocalDateTime createdAt;
+
+    @Column(name="updated_at")
+    private LocalDateTime updatedAt;
 }

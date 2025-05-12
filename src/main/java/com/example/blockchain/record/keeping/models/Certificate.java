@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Date;
 
 @Entity
@@ -66,5 +67,8 @@ public class Certificate {
 
     @Column(name = "image_url")
     private String imageUrl;
-    //thêm url image
+
+    @Column(name="created_at")
+    private LocalDateTime createdAt;
+
 }

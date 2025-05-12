@@ -4,13 +4,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 public class ApiResponseBuilder {
-    public static <T> ResponseEntity<ApiResponse<T>> success(String message, T data,PaginationInfo paginationInfo) {
+    public static <T> ResponseEntity<ApiResponse<T>> success(String message, T data) {
         return ResponseEntity.ok(
                 ApiResponse.<T>builder()
                         .status(HttpStatus.OK.value())
                         .message(message)
                         .data(data)
-                        .paginationInfo(paginationInfo)
                         .build()
         );
     }
@@ -22,7 +21,6 @@ public class ApiResponseBuilder {
                         .status(HttpStatus.BAD_REQUEST.value())
                         .message(message)
                         .data(null)
-                        .paginationInfo(null)
                         .build()
         );
     }
@@ -34,7 +32,6 @@ public class ApiResponseBuilder {
                         .status(HttpStatus.UNAUTHORIZED.value())
                         .message(message)
                         .data(null)
-                        .paginationInfo(null)
                         .build()
         );
     }
@@ -46,7 +43,6 @@ public class ApiResponseBuilder {
                         .status(HttpStatus.FORBIDDEN.value())
                         .message(message)
                         .data(null)
-                        .paginationInfo(null)
                         .build()
         );
     }
@@ -58,21 +54,20 @@ public class ApiResponseBuilder {
                         .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
                         .message(message)
                         .data(null)
-                        .paginationInfo(null)
                         .build()
         );
     }
 
-    public static <T> ResponseEntity<?> listBadRequest(String message, Object data) {
+    public static <T> ResponseEntity<ApiResponse<T>> listBadRequest(String message, T data) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
                 ApiResponse.<T>builder()
                         .status(HttpStatus.BAD_REQUEST.value())
                         .message(message)
-                        .data((T) data)
-                        .paginationInfo(null)
+                        .data(data)
                         .build()
         );
     }
+
 
 
 }

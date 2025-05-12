@@ -110,7 +110,6 @@ public class SecurityConfigs {
                     .status(HttpStatus.FORBIDDEN.value())
                     .message("Bạn không có quyền thực hiện hành động này!")
                     .data(null)
-                    .paginationInfo(null)
                     .build();
 
             String json = new ObjectMapper().writeValueAsString(apiResponse);

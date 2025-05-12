@@ -4,9 +4,7 @@ import com.example.blockchain.record.keeping.dtos.CertificateTypeDTO;
 import com.example.blockchain.record.keeping.dtos.request.UserKhoaRequest;
 import com.example.blockchain.record.keeping.models.*;
 import com.example.blockchain.record.keeping.repositorys.PermissionRepository;
-import com.example.blockchain.record.keeping.response.ApiResponseBuilder;
-import com.example.blockchain.record.keeping.response.PaginationInfo;
-import com.example.blockchain.record.keeping.response.UserReponse;
+import com.example.blockchain.record.keeping.response.*;
 import com.example.blockchain.record.keeping.services.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -80,7 +78,7 @@ public class UniversityController {
                 userPermissionService.save(userPermission);
             }
 
-            return ApiResponseBuilder.success("Tạo tài khoản khoa thành công", null,null);
+            return ApiResponseBuilder.success("Tạo tài khoản khoa thành công", null);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -122,19 +120,18 @@ public class UniversityController {
             int start = page * size;
             int end = Math.min(start + size, userReponses.size());
             if (start >= userReponses.size()) {
-                return ApiResponseBuilder.success("Chưa có khoa nào", null, null);
+                return ApiResponseBuilder.success("Chưa có khoa nào", null);
             }
 
             List<UserReponse> pagedResult = userReponses.subList(start, end);
+            PaginatedData<UserReponse> data = new PaginatedData<>(pagedResult,
+                    new PaginationMeta(userReponses.size(), pagedResult.size(), size, page + 1,
+                            (int) Math.ceil((double) userReponses.size() / size)));
+
             return ApiResponseBuilder.success(
-                    "Lấy danh sách user khoa thành công.",
-                    pagedResult,
-                    new PaginationInfo(page, size, userReponses.size(), (int) Math.ceil((double) userReponses.size() / size))
-            );
+                    "Lấy danh sách user khoa thành công.",data);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
-
-
 }

@@ -80,7 +80,7 @@ public class AuthencationController {
             String otp = String.format("%06d", new Random().nextInt(999999));
             otpService.saveOtp(request.getEmail(), otp);
             brevoApiEmailService.sendActivationEmail(request.getEmail(), otp);
-            return ApiResponseBuilder.success("Đăng ký thành công! Vui lòng kiểm tra email để kích hoạt tài khoản", null, null);
+            return ApiResponseBuilder.success("Đăng ký thành công! Vui lòng kiểm tra email để kích hoạt tài khoản", null);
         } catch (Exception e) {
             return ApiResponseBuilder.internalError("Đã xảy ra lỗi trong quá trình đăng ký");
         }
@@ -133,7 +133,7 @@ public class AuthencationController {
                     redirectUrl,
                     authorities
             );
-            return ApiResponseBuilder.success("Đăng nhập thành công!", response, null);
+            return ApiResponseBuilder.success("Đăng nhập thành công!", response);
         } catch (Exception e) {
             return ApiResponseBuilder.unauthorized("Email hoặc mật khẩu không đúng!");
         }
@@ -154,7 +154,7 @@ public class AuthencationController {
                 userPermission.setPermission(permission);
                 userPermissionService.save(userPermission);
             }
-            return ApiResponseBuilder.success("OTP hợp lệ!", null, null);
+            return ApiResponseBuilder.success("OTP hợp lệ!", null);
         }
         else{
             return ApiResponseBuilder.badRequest("OTP sai hoặc đã hết hạn");

@@ -4,12 +4,12 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 
+import java.util.List;
+
 @Data
 @Builder
 @AllArgsConstructor
-public class PaginationInfo {
-    private int currentPage;
-    private int pageSize;
-    private long totalElements;
-    private int totalPages;
+public class ApiDataResponse<T> {
+    private List<T> items;
+    private PaginationMeta meta;
 }

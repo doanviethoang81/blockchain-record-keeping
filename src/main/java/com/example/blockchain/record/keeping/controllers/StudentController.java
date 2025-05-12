@@ -3,10 +3,7 @@ package com.example.blockchain.record.keeping.controllers;
 import com.example.blockchain.record.keeping.dtos.CertificateDTO;
 import com.example.blockchain.record.keeping.dtos.CertificateTypeDTO;
 import com.example.blockchain.record.keeping.models.*;
-import com.example.blockchain.record.keeping.response.ApiResponseBuilder;
-import com.example.blockchain.record.keeping.response.PaginationInfo;
-import com.example.blockchain.record.keeping.response.StudentWithCertificateResponse;
-import com.example.blockchain.record.keeping.response.UserReponse;
+import com.example.blockchain.record.keeping.response.*;
 import com.example.blockchain.record.keeping.services.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -94,15 +91,16 @@ public class StudentController {
             int start = page * size;
             int end = Math.min(start + size, studentWithCertificateResponseList.size());
             if (start >= studentWithCertificateResponseList.size()) {
-                return ApiResponseBuilder.success("Chưa có khoa nào", null, null);
+                return ApiResponseBuilder.success("Chưa có khoa nào", null);
             }
 
             List<StudentWithCertificateResponse> pagedResult = studentWithCertificateResponseList.subList(start, end);
+            PaginatedData<StudentWithCertificateResponse> data = new PaginatedData<>(pagedResult,
+                    new PaginationMeta(studentWithCertificateResponseList.size(), pagedResult.size(), size, page + 1,
+                            (int) Math.ceil((double) studentWithCertificateResponseList.size() / size)));
+
             return ApiResponseBuilder.success(
-                    "Lấy danh sách user khoa thành công.",
-                    pagedResult,
-                    new PaginationInfo(page, size, studentWithCertificateResponseList.size(), (int) Math.ceil((double) studentWithCertificateResponseList.size() / size))
-            );
+                    "Lấy danh sách user khoa thành công.",data);
         } catch (Exception e) {
             return ApiResponseBuilder.badRequest("Lỗi không lấy được dữ liệu!");
         }
@@ -124,15 +122,15 @@ public class StudentController {
             int start = page * size;
             int end = Math.min(start + size, students.size());
             if (start >= students.size()) {
-                return ApiResponseBuilder.success("Chưa có khoa nào", null, null);
+                return ApiResponseBuilder.success("Chưa có khoa nào", null);
             }
             List<StudentWithCertificateResponse> pagedResult = students.subList(start, end);
+            PaginatedData<StudentWithCertificateResponse> data = new PaginatedData<>(pagedResult,
+                    new PaginationMeta(students.size(), pagedResult.size(), size, page + 1,
+                            (int) Math.ceil((double) students.size() / size)));
 
             return ApiResponseBuilder.success(
-                    "Lấy danh sách sinh viên của trường thành công.",
-                    pagedResult,
-                    new PaginationInfo(page, size, students.size(), (int) Math.ceil((double) students.size() / size))
-            );
+                    "Lấy danh sách sinh viên của trường thành công.",data);
         } catch (Exception e) {
             return ApiResponseBuilder.badRequest("Lỗi không lấy được dữ liệu!");
         }
@@ -191,15 +189,16 @@ public class StudentController {
             int start = page * size;
             int end = Math.min(start + size, studentWithCertificateResponseList.size());
             if (start >= studentWithCertificateResponseList.size()) {
-                return ApiResponseBuilder.success("Chưa có khoa nào", null, null);
+                return ApiResponseBuilder.success("Chưa có khoa nào", null);
             }
 
             List<StudentWithCertificateResponse> pagedResult = studentWithCertificateResponseList.subList(start, end);
+            PaginatedData<StudentWithCertificateResponse> data = new PaginatedData<>(pagedResult,
+                    new PaginationMeta(studentWithCertificateResponseList.size(), pagedResult.size(), size, page + 1,
+                            (int) Math.ceil((double) studentWithCertificateResponseList.size() / size)));
+
             return ApiResponseBuilder.success(
-                    "Lấy danh sách user khoa thành công.",
-                    pagedResult,
-                    new PaginationInfo(page, size, studentWithCertificateResponseList.size(), (int) Math.ceil((double) studentWithCertificateResponseList.size() / size))
-            );
+                    "Lấy danh sách user khoa thành công.",data);
         } catch (Exception e) {
             return ApiResponseBuilder.badRequest("Lỗi không lấy được dữ liệu!");
         }

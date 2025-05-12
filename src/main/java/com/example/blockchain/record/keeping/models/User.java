@@ -3,6 +3,8 @@ package com.example.blockchain.record.keeping.models;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDateTime;
+
 @Data
 @Builder
 @Getter
@@ -37,4 +39,10 @@ public class User {
 
     @Column(name ="is_locked")
     private boolean isLocked;
+
+    @Column(name="created_at")
+    private LocalDateTime createdAt;
+
+    @Column(name="updated_at")
+    private LocalDateTime updatedAt;
 }

@@ -56,7 +56,7 @@ public class CertificateController {
             JsonNode studentNode = jsonNode.get("student");
             String studentEmail = studentNode.get("email").asText();
             certificateService.createCertificate(jsonNode,image);
-            return ApiResponseBuilder.success("Tạo chứng chỉ thành công, đã gửi email tới "+ studentEmail, null,null);
+            return ApiResponseBuilder.success("Tạo chứng chỉ thành công, đã gửi email tới "+ studentEmail, null);
         } catch (IllegalArgumentException e) {
             return ApiResponseBuilder.badRequest(e.getMessage());
         } catch (Exception e) {
@@ -92,7 +92,7 @@ public class CertificateController {
 
             // nào chạy thì mở
             brevoApiEmailService.sendEmailsToStudentsExcel(validStudents);
-            return ApiResponseBuilder.success("Đã đọc thành công " + listener.getDataList().size() + " dòng.", null, null);
+            return ApiResponseBuilder.success("Đã đọc thành công " + listener.getDataList().size() + " dòng.", null);
         } catch (Exception e) {
             return ApiResponseBuilder.badRequest(e.getMessage());
         }

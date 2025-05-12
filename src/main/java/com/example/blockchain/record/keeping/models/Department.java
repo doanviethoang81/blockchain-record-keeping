@@ -3,6 +3,8 @@ package com.example.blockchain.record.keeping.models;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Data
 @Setter
@@ -24,4 +26,10 @@ public class Department {
     @ManyToOne
     @JoinColumn(name = "university_id ")
     private University university;
+
+    @Column(name="created_at")
+    private LocalDateTime createdAt;
+
+    @Column(name="updated_at")
+    private LocalDateTime updatedAt;
 }

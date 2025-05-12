@@ -1,16 +1,15 @@
 package com.example.blockchain.record.keeping.response;
 
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.List;
 
 @Data
-@Builder
 @AllArgsConstructor
-public class ApiResponse<T> {
-    private int status;
-    private String message;
-    private T data;
+@NoArgsConstructor
+public class PaginatedData<T> {
+    private List<T> items;
+    private PaginationMeta meta;
 }
