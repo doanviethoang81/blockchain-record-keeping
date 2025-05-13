@@ -13,6 +13,7 @@ import com.example.blockchain.record.keeping.services.CertificateTypeService;
 import com.example.blockchain.record.keeping.services.UniversityCertificateTypeService;
 import com.example.blockchain.record.keeping.services.UniversityService;
 import com.example.blockchain.record.keeping.services.UserService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
@@ -35,6 +36,7 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("${api.prefix:/api/v1}")
 @RequiredArgsConstructor
+@SecurityRequirement(name = "bearerAuth")
 public class CertificateTypeController {
 
     private final CertificateTypeService certificateTypeService;
@@ -92,6 +94,7 @@ public class CertificateTypeController {
         }
     }
 
+    //ct
     @PreAuthorize("hasAuthority('READ')")
     @GetMapping("/pdt/certificate_type-detail/{id}")
     public ResponseEntity<?> certificateTypeDetail(@PathVariable("id")  Long id)
@@ -103,6 +106,19 @@ public class CertificateTypeController {
             return ApiResponseBuilder.internalError("Lỗi: " + e.getMessage());
         }
     }
+
+    //sửa
+//    @PreAuthorize("hasAuthority('READ')")
+//    @GetMapping("/pdt/certificate_type-detail/{id}")
+//    public ResponseEntity<?> updateCertificateTypeDetail(@PathVariable("id")  Long id)
+//    {
+//        try {
+//            CertificateType certificateType = certificateTypeService.findById(id);
+//            return ApiResponseBuilder.success("Thông tin chi tiết chứng chỉ", certificateType);
+//        } catch (Exception e) {
+//            return ApiResponseBuilder.internalError("Lỗi: " + e.getMessage());
+//        }
+//    }
 
     //tạo
     @PreAuthorize("hasAuthority('WRITE')")

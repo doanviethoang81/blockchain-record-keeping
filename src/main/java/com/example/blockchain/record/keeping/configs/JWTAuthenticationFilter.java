@@ -37,11 +37,15 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
         try{
             String path = request.getRequestURI();
-            //Bỏ qua các URL không cần kiểm tra token
-            if (path.startsWith("/api/auth/")) {
+            //bỏ qua các URL không cần kiểm tra token
+            if (path.startsWith("/api/auth/")
+                    || path.startsWith("/v3/api-docs")
+                    || path.startsWith("/swagger-ui")
+                    || path.equals("/swagger-ui.html")) {
                 filterChain.doFilter(request, response);
                 return;
             }
+
 
             final String authHeader = request.getHeader("Authorization");
 

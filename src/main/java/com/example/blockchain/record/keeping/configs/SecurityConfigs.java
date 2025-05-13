@@ -85,7 +85,12 @@ public class SecurityConfigs {
                         .authenticationEntryPoint(new Http403ForbiddenEntryPoint()) // nếu không đăng nhập
                 )
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**").permitAll()
+                                .requestMatchers("/api/auth/**").permitAll()
+                                .requestMatchers(
+                                        "/v3/api-docs/**",
+                                        "/swagger-ui/**",
+                                        "/swagger-ui.html"
+                                ).permitAll()
                                 .requestMatchers("/api/v1/check-role").permitAll()
 ////                    .requestMatchers("/images/**").permitAll()
                                 .requestMatchers("/api/v1/admin/**").hasAuthority("ADMIN")

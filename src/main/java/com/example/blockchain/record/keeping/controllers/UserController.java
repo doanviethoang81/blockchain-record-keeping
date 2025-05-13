@@ -10,6 +10,7 @@ import com.example.blockchain.record.keeping.response.DepartmentDetailResponse;
 import com.example.blockchain.record.keeping.response.UniversityDetailResponse;
 import com.example.blockchain.record.keeping.services.UniversityService;
 import com.example.blockchain.record.keeping.services.UserService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,6 +23,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("${api.prefix:/api/v1}")
 @RequiredArgsConstructor
+@SecurityRequirement(name = "bearerAuth")
 public class UserController {
 
     private final UniversityService universityService;

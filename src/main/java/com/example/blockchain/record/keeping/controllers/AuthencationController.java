@@ -10,6 +10,7 @@ import com.example.blockchain.record.keeping.response.ApiResponse;
 import com.example.blockchain.record.keeping.response.ApiResponseBuilder;
 import com.example.blockchain.record.keeping.services.*;
 import com.example.blockchain.record.keeping.utils.JWTUtil;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;

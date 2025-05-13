@@ -6,6 +6,7 @@ import com.example.blockchain.record.keeping.models.*;
 import com.example.blockchain.record.keeping.repositorys.PermissionRepository;
 import com.example.blockchain.record.keeping.response.*;
 import com.example.blockchain.record.keeping.services.*;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -26,6 +27,7 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("${api.prefix:/api/v1}")
 @RequiredArgsConstructor
+@SecurityRequirement(name = "bearerAuth")
 public class UniversityController {
     private final PasswordEncoder passwordEncoder;
     private final UniversityService universityService;
