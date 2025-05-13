@@ -12,6 +12,7 @@ import java.util.List;
 @Builder
 @AllArgsConstructor
 public class UserReponse {
+    private Long id;
     private String name;
     private String email;
     private List<String> permissions;

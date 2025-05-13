@@ -92,6 +92,18 @@ public class CertificateTypeController {
         }
     }
 
+    @PreAuthorize("hasAuthority('READ')")
+    @GetMapping("/pdt/certificate_type-detail/{id}")
+    public ResponseEntity<?> certificateTypeDetail(@PathVariable("id")  Long id)
+    {
+        try {
+            CertificateType certificateType = certificateTypeService.findById(id);
+            return ApiResponseBuilder.success("Thông tin chi tiết chứng chỉ", certificateType);
+        } catch (Exception e) {
+            return ApiResponseBuilder.internalError("Lỗi: " + e.getMessage());
+        }
+    }
+
     //tạo
     @PreAuthorize("hasAuthority('WRITE')")
     @PostMapping("/pdt/certificate_type/create")

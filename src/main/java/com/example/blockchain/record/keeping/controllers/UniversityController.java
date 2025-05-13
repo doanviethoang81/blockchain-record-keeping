@@ -118,6 +118,7 @@ public class UniversityController {
                         .collect(Collectors.toList());
 
                 UserReponse userReponse = new UserReponse(
+                        user.getId(),
                         user.getDepartment().getName(),
                         user.getEmail(),
                         permissions
