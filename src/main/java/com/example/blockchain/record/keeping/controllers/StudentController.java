@@ -209,7 +209,7 @@ public class StudentController {
     }
 
     @PreAuthorize("hasAuthority('READ')")
-    @GetMapping("/khoa/search-mssv-student")
+    @GetMapping("/khoa/search-student-code")
     public ResponseEntity<?> searchCertificates(@RequestParam String mssv) {
         try{
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
