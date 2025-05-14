@@ -8,10 +8,12 @@ import com.example.blockchain.record.keeping.repositorys.CertificateRepository;
 import com.example.blockchain.record.keeping.repositorys.StudentRepository;
 import com.example.blockchain.record.keeping.response.StudentWithCertificateResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -62,8 +64,12 @@ public class StudentService implements IStudentService{
                     certificateDTOs
             ));
         }
-
         return responseList;
+    }
+
+    @Override
+    public Optional<Student> findByStudentCodeAndDepartment_Id(String mssv, Long departmentId) {
+        return studentRepository.findByStudentCodeAndDepartment_Id(mssv, departmentId);
     }
 
 

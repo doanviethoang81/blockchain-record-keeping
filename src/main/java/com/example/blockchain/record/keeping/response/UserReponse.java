@@ -15,5 +15,6 @@ public class UserReponse {
     private Long id;
     private String name;
     private String email;
+    private boolean isLocked;
     private List<String> permissions;
 }

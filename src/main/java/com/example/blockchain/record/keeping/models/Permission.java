@@ -18,5 +18,5 @@ public class Permission {
     private Long id;
 
     @Column(name ="action")
-    private String name;
+    private String action;
 }

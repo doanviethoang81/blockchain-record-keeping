@@ -133,7 +133,7 @@ public class AuthencationController {
             String role = user.getRole().getName();
             List<UserPermission> userPermissions = userPermissionRepository.findByUserId(user.getId());
             List<String> authorities = userPermissions.stream()
-                    .map(up -> up.getPermission().getName())
+                    .map(up -> up.getPermission().getAction())
                     .collect(Collectors.toList());
 
             if( authorities == null || authorities.isEmpty()){

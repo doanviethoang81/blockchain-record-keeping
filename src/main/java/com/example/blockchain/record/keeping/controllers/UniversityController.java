@@ -116,13 +116,14 @@ public class UniversityController {
                 List<UserPermission> userPermissions = userPermissionService.listUserPermissions(user);
 
                 List<String> permissions = userPermissions.stream()
-                        .map(up -> up.getPermission().getName())
+                        .map(up -> up.getPermission().getAction())
                         .collect(Collectors.toList());
 
                 UserReponse userReponse = new UserReponse(
                         user.getId(),
                         user.getDepartment().getName(),
                         user.getEmail(),
+                        user.isLocked(),
                         permissions
                 );
                 userReponses.add(userReponse);

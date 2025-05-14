@@ -104,6 +104,45 @@ public class UserController {
     }
 
     //cấp quyền thu hồi quyền
+    @PreAuthorize("hasAuthority('WRITE')")
+    @PutMapping("/pdt/open-lock-department/{id}")
+    public ResponseEntity<?> lockedDepartment(@PathVariable Long id){
+        try{
+            User user =userService.finbById(id);
+            boolean newLockStatus = !user.isLocked();
+            userService.updateLocked(id);
+            String message = newLockStatus ? "Khóa tài khoản khoa thành công" : "Mở khóa tài khoản khoa thành công";
+            return ApiResponseBuilder.success(message, null);
+        } catch (Exception e) {
+            return ApiResponseBuilder.internalError("Lỗi");
+        }
+    }
+
+    // mở khóa quyền write của khoa
+    @PutMapping("/pdt/unlock-permission-write/{id}")
+    public ResponseEntity<?> unlockPermissionWrite(@PathVariable Long id){
+        try {
+            String active = "WRITE";
+            boolean granted = userService.togglePermission(id,active);
+            String message = granted ? "Đã cấp quyền WRITE cho khoa" : "Đã thu hồi quyền WRITE của khoa";
+            return ApiResponseBuilder.success(message, null);
+        } catch (Exception e) {
+            return ApiResponseBuilder.internalError("Đã xảy ra lỗi: " + e.getMessage());
+        }
+    }
+
+    // mở khóa quyền read của khoa
+    @PutMapping("/pdt/unlock-permission-read/{id}")
+    public ResponseEntity<?> unlockPermissionRead(@PathVariable Long id){
+        try {
+            String active = "READ";
+            boolean granted = userService.togglePermission(id,active);
+            String message = granted ? "Đã cấp quyền READ cho khoa" : "Đã thu hồi quyền READ của khoa";
+            return ApiResponseBuilder.success(message, null);
+        } catch (Exception e) {
+            return ApiResponseBuilder.internalError("Đã xảy ra lỗi: " + e.getMessage());
+        }
+    }
 
 
     //---------------------------- KHOA -------------------------------------------------------

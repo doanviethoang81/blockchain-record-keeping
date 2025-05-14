@@ -7,6 +7,7 @@ import com.example.blockchain.record.keeping.models.University;
 import com.example.blockchain.record.keeping.models.UniversityCertificateType;
 import com.example.blockchain.record.keeping.models.User;
 import com.example.blockchain.record.keeping.response.ApiResponseBuilder;
+import com.example.blockchain.record.keeping.response.CertificateTypeResponse;
 import com.example.blockchain.record.keeping.response.PaginationMeta;
 import com.example.blockchain.record.keeping.response.PaginatedData;
 import com.example.blockchain.record.keeping.services.CertificateTypeService;
@@ -50,6 +51,7 @@ public class CertificateTypeController {
         Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
         return ApiResponseBuilder.success("Lấy quyền thành công", authorities);
     }
+
     //---------------------------- PDT -------------------------------------------------------
     @PreAuthorize("hasAuthority('READ')")
     @GetMapping("/pdt/certificate_type")
@@ -119,6 +121,26 @@ public class CertificateTypeController {
 //            return ApiResponseBuilder.internalError("Lỗi: " + e.getMessage());
 //        }
 //    }
+
+    @PreAuthorize("hasAuthority('READ')")
+    @GetMapping("/pdt/search-name-certificate")
+    public ResponseEntity<?> searchCertificates(@RequestParam String name) {
+        try{
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String username = authentication.getName();
+            University university = universityService.getUniversityByEmail(username);
+            List<CertificateType> result = certificateTypeService.searchByUniversityAndName(university.getId(), name);
+            List<CertificateTypeResponse> names = result.stream()
+                    .map(cert -> new CertificateTypeResponse(cert.getName()))
+                    .collect(Collectors.toList());
+
+            String message = names.isEmpty() ? "Không tìm thấy chứng chỉ!" : "Tìm thành công";
+
+            return ApiResponseBuilder.success(message,names);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     //tạo
     @PreAuthorize("hasAuthority('WRITE')")

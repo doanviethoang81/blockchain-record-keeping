@@ -32,4 +32,17 @@ public class CertificateTypeService implements ICertificateTypeService{
         return certificateTypeRepository.findById(id)
                 .orElseThrow(()->new RuntimeException("Không tìm thấy id chứng chỉ: " + id));
     }
+
+    // tìm chứng chỉ theo tên all
+    @Override
+    public List<CertificateType> searchByName(String keyword) {
+        return certificateTypeRepository.findTop10ByNameContainingIgnoreCase(keyword);
+    }
+
+    // tìm tên chứng chỉ theo pdt
+    @Override
+    public List<CertificateType> searchByUniversityAndName(Long universityId, String name) {
+        return certificateTypeRepository.searchByUniversityAndName(universityId, name);
+    }
+
 }

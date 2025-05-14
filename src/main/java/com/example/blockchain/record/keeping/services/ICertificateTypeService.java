@@ -5,6 +5,7 @@ import com.example.blockchain.record.keeping.models.University;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.util.List;
 import java.util.Optional;
 
 
@@ -15,5 +16,9 @@ public interface ICertificateTypeService {
     CertificateType createCertificateType(CertificateType certificateType);
 
     CertificateType findById(Long id);
+
+    List<CertificateType> searchByName(String keyword);
+
+    List<CertificateType> searchByUniversityAndName(Long universityId, String name);
 
 }

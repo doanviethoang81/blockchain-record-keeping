@@ -132,7 +132,7 @@ public class BlockchainRecordKeepingApplication {
 //			File outputDir = new File("output");
 //			if (!outputDir.exists()) outputDir.mkdirs();
 //
-////			File outputfile = new File(outputDir, "23.png");
+////			File outputfile = new File(outputDir, "2.png");
 ////			boolean result = ImageIO.write(template, "png", outputfile);
 ////
 ////			if (result) {

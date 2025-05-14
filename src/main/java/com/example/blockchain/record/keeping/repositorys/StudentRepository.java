@@ -22,4 +22,11 @@ public interface StudentRepository extends JpaRepository<Student,Long> {
 
     @Query("SELECT s FROM Student s WHERE s.department.university.id = :universityId")
     List<Student> findByUniversityId(@Param("universityId") Long universityId);
+
+//    @Query("""
+//    SELECT sv FROM Student sv
+//    WHERE sv.student_code = :student_code AND sv.department_id = :departmentId""")
+//    Optional<Student> findByStudentCodeAndDepartment(@Param("mssv") String mssv, @Param("departmentId") Long departmentId);
+
+    Optional<Student> findByStudentCodeAndDepartment_Id(String studentCode, Long departmentId);
 }

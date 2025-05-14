@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RestController
@@ -204,6 +205,35 @@ public class StudentController {
                     data);
         } catch (Exception e) {
             return ApiResponseBuilder.badRequest("Lỗi không lấy được dữ liệu!");
+        }
+    }
+
+    @PreAuthorize("hasAuthority('READ')")
+    @GetMapping("/khoa/search-mssv-student")
+    public ResponseEntity<?> searchCertificates(@RequestParam String mssv) {
+        try{
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String username = authentication.getName();
+            User user = userService.findByUser(username);
+            Optional<Student> result = studentService.findByStudentCodeAndDepartment_Id(mssv,user.getDepartment().getId());
+
+            if (result.isPresent()) {
+                Student student = result.get();
+                StudentResponse studentResponse = new StudentResponse(
+                        student.getName(),
+                        student.getStudentCode(),
+                        student.getEmail(),
+                        student.getClassName(),
+                        student.getBirthDate(),
+                        student.getCourse()
+                );
+                return ApiResponseBuilder.success("Tìm thành công", studentResponse);
+            }
+            else{
+                return ApiResponseBuilder.success("Không tìm thấy sinh viên", null);
+            }
+        } catch (Exception e) {
+            return ApiResponseBuilder.internalError("Lỗi");
         }
     }
 
