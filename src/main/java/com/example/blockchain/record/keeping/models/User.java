@@ -40,9 +40,13 @@ public class User {
     @Column(name ="is_locked")
     private boolean isLocked;
 
+    @Column(name="is_verified ")
+    private boolean isVerified;
+
     @Column(name="created_at")
     private LocalDateTime createdAt;
 
     @Column(name="updated_at")
     private LocalDateTime updatedAt;
+
 }

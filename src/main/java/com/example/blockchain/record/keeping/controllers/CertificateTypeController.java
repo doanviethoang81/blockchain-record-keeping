@@ -54,7 +54,7 @@ public class CertificateTypeController {
 
     //---------------------------- PDT -------------------------------------------------------
     @PreAuthorize("hasAuthority('READ')")
-    @GetMapping("/pdt/certificate_type")
+    @GetMapping("/pdt/certificate-type")
     public ResponseEntity<?> getCertificateTypePDT(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
@@ -98,7 +98,7 @@ public class CertificateTypeController {
 
     //ct
     @PreAuthorize("hasAuthority('READ')")
-    @GetMapping("/pdt/certificate_type-detail/{id}")
+    @GetMapping("/pdt/certificate-type-detail/{id}")
     public ResponseEntity<?> certificateTypeDetail(@PathVariable("id")  Long id)
     {
         try {
@@ -144,7 +144,7 @@ public class CertificateTypeController {
 
     //tạo
     @PreAuthorize("hasAuthority('WRITE')")
-    @PostMapping("/pdt/certificate_type/create")
+    @PostMapping("/pdt/certificate-type/create")
     public ResponseEntity<?> createCertificateType(@RequestBody CertificateTypeRequest certificateType) {
         try {
             String username = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -181,7 +181,7 @@ public class CertificateTypeController {
     //---------------------------- KHOA -------------------------------------------------------
 
     @PreAuthorize("hasAuthority('READ')")
-    @GetMapping("/khoa/certificate_type")
+    @GetMapping("/khoa/certificate-type")
     public ResponseEntity<?> getCertificateTypeKhoa() {
         try {
             String username = SecurityContextHolder.getContext().getAuthentication().getName();

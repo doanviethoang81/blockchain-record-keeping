@@ -97,6 +97,7 @@ public class AuthencationController {
             user.setPassword(passwordEncoder.encode(request.getPassword()));
             user.setEmail(request.getEmail());
             user.setLocked(false);
+            user.setVerified(false);
             user.setCreatedAt(vietnamTime.toLocalDateTime());
             user.setUpdatedAt(vietnamTime.toLocalDateTime());
             userRepository.save(user);
@@ -125,9 +126,6 @@ public class AuthencationController {
 
             Optional<User> optionalUser =userRepository.findByEmail(email);
             User user = optionalUser.get();
-            if (user.isLocked()) {
-                return ApiResponseBuilder.forbidden("Tài khoản của bạn đã bị khóa!");
-            }
 
             Optional<University> university= universityRepository.findByEmail(user.getEmail());
             String role = user.getRole().getName();
@@ -136,8 +134,19 @@ public class AuthencationController {
                     .map(up -> up.getPermission().getAction())
                     .collect(Collectors.toList());
 
-            if( authorities == null || authorities.isEmpty()){
-                return ApiResponseBuilder.forbidden("Tài khoản chưa xác thực!");
+            if (!user.isVerified()) {
+                String otp = String.format("%06d", new Random().nextInt(999999));
+                otpService.saveOtp(request.getEmail(), otp);
+                brevoApiEmailService.sendActivationEmail(request.getEmail(), otp);
+                return ApiResponseBuilder.forbidden("Tài khoản của bạn chưa được xác minh. Vui lòng xác minh! Mã OTP: " + otp);
+            }
+
+            if (user.isLocked()) {
+                return ApiResponseBuilder.forbidden("Tài khoản của bạn đã bị khóa!");
+            }
+
+            if (authorities.isEmpty()) {
+                return ApiResponseBuilder.forbidden("Tài khoản của bạn không có quyền vào hệ thống!");
             }
 
             String token = jwtUtil.generateToken(user.getEmail(), List.of(role), authorities);// Tạo JWT token từ email và roles
@@ -172,6 +181,8 @@ public class AuthencationController {
         boolean valid = otpService.verifyOtp(email, otp);
         if(valid){
             User user = userService.findByUser(email);
+            user.setVerified(true);
+            userService.save(user);
             List<Permission> allPermissions = permissionService.listPermission();
             for (Permission permission : allPermissions) {
                 UserPermission userPermission = new UserPermission();
