@@ -1,12 +1,10 @@
 package com.example.blockchain.record.keeping.services;
 
-import ch.qos.logback.core.util.EnvUtil;
 import com.example.blockchain.record.keeping.dtos.CertificateExcelRowDTO;
+import com.example.blockchain.record.keeping.dtos.request.DegreeExcelRowRequest;
 import io.github.cdimascio.dotenv.Dotenv;
-import jakarta.mail.internet.MimeMessage;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.ResponseEntity;
-import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -82,6 +80,22 @@ public class BrevoApiEmailService {
         CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
     }
 
+    //gửi thông báo cấp văn bằng cho sv
+    public void sendEmailNotificationOfDiplomaIssuanceExcel(List<DegreeExcelRowRequest> students) {
+        List<CompletableFuture<Void>> futures = new ArrayList<>();
+        for (DegreeExcelRowRequest student : students) {
+            String email = student.getEmail();
+            String name = student.getName();
+            String certificateUrl = "https://yourdomain.com/certificates/" + student.getStudentCode();
+
+            // Gọi phương thức sendEmail bất đồng bộ và thêm vào list futures
+            //Trong vòng lặp, sendEmail được gọi thông qua CompletableFuture.runAsync(). Điều này có nghĩa là mỗi email sẽ được gửi trong một luồng riêng biệt mà không làm chậm quá trình gửi email cho các sinh viên khác.
+            futures.add(CompletableFuture.runAsync(() -> sendEmail(email, name, certificateUrl), executorService));
+        }
+
+        // Đợi tất cả các tác vụ bất đồng bộ hoàn thành
+        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+    }
 
     @Async
     public void sendActivationEmail(String toEmail, String otpCode) {

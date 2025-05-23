@@ -1,4 +1,4 @@
-package com.example.blockchain.record.keeping.dtos;
+package com.example.blockchain.record.keeping.dtos.request;
 
 import com.alibaba.excel.annotation.ExcelProperty;
 import com.example.blockchain.record.keeping.excels.LocalDateConverter;
@@ -7,8 +7,7 @@ import lombok.Data;
 import java.time.LocalDate;
 
 @Data
-public class CertificateExcelRowDTO {
-
+public class DegreeExcelRowRequest {
     @ExcelProperty("Lớp")
     private String studenClass;
 

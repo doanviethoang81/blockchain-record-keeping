@@ -4,11 +4,14 @@ import com.alibaba.excel.annotation.ExcelProperty;
 import com.alibaba.excel.context.AnalysisContext;
 import com.alibaba.excel.event.AnalysisEventListener;
 import com.alibaba.excel.exception.ExcelDataConvertException;
+import com.alibaba.excel.metadata.CellExtra;
 import com.example.blockchain.record.keeping.dtos.CertificateExcelRowDTO;
+import com.example.blockchain.record.keeping.dtos.request.DegreeExcelRowRequest;
 import com.example.blockchain.record.keeping.models.*;
 import com.example.blockchain.record.keeping.repositorys.CertificateRepository;
 import com.example.blockchain.record.keeping.repositorys.StudentRepository;
 import jakarta.transaction.Transactional;
+import lombok.Data;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.multipart.MultipartFile;
@@ -19,34 +22,48 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-public class CertificateExcelListener extends AnalysisEventListener<CertificateExcelRowDTO> {
-
-    private final List<CertificateExcelRowDTO> dataList = new ArrayList<>();
+public class DegreeExcelListener extends AnalysisEventListener<DegreeExcelRowRequest> {
+    private final List<DegreeExcelRowRequest> dataList = new ArrayList<>();
     private final List<String> errorMessages = new ArrayList<>();
     private final StudentRepository studentRepository;
-    private final CertificateRepository certificateRepository;
     private final UniversityService universityService;
-    private final UniversityCertificateTypeService universityCertificateTypeService;
     private final UserService userService;
-    private final CertificateTypeService certificateTypeService;
-    private final String nameCertificateType;
     private final MultipartFile imageFile;
+    private final RatingService ratingService;
+    private final EducationModelSevice educationModelSevice;
+    private final DegreeTitleSevice degreeTitleSevice;
+    private final DegreeService degreeService;
     private final StudentClassService studentClassService;
 
-    public CertificateExcelListener(StudentRepository studentRepository, CertificateRepository certificateRepository, UniversityService universityService, UniversityCertificateTypeService universityCertificateTypeService, UserService userService, CertificateTypeService certificateTypeService, String nameCertificateType, MultipartFile imageFile, StudentClassService studentClassService) {
+
+
+    public DegreeExcelListener(StudentRepository studentRepository, UniversityService universityService, UserService userService, MultipartFile imageFile, RatingService ratingService, EducationModelSevice educationModelSevice, DegreeTitleSevice degreeTitleSevice, DegreeService degreeService, StudentClassService studentClassService) {
         this.studentRepository = studentRepository;
-        this.certificateRepository = certificateRepository;
         this.universityService = universityService;
-        this.universityCertificateTypeService = universityCertificateTypeService;
         this.userService = userService;
-        this.certificateTypeService = certificateTypeService;
-        this.nameCertificateType = nameCertificateType;
         this.imageFile = imageFile;
+        this.ratingService = ratingService;
+        this.educationModelSevice = educationModelSevice;
+        this.degreeTitleSevice = degreeTitleSevice;
+        this.degreeService = degreeService;
         this.studentClassService = studentClassService;
     }
 
     @Override
-    public void invoke(CertificateExcelRowDTO row, AnalysisContext context) {
+    public void onException(Exception exception, AnalysisContext context) {
+        int rowIndex = context.readRowHolder().getRowIndex();
+
+        if (exception instanceof ExcelDataConvertException convertEx) {
+            int colIndex = convertEx.getColumnIndex();
+            String cellValue = String.valueOf(convertEx.getCellData().getStringValue());
+            errorMessages.add("Dòng " + rowIndex + ": Sai định dạng ngày \"" + cellValue + "\". Định dạng yêu cầu: dd/MM/yyyy");
+        } else {
+            errorMessages.add("Dòng " + rowIndex + ": " + exception.getMessage());
+        }
+    }
+
+    @Override
+    public void invoke(DegreeExcelRowRequest row, AnalysisContext context) {
         int rowIndex = context.readRowHolder().getRowIndex();
 
         try {
@@ -83,16 +100,8 @@ public class CertificateExcelListener extends AnalysisEventListener<CertificateE
     }
 
     @Override
-    public void onException(Exception exception, AnalysisContext context) {
-        int rowIndex = context.readRowHolder().getRowIndex();
-
-        if (exception instanceof ExcelDataConvertException convertEx) {
-            int colIndex = convertEx.getColumnIndex();
-            String cellValue = String.valueOf(convertEx.getCellData().getStringValue());
-            errorMessages.add("Dòng " + rowIndex + ": Sai định dạng ngày \"" + cellValue + "\". Định dạng yêu cầu: dd/MM/yyyy");
-        } else {
-            errorMessages.add("Dòng " + rowIndex + ": " + exception.getMessage());
-        }
+    public void extra(CellExtra extra, AnalysisContext context) {
+        super.extra(extra, context);
     }
 
 
@@ -102,7 +111,6 @@ public class CertificateExcelListener extends AnalysisEventListener<CertificateE
         ZonedDateTime vietnamTime = ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
 
 
-        System.out.println("Loại chứng chỉ được chọn: " + nameCertificateType);
         System.out.println("Loại chứng chỉ được chọn: " + imageFile);
 
 //        // ✅ Lưu file ảnh (imageFile) nếu cần
@@ -119,7 +127,7 @@ public class CertificateExcelListener extends AnalysisEventListener<CertificateE
 //            }
 //        }
 
-        for (CertificateExcelRowDTO dto : dataList) {
+        for (DegreeExcelRowRequest dto : dataList) {
 
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             String username = authentication.getName();
@@ -144,31 +152,36 @@ public class CertificateExcelListener extends AnalysisEventListener<CertificateE
                         return studentRepository.save(newStudent);
                     });
 
-            //loại chứng chỉ
-            Long id = Long.valueOf(nameCertificateType);
-            CertificateType certificateType= certificateTypeService.findById(id);
-            UniversityCertificateType universityCertificateType = universityCertificateTypeService.findByCartificateType(certificateType);
-
             //Tạo certificate
-            Certificate certificate = new Certificate();
-            certificate.setStudent(student);
-            certificate.setUniversityCertificateType(universityCertificateType);
-            certificate.setIssueDate(dto.getIssueDate());
-            certificate.setDiplomaNumber(dto.getDiplomaNumber());
-            certificate.setBlockchainTxHash("76123"); // sua lai sau
-            certificate.setImageUrl("1231");//sua
-            certificate.setQrCodeUrl("1313");//sua
-            certificate.setStatus("1");// sua lai
-            certificate.setCreatedAt(vietnamTime.toLocalDateTime());
+            Degree degree = new Degree();
+            degree.setStudent(student);
+            DegreeTitle degreeTitle = degreeTitleSevice.findByName(dto.getDegreeTitle());
+            degree.setDegreeTitle(degreeTitle);
+            degree.setGraduationYear(dto.getGraduationYear());
+            Rating rating = ratingService.findByName(dto.getDegreeTitle());
+            degree.setRating(rating);
+            degree.setIssueDate(dto.getIssueDate());
+            EducationMode educationMode = educationModelSevice.findByName(dto.getDegreeTitle());
+            degree.setEducationMode(educationMode);
+            degree.setTrainingLocation(dto.getTrainingLocation());
+            degree.setSigner(dto.getSigner());
+            degree.setDiplomaNumber(dto.getDiplomaNumber());
+            degree.setLotteryNumber(dto.getLotteryNumber());
+            degree.setBlockchainTxHash("76123"); // sua lai sau
+            degree.setStatus("1");// sua lai
+            degree.setCreatedAt(vietnamTime.toLocalDateTime());
 
-            certificateRepository.save(certificate);
+            degreeService.save(degree);
         }
-
         System.out.println("Đã lưu xong " + dataList.size() + " dòng");
-
     }
 
-    public List<CertificateExcelRowDTO> getDataList() {
+    @Override
+    public boolean hasNext(AnalysisContext context) {
+        return super.hasNext(context);
+    }
+
+    public List<DegreeExcelRowRequest> getDataList() {
         return dataList;
     }
 

@@ -1,12 +1,15 @@
 package com.example.blockchain.record.keeping.dtos;
 
+import com.example.blockchain.record.keeping.models.StudentClass;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Data
 @AllArgsConstructor
@@ -14,8 +17,11 @@ import java.time.LocalDate;
 @Builder
 public class StudentDTO {
 
-    @JsonProperty("department_id")
-    private String department;
+    @JsonProperty("id")
+    private Long id;
+
+    @JsonProperty("student_class_id")
+    private Long studentClass;
 
     @JsonProperty("name")
     private String name;
@@ -26,12 +32,18 @@ public class StudentDTO {
     @JsonProperty("email")
     private String email;
 
-    @JsonProperty("class_name")
-    private String className;
-
     @JsonProperty("birth_date")
     private LocalDate birthDate;
 
     @JsonProperty("course")
     private String course;
+
+    @JsonProperty("status")
+    private String status;
+
+    @JsonProperty("created_at")
+    private LocalDateTime createdAt;
+
+    @JsonProperty("updated_at")
+    private LocalDateTime updatedAt;
 }

@@ -24,7 +24,6 @@ public class RedisConfig {
         if (host == null || host.isEmpty() || password == null || password.isEmpty()) {
             throw new IllegalStateException("REDIS_HOST or REDIS_PASSWORD is not set. Host: " + host + ", Password: " + password);
         }
-        System.out.println("Redis Config: host=" + host + ", port=" + port + ", sslEnabled=" + sslEnabled);
     }
 
     @Bean

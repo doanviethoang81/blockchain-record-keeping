@@ -23,8 +23,8 @@ public class Student {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name ="department_id")
-    private Department department;
+    @JoinColumn(name ="student_class_id")
+    private StudentClass studentClass;
 
     @Column(name ="name")
     private String name;
@@ -35,14 +35,14 @@ public class Student {
     @Column(name ="email")
     private String email;
 
-    @Column(name ="class_name")
-    private String className;
-
     @Column(name ="birth_date")
     private LocalDate birthDate;
 
     @Column(name ="course")
     private String course;
+
+    @Column(name ="status")
+    private String status;
 
     @Column(name="created_at")
     private LocalDateTime createdAt;

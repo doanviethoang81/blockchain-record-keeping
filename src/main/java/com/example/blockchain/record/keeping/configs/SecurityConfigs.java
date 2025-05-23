@@ -93,7 +93,7 @@ public class SecurityConfigs {
                                 ).permitAll()
                                 .requestMatchers("/api/v1/check-role").permitAll()
 ////                    .requestMatchers("/images/**").permitAll()
-                                .requestMatchers("/api/v1/admin/**").hasAuthority("ADMIN")
+                                .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/v1/pdt/**").hasRole("PDT")
                                 .requestMatchers("/api/v1/khoa/**").hasRole("KHOA")
                                 .requestMatchers("/api/v1/pdt-khoa/**").hasAnyRole("PDT", "KHOA")

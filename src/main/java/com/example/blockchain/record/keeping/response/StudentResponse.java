@@ -1,6 +1,5 @@
 package com.example.blockchain.record.keeping.response;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -13,6 +12,7 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @NoArgsConstructor
 public class StudentResponse {
+
     private String name;
     private String studentCode;
     private String email;

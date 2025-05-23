@@ -1,14 +1,14 @@
 package com.example.blockchain.record.keeping.services;
 
 import com.example.blockchain.record.keeping.dtos.CertificateDTO;
-import com.example.blockchain.record.keeping.models.Certificate;
-import com.example.blockchain.record.keeping.models.Department;
-import com.example.blockchain.record.keeping.models.Student;
+import com.example.blockchain.record.keeping.dtos.DegreeDTO;
+import com.example.blockchain.record.keeping.models.*;
 import com.example.blockchain.record.keeping.repositorys.CertificateRepository;
 import com.example.blockchain.record.keeping.repositorys.StudentRepository;
-import com.example.blockchain.record.keeping.response.StudentWithCertificateResponse;
+import com.example.blockchain.record.keeping.response.ClassWithStudentsResponse;
+import com.example.blockchain.record.keeping.response.DepartmentWithClassWithStudentResponse;
+import com.example.blockchain.record.keeping.response.StudentDetailReponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -22,55 +22,99 @@ public class StudentService implements IStudentService{
     private final StudentRepository studentRepository;
     private final CertificateService certificateService;
     private final CertificateRepository certificateRepository;
+    private final DegreeService degreeService;
+    private final StudentClassService studentClassService;
+    private final DepartmentService departmentService;
 
-    @Override
-    public List<Student> listUserOfDepartment(Department department) {
-        return studentRepository.findByDepartment(department);
-    }
+    // danh sách sv của các lớp của 1 khoa
+    public List<ClassWithStudentsResponse> studentOfClassOfDepartmentList(Long idDepartment){
+        List<StudentClass> studentClassList = studentClassService.findAllClassesByDepartmentId(idDepartment);
+        List<ClassWithStudentsResponse> classWithStudentsResponseList = new ArrayList<>();
 
-    public List<StudentWithCertificateResponse> getStudentsWithCertificatesByUniversity(Long universityId) {
-        List<Student> studentList = studentRepository.findByUniversityId(universityId);
-        List<StudentWithCertificateResponse> responseList = new ArrayList<>();
+        for (StudentClass studentClass : studentClassList) {
+            List<Student> studentList = studentRepository.findByStudentClassId(studentClass.getId());
 
-        for (Student student : studentList) {
-            List<Certificate> certificateList = certificateRepository.findByStudentId(student.getId());
+            List<StudentDetailReponse> studentDetailReponseList = new ArrayList<>();
+            for (Student student : studentList) {
+                //1 list chứng chỉ
+                List<Degree> degreeList = degreeService.listDegreeOfStudent(student);
 
-            List<CertificateDTO> certificateDTOs = certificateList.stream()
-                    .map(c -> new CertificateDTO(
-                            c.getIssueDate(),
-                            c.getGraduationYear(),
-                            c.getEducationMode(),
-                            c.getTrainingLocation(),
-                            c.getSigner(),
-                            c.getDiplomaNumber(),
-                            c.getLotteryNumber(),
-                            c.getBlockchainTxHash(),
-                            c.getRating(),
-                            c.getDegreeTitle(),
-                            c.getImageUrl(),
-                            c.getStatus()
-                    ))
-                    .collect(Collectors.toList());
+                List<Certificate> certificateList = certificateService.listCertificateOfStudent(student);
 
-            responseList.add(new StudentWithCertificateResponse(
-                    student.getDepartment().getUniversity().getName(),
-                    student.getDepartment().getName(),
-                    student.getName(),
-                    student.getStudentCode(),
-                    student.getEmail(),
-                    student.getClassName(),
-                    student.getBirthDate(),
-                    student.getCourse(),
-                    certificateDTOs
-            ));
+                List<DegreeDTO> degreeDTOList = degreeList.stream()
+                        .map(u -> new DegreeDTO(
+                                u.getIssueDate(),
+                                u.getGraduationYear(),
+                                u.getEducationMode().getName(),
+                                u.getTrainingLocation(),
+                                u.getSigner(),
+                                u.getDiplomaNumber(),
+                                u.getLotteryNumber(),
+                                u.getBlockchainTxHash(),
+                                u.getRating().getName(),
+                                u.getDegreeTitle().getName(),
+                                u.getImageUrl(),
+                                u.getCreatedAt()
+                        ))
+                        .collect(Collectors.toList());
+
+                List<CertificateDTO> certificateDTOList = certificateList.stream()
+                        .map(u -> new CertificateDTO(
+                                u.getUniversityCertificateType().getCertificateType().getName(),
+                                u.getIssueDate(),
+                                u.getDiplomaNumber(),
+                                u.getBlockchainTxHash(),
+                                u.getImageUrl(),
+                                u.getQrCodeUrl(),
+                                u.getCreatedAt()
+                        ))
+                        .collect(Collectors.toList());
+
+                StudentDetailReponse studentDetailReponse = new StudentDetailReponse(
+                        student.getName(),
+                        student.getStudentCode(),
+                        student.getEmail(),
+                        student.getBirthDate(),
+                        student.getCourse(),
+                        degreeDTOList,
+                        certificateDTOList
+                );
+                studentDetailReponseList.add(studentDetailReponse);
+            }
+            ClassWithStudentsResponse classWithStudentsResponse = new ClassWithStudentsResponse(
+                    studentClass.getName(),
+                    studentDetailReponseList
+            );
+            classWithStudentsResponseList.add(classWithStudentsResponse);
         }
-        return responseList;
+        return  classWithStudentsResponseList;
+    }
+
+    // danh sách sv của các lớp của 1 khoa của 1 trường
+    public List<DepartmentWithClassWithStudentResponse> getStudentsWithCertificatesByUniversity(University university) {
+
+        List<DepartmentWithClassWithStudentResponse> departmentWithClassWithStudentResponseList = new ArrayList<>();
+        List<Department> departmentList = departmentService.listDepartmentOfUniversity(university);
+
+        for (Department department : departmentList){
+
+            DepartmentWithClassWithStudentResponse departmentWithClassWithStudentResponse
+                    = new DepartmentWithClassWithStudentResponse(
+                            department.getName(),
+                        studentOfClassOfDepartmentList(department.getId()) // gọi tk trên để lấy ra danh sách lớp có sinh viên
+            );
+            departmentWithClassWithStudentResponseList.add(departmentWithClassWithStudentResponse);
+        }
+        return departmentWithClassWithStudentResponseList;
     }
 
     @Override
-    public Optional<Student> findByStudentCodeAndDepartment_Id(String mssv, Long departmentId) {
-        return studentRepository.findByStudentCodeAndDepartment_Id(mssv, departmentId);
+    public Optional<Student> findByStudentCodeAndDepartmentId(String studentCode, Long departmentId) {
+        return studentRepository.findByStudentCodeAndDepartmentId(studentCode,departmentId);
     }
 
-
+    public Student findById(Long id){
+        return studentRepository.findById(id)
+                .orElseThrow(()-> new RuntimeException("Khong tim thay id"));
+    }
 }
