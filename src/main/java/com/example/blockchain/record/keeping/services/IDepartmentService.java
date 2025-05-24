@@ -12,4 +12,9 @@ public interface IDepartmentService {
 
     List<Department> listDepartmentOfUniversity(University university);
 
+    Department updateDepartment(Long id, String name,String email);
+
+    Department deleteDepartment(Long id);
+
+    Department findById(Long id);
 }

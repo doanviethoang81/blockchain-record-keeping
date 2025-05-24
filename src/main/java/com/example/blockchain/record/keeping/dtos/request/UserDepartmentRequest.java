@@ -5,7 +5,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class UserKhoaRequest {
+public class UserDepartmentRequest {
     private String name;
     private String email;
     private String password;
