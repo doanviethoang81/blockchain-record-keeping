@@ -64,29 +64,23 @@ public class StudentClassService implements IStudentClassService{
         return studentClassRepository.save(studentClass);
     }
 
+    @Override
+    public List<StudentClass> searchNameClass(String name) {
+        return studentClassRepository.findByNameContainingAndStatus(name, Status.ACTIVE);
+    }
 
-    public List<DepartmentWithClassReponse> getAllClassofUniversity(Long id){
-        List<Department> departmentList= studentClassRepository.findAllDeparmentOfUniversity(id);
-        List<DepartmentWithClassReponse> departmentWithClassReponseList = new ArrayList<>();
 
-        for(Department department : departmentList){
-            List<StudentClass> studentClassList = studentClassRepository.findAllClassesByDepartmentId(department.getId());
-            List<StudentClassReponse> studentClassReponseArrayList = new ArrayList<>();
-            for (StudentClass studentClass: studentClassList){
-                StudentClassReponse studentClassReponse = new StudentClassReponse(
-                        studentClass.getId(),
-                        studentClass.getName()
-                );
-                studentClassReponseArrayList.add(studentClassReponse);
-            }
-
-            DepartmentWithClassReponse departmentReponse = new DepartmentWithClassReponse(
-                    department.getName(),
-                    studentClassReponseArrayList
+    public List<StudentClassReponse> getAllClassofUniversity(Long id){
+        List<StudentClass> studentClassList = studentClassRepository.findAllClassOfUniversiry(id);
+        List<StudentClassReponse> studentClassReponseList= new ArrayList<>();
+        for (StudentClass studentClass : studentClassList){
+            StudentClassReponse studentClassReponse = new StudentClassReponse(
+                    studentClass.getId(),
+                    studentClass.getName()
             );
-            departmentWithClassReponseList.add(departmentReponse);
+            studentClassReponseList.add(studentClassReponse);
         }
-        return  departmentWithClassReponseList;
+        return  studentClassReponseList;
     }
 
 }

@@ -26,7 +26,7 @@ public interface StudentRepository extends JpaRepository<Student,Long> {
             """, nativeQuery = true)
     List<Student> findByStudentClassId(@Param("studentClassId") Long studentClassId);
 
-    // danh sách
+    // danh sách sinh viên theo khoa
     @Query(value = """
     SELECT s.* FROM students s
     JOIN student_class sc ON s.student_class_id = sc.id
@@ -37,5 +37,14 @@ public interface StudentRepository extends JpaRepository<Student,Long> {
     """, nativeQuery = true)
     Optional<Student> findByStudentCodeAndDepartmentId(@Param("studentCode") String studentCode,
                                                        @Param("departmentId") Long departmentId);
+
+    @Query(value = """
+    select s.* from students s
+    JOIN student_class sc on s.student_class_id = sc.id
+    JOIN departments d on sc.department_id = d.id
+    JOIN universitys u on d.university_id =u.id
+    where u.id = :universityId and d.status='ACTIVE'
+    """, nativeQuery = true)
+    List<Student> getAllStudentOfUniversity(@Param("universityId") Long universityId);
 
 }

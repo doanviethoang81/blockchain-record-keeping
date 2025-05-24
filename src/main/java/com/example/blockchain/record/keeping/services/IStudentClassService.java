@@ -20,4 +20,6 @@ public interface IStudentClassService {
     StudentClass save(StudentClass studentClass);
 
     StudentClass deleteStudentClass(Long id);
+
+    List<StudentClass> searchNameClass(String name);
 }

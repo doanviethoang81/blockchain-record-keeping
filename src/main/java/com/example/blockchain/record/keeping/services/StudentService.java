@@ -113,6 +113,11 @@ public class StudentService implements IStudentService{
         return studentRepository.findByStudentCodeAndDepartmentId(studentCode,departmentId);
     }
 
+    @Override
+    public List<Student> getAllStudentOfUniversity(Long universityId) {
+        return studentRepository.getAllStudentOfUniversity(universityId);
+    }
+
     public Student findById(Long id){
         return studentRepository.findById(id)
                 .orElseThrow(()-> new RuntimeException("Khong tim thay id"));

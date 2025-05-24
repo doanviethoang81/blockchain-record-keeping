@@ -24,6 +24,12 @@ public interface UniversityCertificateTypeRepository extends JpaRepository<Unive
 
     boolean existsByUniversityAndCertificateType_NameIgnoreCase(University university, String name);
 
-    @Query("SELECT uct FROM UniversityCertificateType uct WHERE uct.university = :university ORDER BY uct.certificateType.createdAt DESC")
-    List<UniversityCertificateType> findAllByUniversityOrderByCreatedAtDesc(@Param("university") University university);
+    @Query(value = """
+            SELECT ct.* from certificate_types ct
+            JOIN university_certificate_types uct on ct.id =uct.certificate_type_id
+            JOIN universitys u on  uct.university_id = u.id
+            where u.id = :universityId and ct.status='ACTIVE'
+            ORDER BY ct.created_at DESC;
+            """, nativeQuery = true)
+    List<CertificateType> findAllByUniversityOrderByCreatedAtDesc(@Param("universityId") Long universityId);
 }

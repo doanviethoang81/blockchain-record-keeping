@@ -2,6 +2,7 @@ package com.example.blockchain.record.keeping.controllers;
 
 import com.example.blockchain.record.keeping.dtos.CertificateTypeDTO;
 import com.example.blockchain.record.keeping.dtos.request.CertificateTypeRequest;
+import com.example.blockchain.record.keeping.enums.Status;
 import com.example.blockchain.record.keeping.models.CertificateType;
 import com.example.blockchain.record.keeping.models.University;
 import com.example.blockchain.record.keeping.models.UniversityCertificateType;
@@ -30,6 +31,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -53,50 +55,74 @@ public class CertificateTypeController {
     }
 
     //---------------------------- PDT -------------------------------------------------------
+    //ds chứng chỉ cho tr
     @PreAuthorize("hasAuthority('READ')")
     @GetMapping("/pdt/certificate-type")
     public ResponseEntity<?> getCertificateTypePDT(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String name
     ) {
         try {
-            String username = SecurityContextHolder.getContext().getAuthentication().getName();
+            String message ="";
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String username = authentication.getName();
             University university = universityService.getUniversityByEmail(username);
 
-            List<CertificateTypeDTO> allResult = universityCertificateTypeService
-                    .listUniversityCertificateTypes(university)
-                    .stream()
-                    .map(u -> new CertificateTypeDTO(
-                            u.getCertificateType().getId(),
-                            u.getCertificateType().getName()
-                    ))
-                    .collect(Collectors.toList());
 
-            if (CollectionUtils.isEmpty(allResult)) {
+
+            List<CertificateTypeDTO> certificateTypeDTOS = new ArrayList<>();
+
+            if (name != null && !name.isEmpty()) {// tìm theo tên
+                List<CertificateType> result = certificateTypeService.searchByUniversityAndName(university.getId(), name);
+
+                for(CertificateType certificateType : result){
+                    CertificateTypeDTO certificateTypeDTO = new CertificateTypeDTO(
+                            certificateType.getId(),
+                            certificateType.getName()
+                    );
+                    certificateTypeDTOS.add(certificateTypeDTO);
+                }
+
+                if (CollectionUtils.isEmpty(result)) {
+                    return ApiResponseBuilder.success("Không tìm thấy!", null);
+                }
+                message = certificateTypeDTOS.isEmpty() ? "Không tìm thấy chứng chỉ!" : "Tìm thành công";
+
+            } else {
+                List<CertificateType> allResult = universityCertificateTypeService
+                        .listUniversityCertificateTypes(university.getId());
+                for(CertificateType certificateType : allResult){
+                    CertificateTypeDTO certificateTypeDTO = new CertificateTypeDTO(
+                            certificateType.getId(),
+                            certificateType.getName()
+                    );
+                    certificateTypeDTOS.add(certificateTypeDTO);
+                }
+                message = certificateTypeDTOS.isEmpty() ? "Không có dữ liệu!" : "Lấy danh sách loại chứng chỉ cho trường thành công";
+            }
+            if (CollectionUtils.isEmpty(certificateTypeDTOS)) {
                 return ApiResponseBuilder.success("Không có giấy chứng nhận nào!", null);
             }
-
             int start = page * size;
-            int end = Math.min(start + size, allResult.size());
+            int end = Math.min(start + size, certificateTypeDTOS.size());
             if (start > end) {
                 PaginatedData<CertificateTypeDTO> emptyData = new PaginatedData<>(List.of(),
-                        new PaginationMeta(allResult.size(), 0, size, page + 1,
-                                (int) Math.ceil((double) allResult.size() / size)));
+                        new PaginationMeta(certificateTypeDTOS.size(), 0, size, page + 1,
+                                (int) Math.ceil((double) certificateTypeDTOS.size() / size)));
                 return ApiResponseBuilder.success("Không có dữ liệu.", emptyData);
             }
-
-            List<CertificateTypeDTO> pagedResult = allResult.subList(start, end);
+            List<CertificateTypeDTO> pagedResult = certificateTypeDTOS.subList(start, end);
             PaginatedData<CertificateTypeDTO> data = new PaginatedData<>(pagedResult,
-                    new PaginationMeta(allResult.size(), pagedResult.size(), size, page + 1,
-                            (int) Math.ceil((double) allResult.size() / size)));
-
-            return ApiResponseBuilder.success("Lấy danh sách loại chứng chỉ cho trường thành công.", data);
+                    new PaginationMeta(certificateTypeDTOS.size(), pagedResult.size(), size, page + 1,
+                            (int) Math.ceil((double) certificateTypeDTOS.size() / size)));
+            return ApiResponseBuilder.success(message, data);
         } catch (Exception e) {
             return ApiResponseBuilder.internalError("Lỗi: " + e.getMessage());
         }
     }
 
-    //ct
+    //chi tiết
     @PreAuthorize("hasAuthority('READ')")
     @GetMapping("/pdt/certificate-type-detail/{id}")
     public ResponseEntity<?> certificateTypeDetail(@PathVariable("id")  Long id)
@@ -122,26 +148,6 @@ public class CertificateTypeController {
 //        }
 //    }
 
-    @PreAuthorize("hasAuthority('READ')")
-    @GetMapping("/pdt/search-name-certificate")
-    public ResponseEntity<?> searchCertificates(@RequestParam String name) {
-        try{
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            String username = authentication.getName();
-            University university = universityService.getUniversityByEmail(username);
-            List<CertificateType> result = certificateTypeService.searchByUniversityAndName(university.getId(), name);
-            List<CertificateTypeResponse> names = result.stream()
-                    .map(cert -> new CertificateTypeResponse(cert.getName()))
-                    .collect(Collectors.toList());
-
-            String message = names.isEmpty() ? "Không tìm thấy chứng chỉ!" : "Tìm thành công";
-
-            return ApiResponseBuilder.success(message,names);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
     //tạo
     @PreAuthorize("hasAuthority('WRITE')")
     @PostMapping("/pdt/certificate-type/create")
@@ -163,6 +169,7 @@ public class CertificateTypeController {
 
             CertificateType newCertificateType = new CertificateType();
             newCertificateType.setName(certificateType.getName());
+            newCertificateType.setStatus(Status.ACTIVE);
             newCertificateType.setCreatedAt(vietnamTime.toLocalDateTime());
             newCertificateType.setUpdatedAt(vietnamTime.toLocalDateTime());
             certificateTypeService.createCertificateType(newCertificateType);

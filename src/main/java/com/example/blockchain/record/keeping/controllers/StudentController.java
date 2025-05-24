@@ -41,126 +41,78 @@ public class StudentController {
 
     //---------------------------- PDT -------------------------------------------------------
     //danh sách sinh viên của 1 trường
-//    @PreAuthorize("hasAuthority('READ')")
-//    @GetMapping("/pdt/list-students")
-//    public ResponseEntity<?> getStudentofUniversity(
-//            @RequestParam(defaultValue = "0") int page,
-//            @RequestParam(defaultValue = "10") int size
-//    ){
-//        try{
-//            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-//            String username = authentication.getName();
-//            User user = userService.findByUser(username);
-//            University university = universityService.getUniversityByEmail(username);
-//
-////
-////            List<Department> department = departmentService.listDepartmentOfUniversity(university);
-////
-////            List<StudentClass> studentClassList =
-//
-//            List<Student> studentList = studentService.getStudentsWithCertificatesByUniversity(university.getId());
-//
-//            List<StudentWithCertificateResponse> studentWithCertificateResponseList = new ArrayList<>();
-//
-//            for (Student student : studentList) {
-//                //1 list chứng chỉ
-//                List<Degree> degreeList = degreeService.listDegreeOfStudent(student);
-//
-//                List<Certificate> certificateList = certificateService.listCertificateOfStudent(student);
-//
-//                List<DegreeDTO> degreeDTOList = degreeList.stream()
-//                        .map(u -> new DegreeDTO(
-//                                u.getIssueDate(),
-//                                u.getGraduationYear(),
-//                                u.getEducationMode().getName(),
-//                                u.getTrainingLocation(),
-//                                u.getSigner(),
-//                                u.getDiplomaNumber(),
-//                                u.getLotteryNumber(),
-//                                u.getBlockchainTxHash(),
-//                                u.getRating().getName(),
-//                                u.getDegreeTitle().getName(),
-//                                u.getImageUrl(),
-//                                u.getCreatedAt()
-//                        ))
-//                        .collect(Collectors.toList());
-//
-//                List<CertificateDTO> certificateDTOList = certificateList.stream()
-//                        .map(u -> new CertificateDTO(
-//                                u.getUniversityCertificateType().getCertificateType().getName(),
-//                                u.getIssueDate(),
-//                                u.getDiplomaNumber(),
-//                                u.getBlockchainTxHash(),
-//                                u.getImageUrl(),
-//                                u.getQrCodeUrl(),
-//                                u.getCreatedAt()
-//                        ))
-//                        .collect(Collectors.toList());
-//
-//
-//
-//                StudentWithCertificateResponse studentWithCertificateResponse = new StudentWithCertificateResponse(
-//                        user.getUniversity().getName(),
-//                        user.getDepartment().getName(),
-//                        student.getStudentClass().getName(),
-//                        student.getName(),
-//                        student.getStudentCode(),
-//                        student.getEmail(),
-//                        student.getBirthDate(),
-//                        student.getCourse(),
-//                        degreeDTOList,
-//                        certificateDTOList
-//                );
-//                studentWithCertificateResponseList.add(studentWithCertificateResponse);
-//            }
-//
-//            int start = page * size;
-//            int end = Math.min(start + size, studentWithCertificateResponseList.size());
-//            if (start >= studentWithCertificateResponseList.size()) {
-//                return ApiResponseBuilder.success("Chưa có khoa nào", null);
-//            }
-//
-//            List<StudentWithCertificateResponse> pagedResult = studentWithCertificateResponseList.subList(start, end);
-//            PaginatedData<StudentWithCertificateResponse> data = new PaginatedData<>(pagedResult,
-//                    new PaginationMeta(studentWithCertificateResponseList.size(), pagedResult.size(), size, page + 1,
-//                            (int) Math.ceil((double) studentWithCertificateResponseList.size() / size)));
-//
-//            return ApiResponseBuilder.success(
-//                    "Lấy danh sách user khoa thành công.",data);
-//        } catch (Exception e) {
-//            return ApiResponseBuilder.badRequest("Lỗi không lấy được dữ liệu!");
-//        }
-//    }
-
     @PreAuthorize("hasAuthority('READ')")
     @GetMapping("/pdt/students-of-university")
-    public ResponseEntity<?> getStudentsOfUniversity(
+    public ResponseEntity<?> getStudentofUniversity(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
-    ) {
+    ){
         try{
-            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-            String username = auth.getName();
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String username = authentication.getName();
             User user = userService.findByUser(username);
+            University university = universityService.getUniversityByEmail(username);
 
-            University university =user.getUniversity();
-            List<DepartmentWithClassWithStudentResponse> students = studentService.getStudentsWithCertificatesByUniversity(university);
+            List<Student> studentList = studentService.getAllStudentOfUniversity(university.getId());
+            List<StudentResponse> studentResponseList = new ArrayList<>();
+            for(Student student : studentList){
+                StudentResponse studentResponse = new StudentResponse(
+                        student.getName(),
+                        student.getStudentCode(),
+                        student.getEmail(),
+                        student.getStudentClass().getName(),
+                        student.getBirthDate(),
+                        student.getCourse()
+                );
+                studentResponseList.add(studentResponse);
+            }
+
             int start = page * size;
-            int end = Math.min(start + size, students.size());
-            if (start >= students.size()) {
+            int end = Math.min(start + size, studentResponseList.size());
+            if (start >= studentResponseList.size()) {
                 return ApiResponseBuilder.success("Chưa có khoa nào", null);
             }
-            List<DepartmentWithClassWithStudentResponse> pagedResult = students.subList(start, end);
-            PaginatedData<DepartmentWithClassWithStudentResponse> data = new PaginatedData<>(pagedResult,
-                    new PaginationMeta(students.size(), pagedResult.size(), size, page + 1,
-                            (int) Math.ceil((double) students.size() / size)));
 
+            List<StudentResponse> pagedResult = studentResponseList.subList(start, end);
+            PaginatedData<StudentResponse> data = new PaginatedData<>(pagedResult,
+                    new PaginationMeta(studentResponseList.size(), pagedResult.size(), size, page + 1,
+                            (int) Math.ceil((double) studentResponseList.size() / size)));
             return ApiResponseBuilder.success(
-                    "Lấy danh sách sinh viên của trường thành công.",data);
+                    "Lấy danh sách sinh viên trường thành công.",data);
         } catch (Exception e) {
             return ApiResponseBuilder.badRequest("Lỗi không lấy được dữ liệu!");
         }
     }
+
+//    @PreAuthorize("hasAuthority('READ')")
+//    @GetMapping("/pdt/list-students")
+//    public ResponseEntity<?> getStudentsOfUniversity(
+//            @RequestParam(defaultValue = "0") int page,
+//            @RequestParam(defaultValue = "10") int size
+//    ) {
+//        try{
+//            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+//            String username = auth.getName();
+//            User user = userService.findByUser(username);
+//
+//            University university =user.getUniversity();
+//            List<DepartmentWithClassWithStudentResponse> students = studentService.getStudentsWithCertificatesByUniversity(university);
+//            int start = page * size;
+//            int end = Math.min(start + size, students.size());
+//            if (start >= students.size()) {
+//                return ApiResponseBuilder.success("Chưa có khoa nào", null);
+//            }
+//            List<DepartmentWithClassWithStudentResponse> pagedResult = students.subList(start, end);
+//            PaginatedData<DepartmentWithClassWithStudentResponse> data = new PaginatedData<>(pagedResult,
+//                    new PaginationMeta(students.size(), pagedResult.size(), size, page + 1,
+//                            (int) Math.ceil((double) students.size() / size)));
+//
+//            return ApiResponseBuilder.success(
+//                    "Lấy danh sách sinh viên của trường thành công.",data);
+//        } catch (Exception e) {
+//            return ApiResponseBuilder.badRequest("Lỗi không lấy được dữ liệu!");
+//        }
+//    }
 
     //---------------------------- KHOA -------------------------------------------------------
     @PreAuthorize("hasAuthority('READ')")

@@ -42,8 +42,8 @@ public class UniversityCertificateTypeService implements IUniversityCertificateT
         return universityCertificateTypeRepository.existsByUniversityAndCertificateType_NameIgnoreCase(university, certificateName.trim());
     }
 
-    public List<UniversityCertificateType> listUniversityCertificateTypes(University university) {
-        return universityCertificateTypeRepository.findAllByUniversityOrderByCreatedAtDesc(university);
+    public List<CertificateType> listUniversityCertificateTypes(Long universityId) {
+        return universityCertificateTypeRepository.findAllByUniversityOrderByCreatedAtDesc(universityId);
     }
 
 }

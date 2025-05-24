@@ -47,7 +47,7 @@ public class StudentClassController {
             String username = authentication.getName();
             University university = universityService.getUniversityByEmail(username);
 
-            List<DepartmentWithClassReponse> departmentWithClassReponseList= studentClassService.getAllClassofUniversity(university.getId());
+            List<StudentClassReponse> departmentWithClassReponseList= studentClassService.getAllClassofUniversity(university.getId());
 
             int start = page * size;
             int end = Math.min(start + size, departmentWithClassReponseList.size());
@@ -55,8 +55,8 @@ public class StudentClassController {
                 return ApiResponseBuilder.success("Chưa có khoa nào", null);
             }
 
-            List<DepartmentWithClassReponse> pagedResult = departmentWithClassReponseList.subList(start, end);
-            PaginatedData<DepartmentWithClassReponse> data = new PaginatedData<>(pagedResult,
+            List<StudentClassReponse> pagedResult = departmentWithClassReponseList.subList(start, end);
+            PaginatedData<StudentClassReponse> data = new PaginatedData<>(pagedResult,
                     new PaginationMeta(departmentWithClassReponseList.size(), pagedResult.size(), size, page + 1,
                             (int) Math.ceil((double) departmentWithClassReponseList.size() / size)));
 
@@ -135,6 +135,41 @@ public class StudentClassController {
         try {
             studentClassService.deleteStudentClass(id);
             return ApiResponseBuilder.success("Xóa lớp thành công", null);
+        } catch (Exception e) {
+            return ApiResponseBuilder.internalError("Đã xảy ra lỗi: " + e.getMessage());
+        }
+    }
+
+    // tim lop
+    @PreAuthorize("hasAuthority('WRITE')")
+    @GetMapping("/pdt/search-class")
+    public ResponseEntity<?> searchDepartment(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam String name){
+        try {
+            List<StudentClass> studentClassList = studentClassService.searchNameClass(name);
+
+            List<StudentClassReponse> studentClassReponseList= new ArrayList<>();
+            for (StudentClass studentClass : studentClassList){
+                StudentClassReponse studentClassReponse = new StudentClassReponse(
+                        studentClass.getId(),
+                        studentClass.getName()
+                );
+                studentClassReponseList.add(studentClassReponse);
+            }
+            int start = page * size;
+            int end = Math.min(start + size, studentClassReponseList.size());
+            if (start >= studentClassReponseList.size()) {
+                return ApiResponseBuilder.success("Không tìm thấy lớp!", null);
+            }
+
+            List<StudentClassReponse> pagedResult = studentClassReponseList.subList(start, end);
+            PaginatedData<StudentClassReponse> data = new PaginatedData<>(pagedResult,
+                    new PaginationMeta(studentClassReponseList.size(), pagedResult.size(), size, page + 1,
+                            (int) Math.ceil((double) studentClassReponseList.size() / size)));
+
+            return ApiResponseBuilder.success("Tìm lớp thành công", data);
         } catch (Exception e) {
             return ApiResponseBuilder.internalError("Đã xảy ra lỗi: " + e.getMessage());
         }

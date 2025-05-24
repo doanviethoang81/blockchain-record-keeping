@@ -16,6 +16,16 @@ public interface StudentClassRepository extends JpaRepository<StudentClass,Long>
 
     Optional<StudentClass> findByName(String name);
 
+    // lay ds lop cua 1 tr theo id trường
+    @Query(value = """
+    select s.* from student_class s
+    JOIN departments d on d.id = s.department_id
+    JOIN universitys u on d.university_id =u.id
+    where u.id = :universiryId and s.status='ACTIVE'
+    """, nativeQuery = true)
+    List<StudentClass> findAllClassOfUniversiry(@Param("universiryId") Long universiryId);
+
+
     //lay ds lop theo khoa
     @Query(value = """
         SELECT sc.* FROM student_class sc
@@ -34,4 +44,8 @@ public interface StudentClassRepository extends JpaRepository<StudentClass,Long>
 
     //kiểm tra tên lớp tồn tại k
     boolean existsByNameAndDepartmentAndStatus(String name, Department department, Status status);
+
+    //tìm lop theo ten
+    List<StudentClass> findByNameContainingAndStatus(String keyword, Status status);
+
 }

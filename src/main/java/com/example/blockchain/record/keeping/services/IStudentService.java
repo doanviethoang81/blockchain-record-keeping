@@ -11,4 +11,6 @@ import java.util.Optional;
 
 public interface IStudentService {
     Optional<Student> findByStudentCodeAndDepartmentId(String studentCode,Long departmentId);
+
+    List<Student> getAllStudentOfUniversity(Long universityId);
 }
