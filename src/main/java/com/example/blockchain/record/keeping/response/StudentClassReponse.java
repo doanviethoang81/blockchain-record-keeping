@@ -8,5 +8,6 @@ import lombok.Data;
 @Builder
 @AllArgsConstructor
 public class StudentClassReponse {
+    private Long id;
     private String className;
 }

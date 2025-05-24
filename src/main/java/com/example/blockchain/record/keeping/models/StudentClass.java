@@ -1,5 +1,6 @@
 package com.example.blockchain.record.keeping.models;
 
+import com.example.blockchain.record.keeping.enums.Status;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -26,7 +27,8 @@ public class StudentClass {
     private String name;
 
     @Column(name = "status")
-    private String status;
+    @Enumerated(EnumType.STRING)
+    private Status status;
 
     @Column(name="created_at")
     private LocalDateTime createdAt;

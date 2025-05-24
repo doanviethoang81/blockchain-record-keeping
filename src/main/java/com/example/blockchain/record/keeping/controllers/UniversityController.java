@@ -35,7 +35,7 @@ public class UniversityController {
 
     //các khoa của trường đại học
     @PreAuthorize("hasAuthority('READ')")
-    @GetMapping("/pdt/user")
+    @GetMapping("/pdt/list-department-of-university")
     public ResponseEntity<?> getListUserOfUniversity(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size

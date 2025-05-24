@@ -39,7 +39,7 @@ public class DepartmentController {
     //tạo khoa
     @PreAuthorize("hasAuthority('WRITE')")
     @PostMapping("/pdt/create-user")
-    public ResponseEntity<?> verifyOtp(@RequestBody UserDepartmentRequest request) {
+    public ResponseEntity<?> createDepartment(@RequestBody UserDepartmentRequest request) {
         try{
             ZonedDateTime vietnamTime = ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
 

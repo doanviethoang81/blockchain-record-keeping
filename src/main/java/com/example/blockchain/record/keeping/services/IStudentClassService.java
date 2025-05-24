@@ -1,5 +1,7 @@
 package com.example.blockchain.record.keeping.services;
 
+import com.example.blockchain.record.keeping.enums.Status;
+import com.example.blockchain.record.keeping.models.Department;
 import com.example.blockchain.record.keeping.models.StudentClass;
 
 import java.util.List;
@@ -10,4 +12,12 @@ public interface IStudentClassService {
     StudentClass findByName(String name);
 
     List<StudentClass>  findAllClassesByDepartmentId(Long id);
+
+    List<Department> findAllDeparmentOfUniversity(Long id);
+
+    boolean existsByNameAndDepartmentIdAndStatus(String name, Department department);
+
+    StudentClass save(StudentClass studentClass);
+
+    StudentClass deleteStudentClass(Long id);
 }
