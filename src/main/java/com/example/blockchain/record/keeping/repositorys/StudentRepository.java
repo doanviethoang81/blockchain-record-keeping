@@ -26,7 +26,7 @@ public interface StudentRepository extends JpaRepository<Student,Long> {
             """, nativeQuery = true)
     List<Student> findByStudentClassId(@Param("studentClassId") Long studentClassId);
 
-    // danh sách sinh viên theo khoa
+    // tìm sinh viên theo mssv trong 1 khoa
     @Query(value = """
     SELECT s.* FROM students s
     JOIN student_class sc ON s.student_class_id = sc.id
@@ -37,7 +37,7 @@ public interface StudentRepository extends JpaRepository<Student,Long> {
     """, nativeQuery = true)
     Optional<Student> findByStudentCodeAndDepartmentId(@Param("studentCode") String studentCode,
                                                        @Param("departmentId") Long departmentId);
-
+    // danh sach sv theo 1 tr
     @Query(value = """
     select s.* from students s
     JOIN student_class sc on s.student_class_id = sc.id
@@ -46,5 +46,37 @@ public interface StudentRepository extends JpaRepository<Student,Long> {
     where u.id = :universityId and d.status='ACTIVE'
     """, nativeQuery = true)
     List<Student> getAllStudentOfUniversity(@Param("universityId") Long universityId);
+
+    // danh sach sv theo 1 khoa
+    @Query(value = """
+    SELECT s.* FROM students s
+    JOIN student_class sc ON s.student_class_id = sc.id
+    JOIN departments d ON sc.department_id = d.id
+    WHERE d.id = :departmentId
+      AND s.status = 'ACTIVE'
+      AND sc.status = 'ACTIVE'
+      AND d.status = 'ACTIVE'
+    ORDER BY s.created_at DESC
+    """, nativeQuery = true)
+    List<Student> getAllStudentOfDepartment(@Param("departmentId") Long departmentId);
+
+    // tìm sv theo khoa lớp mssv
+    @Query(value = """
+    SELECT s.* FROM students s
+    JOIN student_class sc ON s.student_class_id = sc.id
+    JOIN departments d ON sc.department_id = d.id
+    WHERE (:departmentId IS NULL OR d.id = :departmentId)
+      AND (:className IS NULL OR sc.name LIKE CONCAT('%', :className, '%'))
+      AND (:studentCode IS NULL OR s.student_code LIKE CONCAT('%', :studentCode, '%'))
+      AND (:studentName IS NULL OR s.name LIKE CONCAT('%', :studentName, '%'))
+      AND s.status = 'ACTIVE'
+      and sc.status ='ACTIVE'
+      AND d.status = 'ACTIVE' 
+    """, nativeQuery = true)
+    List<Student> searchStudents(@Param("departmentId") Long departmentId,
+                                 @Param("className") String className,
+                                 @Param("studentCode") String studentCode,
+                                 @Param("studentName") String studentName);
+
 
 }

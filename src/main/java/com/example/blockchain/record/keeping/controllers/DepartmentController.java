@@ -45,10 +45,12 @@ public class DepartmentController {
     @PreAuthorize("hasAuthority('READ')")
     @GetMapping("/pdt/list-department-of-university")
     public ResponseEntity<?> getListUserOfUniversity(
-            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size
     ){
         try{
+            if (page < 1) page = 1;
+            if (size < 1) size = 10;
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             String username = authentication.getName();
             University university = universityService.getUniversityByEmail(username);
@@ -78,7 +80,7 @@ public class DepartmentController {
                 userReponses.add(userReponse);
             }
 
-            int start = page * size;
+            int start = (page-1) * size;
             int end = Math.min(start + size, userReponses.size());
             if (start >= userReponses.size()) {
                 return ApiResponseBuilder.success("Chưa có khoa nào", null);
@@ -86,7 +88,7 @@ public class DepartmentController {
 
             List<UserReponse> pagedResult = userReponses.subList(start, end);
             PaginatedData<UserReponse> data = new PaginatedData<>(pagedResult,
-                    new PaginationMeta(userReponses.size(), pagedResult.size(), size, page + 1,
+                    new PaginationMeta(userReponses.size(), pagedResult.size(), size, page,
                             (int) Math.ceil((double) userReponses.size() / size)));
 
             return ApiResponseBuilder.success(

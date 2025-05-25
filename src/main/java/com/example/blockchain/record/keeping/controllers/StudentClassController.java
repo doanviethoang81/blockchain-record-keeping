@@ -39,17 +39,19 @@ public class StudentClassController {
     @PreAuthorize("hasAuthority('READ')")
     @GetMapping("/pdt/list-class-of-university")
     public ResponseEntity<?> getAllClassOfUniversity(
-            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
         try{
+            if (page < 1) page = 1;
+            if (size < 1) size = 10;
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             String username = authentication.getName();
             University university = universityService.getUniversityByEmail(username);
 
             List<StudentClassReponse> departmentWithClassReponseList= studentClassService.getAllClassofUniversity(university.getId());
 
-            int start = page * size;
+            int start = (page - 1) * size;
             int end = Math.min(start + size, departmentWithClassReponseList.size());
             if (start >= departmentWithClassReponseList.size()) {
                 return ApiResponseBuilder.success("Chưa có khoa nào", null);
@@ -57,7 +59,7 @@ public class StudentClassController {
 
             List<StudentClassReponse> pagedResult = departmentWithClassReponseList.subList(start, end);
             PaginatedData<StudentClassReponse> data = new PaginatedData<>(pagedResult,
-                    new PaginationMeta(departmentWithClassReponseList.size(), pagedResult.size(), size, page + 1,
+                    new PaginationMeta(departmentWithClassReponseList.size(), pagedResult.size(), size, page,
                             (int) Math.ceil((double) departmentWithClassReponseList.size() / size)));
 
 
@@ -112,7 +114,7 @@ public class StudentClassController {
 
             StudentClass studentClass = studentClassService.findById(id);
 
-            if(request == null ||!StringUtils.hasText(name)){
+            if(!StringUtils.hasText(name)){
                 return ApiResponseBuilder.badRequest("Vui lòng nhập đầy đủ thông tin!");
             }
             if (studentClassService.existsByNameAndDepartmentIdAndStatus(name,studentClass.getDepartment())){
@@ -144,10 +146,12 @@ public class StudentClassController {
     @PreAuthorize("hasAuthority('WRITE')")
     @GetMapping("/pdt/search-class")
     public ResponseEntity<?> searchDepartment(
-            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam String name){
         try {
+            if (page < 1) page = 1;
+            if (size < 1) size = 10;
             List<StudentClass> studentClassList = studentClassService.searchNameClass(name);
 
             List<StudentClassReponse> studentClassReponseList= new ArrayList<>();
@@ -158,7 +162,7 @@ public class StudentClassController {
                 );
                 studentClassReponseList.add(studentClassReponse);
             }
-            int start = page * size;
+            int start = (page - 1) * size;
             int end = Math.min(start + size, studentClassReponseList.size());
             if (start >= studentClassReponseList.size()) {
                 return ApiResponseBuilder.success("Không tìm thấy lớp!", null);
@@ -166,7 +170,7 @@ public class StudentClassController {
 
             List<StudentClassReponse> pagedResult = studentClassReponseList.subList(start, end);
             PaginatedData<StudentClassReponse> data = new PaginatedData<>(pagedResult,
-                    new PaginationMeta(studentClassReponseList.size(), pagedResult.size(), size, page + 1,
+                    new PaginationMeta(studentClassReponseList.size(), pagedResult.size(), size, page ,
                             (int) Math.ceil((double) studentClassReponseList.size() / size)));
 
             return ApiResponseBuilder.success("Tìm lớp thành công", data);

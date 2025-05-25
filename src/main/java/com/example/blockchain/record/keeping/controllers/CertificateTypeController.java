@@ -16,6 +16,7 @@ import com.example.blockchain.record.keeping.services.UniversityCertificateTypeS
 import com.example.blockchain.record.keeping.services.UniversityService;
 import com.example.blockchain.record.keeping.services.UserService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
@@ -55,22 +56,21 @@ public class CertificateTypeController {
     }
 
     //---------------------------- PDT -------------------------------------------------------
-    //ds chứng chỉ cho tr
+    //ds chứng chỉ cho tr vs tìm theo ten
     @PreAuthorize("hasAuthority('READ')")
     @GetMapping("/pdt/certificate-type")
     public ResponseEntity<?> getCertificateTypePDT(
-            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) String name
     ) {
         try {
+            if (page < 1) page = 1;
+            if (size < 1) size = 10;
             String message ="";
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             String username = authentication.getName();
             University university = universityService.getUniversityByEmail(username);
-
-
-
             List<CertificateTypeDTO> certificateTypeDTOS = new ArrayList<>();
 
             if (name != null && !name.isEmpty()) {// tìm theo tên
@@ -104,17 +104,17 @@ public class CertificateTypeController {
             if (CollectionUtils.isEmpty(certificateTypeDTOS)) {
                 return ApiResponseBuilder.success("Không có giấy chứng nhận nào!", null);
             }
-            int start = page * size;
+            int start = (page-1) * size;
             int end = Math.min(start + size, certificateTypeDTOS.size());
             if (start > end) {
                 PaginatedData<CertificateTypeDTO> emptyData = new PaginatedData<>(List.of(),
-                        new PaginationMeta(certificateTypeDTOS.size(), 0, size, page + 1,
+                        new PaginationMeta(certificateTypeDTOS.size(), 0, size, page,
                                 (int) Math.ceil((double) certificateTypeDTOS.size() / size)));
                 return ApiResponseBuilder.success("Không có dữ liệu.", emptyData);
             }
             List<CertificateTypeDTO> pagedResult = certificateTypeDTOS.subList(start, end);
             PaginatedData<CertificateTypeDTO> data = new PaginatedData<>(pagedResult,
-                    new PaginationMeta(certificateTypeDTOS.size(), pagedResult.size(), size, page + 1,
+                    new PaginationMeta(certificateTypeDTOS.size(), pagedResult.size(), size, page ,
                             (int) Math.ceil((double) certificateTypeDTOS.size() / size)));
             return ApiResponseBuilder.success(message, data);
         } catch (Exception e) {
@@ -134,19 +134,6 @@ public class CertificateTypeController {
             return ApiResponseBuilder.internalError("Lỗi: " + e.getMessage());
         }
     }
-
-    //sửa
-//    @PreAuthorize("hasAuthority('READ')")
-//    @GetMapping("/pdt/certificate_type-detail/{id}")
-//    public ResponseEntity<?> updateCertificateTypeDetail(@PathVariable("id")  Long id)
-//    {
-//        try {
-//            CertificateType certificateType = certificateTypeService.findById(id);
-//            return ApiResponseBuilder.success("Thông tin chi tiết chứng chỉ", certificateType);
-//        } catch (Exception e) {
-//            return ApiResponseBuilder.internalError("Lỗi: " + e.getMessage());
-//        }
-//    }
 
     //tạo
     @PreAuthorize("hasAuthority('WRITE')")
@@ -185,8 +172,45 @@ public class CertificateTypeController {
         }
     }
 
-    //---------------------------- KHOA -------------------------------------------------------
+    //sửa
+    @PreAuthorize("hasAuthority('READ')")
+    @PutMapping("/pdt/update-certificate_type/{id}")
+    public ResponseEntity<?> updateCertificateType(
+            @PathVariable("id")  Long id,
+            HttpServletRequest request)
+    {
+        try {
+            String name = request.getParameter("name");
+            if(!StringUtils.hasText(name)){
+                return ApiResponseBuilder.badRequest("Vui lòng nhập đầy đủ thông tin!");
+            }
+            if(certificateTypeService.existsByNameAndStatus(name)){
+                return ApiResponseBuilder.badRequest("Tên chứng chỉ đã tồn tại!");
+            }
+            certificateTypeService.update(id, name);
+            return ApiResponseBuilder.success("Sửa thông tin loại chứng chỉ thành công", null);
+        } catch (Exception e) {
+            return ApiResponseBuilder.badRequest(e.getMessage());
+        }
+    }
 
+    //xóa
+    @PreAuthorize("hasAuthority('READ')")
+    @DeleteMapping("/pdt/delete-certificate_type/{id}")
+    public ResponseEntity<?> deleteCertificateType(
+            @PathVariable("id")  Long id)
+    {
+        try {
+            CertificateType certificateType = certificateTypeService.findById(id);
+            certificateTypeService.delete(certificateType);
+            return ApiResponseBuilder.success("Xóa loại chứng chỉ thành công", null);
+        } catch (Exception e) {
+            return ApiResponseBuilder.badRequest(e.getMessage());
+        }
+    }
+
+    //---------------------------- KHOA -------------------------------------------------------
+    // danh sách chứng chỉ cho khoa
     @PreAuthorize("hasAuthority('READ')")
     @GetMapping("/khoa/certificate-type")
     public ResponseEntity<?> getCertificateTypeKhoa() {

@@ -21,4 +21,10 @@ public interface ICertificateTypeService {
 
     List<CertificateType> searchByUniversityAndName(Long universityId, String name);
 
+    CertificateType update(Long id, String name);
+
+    CertificateType delete(CertificateType certificateType);
+
+    boolean existsByNameAndStatus(String name);
+
 }

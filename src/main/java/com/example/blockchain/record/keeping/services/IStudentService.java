@@ -13,4 +13,6 @@ public interface IStudentService {
     Optional<Student> findByStudentCodeAndDepartmentId(String studentCode,Long departmentId);
 
     List<Student> getAllStudentOfUniversity(Long universityId);
+
+    List<Student> searchStudents(Long departmentId, String className, String studentCode, String name);
 }

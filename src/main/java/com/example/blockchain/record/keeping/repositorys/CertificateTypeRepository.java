@@ -1,5 +1,6 @@
 package com.example.blockchain.record.keeping.repositorys;
 
+import com.example.blockchain.record.keeping.enums.Status;
 import com.example.blockchain.record.keeping.models.CertificateType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -11,7 +12,9 @@ import java.util.Optional;
 
 @Repository
 public interface CertificateTypeRepository extends JpaRepository<CertificateType,Long> {
-    Optional<CertificateType> findById(Long id);
+    Optional<CertificateType> findByIdAndStatus(Long id, Status status);
+
+    boolean existsByNameAndStatus(String name, Status status);
 
     //tìm all chứng chỉ theo tên
     List<CertificateType> findTop10ByNameContainingIgnoreCase(String name);
