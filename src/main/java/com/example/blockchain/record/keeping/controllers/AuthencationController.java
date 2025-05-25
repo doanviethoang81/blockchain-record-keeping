@@ -52,7 +52,14 @@ public class AuthencationController {
     @PostMapping("/register")
     public ResponseEntity<?> register(@Valid @ModelAttribute RegisterRequest request, BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
-            return ApiResponseBuilder.badRequest("Vui lòng nhập đúng đầy đủ thông tin và đúng định dạng!");
+            // Lấy danh sách lỗi và trả về
+            List<String> errors = bindingResult.getFieldErrors().stream()
+                    .map(fieldError -> fieldError.getField() + ": " + fieldError.getDefaultMessage())
+                    .collect(Collectors.toList());
+            return ApiResponseBuilder.listBadRequest("Dữ liệu không hợp lệ", errors);
+        }
+        if (request.getLogo() == null || request.getLogo().isEmpty()) {
+            return ApiResponseBuilder.badRequest("Logo không được để trống");
         }
         try{
             ZonedDateTime vietnamTime = ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
@@ -84,6 +91,8 @@ public class AuthencationController {
                 String imageUrl = imageLogoService.uploadImage(request.getLogo());
                 university.setLogo(imageUrl);
             }
+
+
             university.setCreatedAt(vietnamTime.toLocalDateTime());
             university.setUpdatedAt(vietnamTime.toLocalDateTime());
             universityRepository.save(university);

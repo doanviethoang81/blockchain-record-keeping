@@ -46,7 +46,8 @@ public class DepartmentController {
     @GetMapping("/pdt/list-department-of-university")
     public ResponseEntity<?> getListUserOfUniversity(
             @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "10") int size
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String name
     ){
         try{
             if (page < 1) page = 1;
@@ -54,13 +55,18 @@ public class DepartmentController {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             String username = authentication.getName();
             University university = universityService.getUniversityByEmail(username);
-
             User currentUser = userService.findByUser(username);
-            List<User> listUser = userService.listUser(university).stream()
+            List<User> listUser = userService.listDepartmentOfUniversity(university.getId(), name).stream()
                     .filter(user -> user.getDepartment() != null) // chỉ lấy user có khoa
                     .filter(user -> !user.getId().equals(currentUser.getId())) // loại bỏ user đang đăng nhập
                     .filter(user -> user.getDepartment().getStatus() != Status.DELETED)
                     .collect(Collectors.toList());
+
+            if(name!= null && !name.isEmpty()){
+                if(listUser.isEmpty()){
+                    return ApiResponseBuilder.success("Không tìm thấy khoa "+ name, null);
+                }
+            }
             List<UserReponse> userReponses = new ArrayList<>();
 
             for (User user : listUser) {

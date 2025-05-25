@@ -11,7 +11,7 @@ public interface IStudentClassService {
     StudentClass findById(Long id);
     StudentClass findByName(String name);
 
-    List<StudentClass>  findAllClassesByDepartmentId(Long id);
+    List<StudentClass>  findAllClassesByDepartmentId(Long id,String name);
 
     List<Department> findAllDeparmentOfUniversity(Long id);
 

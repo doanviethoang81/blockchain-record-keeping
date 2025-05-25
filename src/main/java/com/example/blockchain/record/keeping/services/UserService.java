@@ -38,8 +38,8 @@ public class UserService implements IUserService{
     }
 
     @Override
-    public List<User> listUser(University university) {
-        return userRepository.findByUniversity(university);
+    public List<User> listDepartmentOfUniversity(Long universityId, String name) {
+        return userRepository.findUserDepartmentByUniversity(universityId,name);
     }
 
     @Override

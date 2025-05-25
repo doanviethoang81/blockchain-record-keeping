@@ -1,5 +1,6 @@
 package com.example.blockchain.record.keeping.models;
 
+import com.example.blockchain.record.keeping.enums.Status;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.*;
@@ -42,7 +43,8 @@ public class Student {
     private String course;
 
     @Column(name ="status")
-    private String status;
+    @Enumerated(EnumType.STRING)
+    private Status status;
 
     @Column(name="created_at")
     private LocalDateTime createdAt;

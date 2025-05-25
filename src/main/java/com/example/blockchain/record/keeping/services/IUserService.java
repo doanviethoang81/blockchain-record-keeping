@@ -11,7 +11,7 @@ import java.util.Optional;
 public interface IUserService {
     User findByUser(String email);
     User save(User user);
-    List<User> listUser(University university);
+    List<User> listDepartmentOfUniversity(Long universityId, String name);
     boolean isEmailRegistered(String email);
     boolean existsById(Long id);
 

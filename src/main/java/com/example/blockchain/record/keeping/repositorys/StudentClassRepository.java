@@ -16,23 +16,32 @@ public interface StudentClassRepository extends JpaRepository<StudentClass,Long>
 
     Optional<StudentClass> findByName(String name);
 
-    // lay ds lop cua 1 tr theo id trường
+    // lay ds lop cua 1 tr theo id trường và tìm lớp
     @Query(value = """
-    select s.* from student_class s
-    JOIN departments d on d.id = s.department_id
-    JOIN universitys u on d.university_id =u.id
-    where u.id = :universiryId and s.status='ACTIVE'
+        SELECT s.* 
+        FROM student_class s
+        JOIN departments d ON d.id = s.department_id
+        JOIN universitys u ON d.university_id = u.id
+        WHERE u.id = :universityId 
+          AND s.status = 'ACTIVE'
+          AND (:className IS NULL OR LOWER(s.name) LIKE LOWER(CONCAT('%', :className, '%')))
     """, nativeQuery = true)
-    List<StudentClass> findAllClassOfUniversiry(@Param("universiryId") Long universiryId);
+    List<StudentClass> findAllClassOfUniversityByName(
+            @Param("universityId") Long universityId,
+            @Param("className") String className
+    );
 
 
-    //lay ds lop theo khoa
+    //lay ds lop theo khoa vs tìm (khoa)
     @Query(value = """
         SELECT sc.* FROM student_class sc
         JOIN departments d ON sc.department_id = d.id
         WHERE d.id = :departmentId and sc.status='ACTIVE'
+            AND (:className IS NULL OR LOWER(sc.name) LIKE LOWER(CONCAT('%', :className, '%')))
         """, nativeQuery = true)
-    List<StudentClass> findAllClassesByDepartmentId(@Param("departmentId") Long departmentId);
+    List<StudentClass> findAllClassesByDepartmentId(
+            @Param("departmentId") Long departmentId,
+            @Param("className") String className);
 
     //danh sách các khoa của 1 tr
     @Query(value = """
@@ -45,7 +54,7 @@ public interface StudentClassRepository extends JpaRepository<StudentClass,Long>
     //kiểm tra tên lớp tồn tại k
     boolean existsByNameAndDepartmentAndStatus(String name, Department department, Status status);
 
-    //tìm lop theo ten
+    // ds lớp và tìm lop theo ten
     List<StudentClass> findByNameContainingAndStatus(String keyword, Status status);
 
 }

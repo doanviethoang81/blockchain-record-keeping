@@ -2,17 +2,22 @@ package com.example.blockchain.record.keeping.controllers;
 
 import com.example.blockchain.record.keeping.dtos.CertificateDTO;
 import com.example.blockchain.record.keeping.dtos.DegreeDTO;
+import com.example.blockchain.record.keeping.dtos.request.StudentRequest;
 import com.example.blockchain.record.keeping.models.*;
 import com.example.blockchain.record.keeping.response.*;
 import com.example.blockchain.record.keeping.services.*;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.thymeleaf.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,7 +47,11 @@ public class StudentController {
     @GetMapping("/pdt/students-of-university")
     public ResponseEntity<?> getStudentofUniversity(
             @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "10") int size
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String departmentName,
+            @RequestParam(required = false) String className,
+            @RequestParam(required = false) String studentCode,
+            @RequestParam(required = false) String studentName
     ){
         try{
             if (page < 1) page = 1;
@@ -52,15 +61,27 @@ public class StudentController {
             User user = userService.findByUser(username);
             University university = universityService.getUniversityByEmail(username);
 
-            List<Student> studentList = studentService.getAllStudentOfUniversity(university.getId());
-            List<StudentResponse> studentResponseList = new ArrayList<>();
+            List<Student> studentList = studentService.getAllStudentOfUniversity(
+                    university.getId(), departmentName,className,studentCode,studentName);
+
+            if ((departmentName != null && !departmentName.isEmpty())
+                    || (studentCode != null && !studentCode.isEmpty())
+                    || (className != null && !className.isEmpty())
+                    || (studentName != null && !studentName.isEmpty())) {
+                if(studentList.isEmpty()){
+                    return ApiResponseBuilder.success("Không tìm thấy sinh viên!", null);
+                }
+            }
+
+            List<StudentOfUniversityReponse> studentResponseList = new ArrayList<>();
             for(Student student : studentList){
-                StudentResponse studentResponse = new StudentResponse(
+                StudentOfUniversityReponse studentResponse = new StudentOfUniversityReponse(
                         student.getId(),
                         student.getName(),
+                        student.getStudentClass().getName(),
+                        student.getStudentClass().getDepartment().getName(),
                         student.getStudentCode(),
                         student.getEmail(),
-                        student.getStudentClass().getName(),
                         student.getBirthDate(),
                         student.getCourse()
                 );
@@ -73,8 +94,8 @@ public class StudentController {
                 return ApiResponseBuilder.success("Chưa có khoa nào", null);
             }
 
-            List<StudentResponse> pagedResult = studentResponseList.subList(start, end);
-            PaginatedData<StudentResponse> data = new PaginatedData<>(pagedResult,
+            List<StudentOfUniversityReponse> pagedResult = studentResponseList.subList(start, end);
+            PaginatedData<StudentOfUniversityReponse> data = new PaginatedData<>(pagedResult,
                     new PaginationMeta(studentResponseList.size(), pagedResult.size(), size, page,
                             (int) Math.ceil((double) studentResponseList.size() / size)));
             return ApiResponseBuilder.success(
@@ -84,14 +105,43 @@ public class StudentController {
         }
     }
 
+    // thêm sinh viên
+    @PreAuthorize("hasAuthority('WRITE')")
+    @PostMapping("/pdt/create-student")
+    public ResponseEntity<?> createStudent(
+            @Valid @RequestBody StudentRequest studentRequest, BindingResult bindingResult
+    ){
+        if (bindingResult.hasErrors()) {
+            // Lấy danh sách lỗi và trả về
+            List<String> errors = bindingResult.getFieldErrors().stream()
+                    .map(fieldError -> fieldError.getField() + ": " + fieldError.getDefaultMessage())
+                    .collect(Collectors.toList());
+            return ApiResponseBuilder.listBadRequest("Dữ liệu không hợp lệ", errors);
+        }
+        try{
+            Student existingStudent  = studentService.findByStudentCodeOfClass(studentRequest.getStudentCode(),studentRequest.getClassId());
+            Student checkEmialStudent = studentService.findByEmailStudentCodeOfDepartment(studentRequest.getEmail(),studentRequest.getDepartmetnId());
+            if(existingStudent !=null){
+                return ApiResponseBuilder.badRequest("Mã số sinh viên đã tồn tại!");
+            }
+            if(checkEmialStudent !=null){
+                return ApiResponseBuilder.badRequest("Email sinh viên đã tồn tại trong khoa này!");
+            }
+            studentService.createStudent(studentRequest);
+            return ApiResponseBuilder.success("Thêm sinh viên thành công", null);
+        } catch (Exception e) {
+            return ApiResponseBuilder.internalError("Lỗi" + e.getMessage());
+        }
+    }
+
     //---------------------------- KHOA -------------------------------------------------------
     @PreAuthorize("hasAuthority('READ')")
     @GetMapping("/khoa/list-students")
     public ResponseEntity<?> getStudentOfClassOfDepartment(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size,
-            @RequestParam(required = false) String studentCode,
             @RequestParam(required = false) String className,
+            @RequestParam(required = false) String studentCode,
             @RequestParam(required = false) String studentName
     ) {
         try {
@@ -102,16 +152,8 @@ public class StudentController {
             String username = authentication.getName();
             User user = userService.findByUser(username);
 
-            List<Student> studentList;
-
-            if ((studentCode != null && !studentCode.isEmpty())
-                    || (className != null && !className.isEmpty())
-                    || (studentName != null && !studentName.isEmpty())) {
-                studentList = studentService.searchStudents(
+            List<Student> studentList= studentService.searchStudents(
                         user.getDepartment().getId(), className, studentCode,studentName);
-            } else {
-                studentList = studentService.studentOfClassOfDepartmentList(user.getDepartment().getId());
-            }
 
             List<StudentResponse> studentResponseList = studentList.stream()
                     .map(s -> new StudentResponse(
@@ -127,8 +169,15 @@ public class StudentController {
             int start = (page - 1) * size;
             int end = Math.min(start + size, studentResponseList.size());
 
+            if ((studentCode != null && !studentCode.isEmpty())
+                    || (className != null && !className.isEmpty())
+                    || (studentName != null && !studentName.isEmpty())) {
+                if(studentList.isEmpty()){
+                    return ApiResponseBuilder.success("Không tìm thấy sinh viên!", null);
+                }
+            }
             if (start >= studentResponseList.size()) {
-                return ApiResponseBuilder.success("Không có sinh viên nào.", null);
+                return ApiResponseBuilder.success("Khoa chưa có sinh viên", null);
             }
 
             List<StudentResponse> pagedResult = studentResponseList.subList(start, end);

@@ -35,8 +35,8 @@ public class StudentClassService implements IStudentClassService{
     }
 
     @Override
-    public List<StudentClass> findAllClassesByDepartmentId(Long id) {
-        return studentClassRepository.findAllClassesByDepartmentId(id);
+    public List<StudentClass> findAllClassesByDepartmentId(Long id, String name) {
+        return studentClassRepository.findAllClassesByDepartmentId(id, name);
     }
 
     @Override
@@ -70,8 +70,8 @@ public class StudentClassService implements IStudentClassService{
     }
 
 
-    public List<StudentClassReponse> getAllClassofUniversity(Long id){
-        List<StudentClass> studentClassList = studentClassRepository.findAllClassOfUniversiry(id);
+    public List<StudentClassReponse> getAllClassofUniversity(Long id,String name){
+        List<StudentClass> studentClassList = studentClassRepository.findAllClassOfUniversityByName(id, name);
         List<StudentClassReponse> studentClassReponseList= new ArrayList<>();
         for (StudentClass studentClass : studentClassList){
             StudentClassReponse studentClassReponse = new StudentClassReponse(
