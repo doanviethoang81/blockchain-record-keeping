@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -75,6 +76,11 @@ public class DepartmentService  implements IDepartmentService{
     public Department findById(Long id) {
         return departmentRepository.findById(id)
                 .orElseThrow(()-> new RuntimeException("Không tìm thấy khoa có id "+ id));
+    }
+
+    @Override
+    public Optional<Department> findByDepartmentNameOfUniversity(Long universityId, String name) {
+        return departmentRepository.findByDepartmentNameOfUniversity(universityId,name);
     }
 
 

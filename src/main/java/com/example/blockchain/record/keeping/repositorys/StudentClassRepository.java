@@ -57,4 +57,17 @@ public interface StudentClassRepository extends JpaRepository<StudentClass,Long>
     // ds lớp và tìm lop theo ten
     List<StudentClass> findByNameContainingAndStatus(String keyword, Status status);
 
+    //tìm tên lớp có thuộc khoa không (PDT)
+    @Query(value = """
+        SELECT sc.* FROM student_class sc
+        JOIN departments d ON sc.department_id = d.id
+        WHERE sc.name COLLATE utf8mb4_unicode_ci = :className COLLATE utf8mb4_unicode_ci
+            AND sc.department_id = :departmentId 
+            AND sc.status='ACTIVE'
+            AND d.status = 'ACTIVE'
+        """, nativeQuery = true)
+    Optional<StudentClass> findByClassNameAndDepartmentId(
+            @Param("departmentId") Long departmentId,
+            @Param("className") String className);
+
 }

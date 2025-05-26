@@ -1,6 +1,7 @@
 package com.example.blockchain.record.keeping.repositorys;
 
 import com.example.blockchain.record.keeping.dtos.StudentDTO;
+import com.example.blockchain.record.keeping.enums.Status;
 import com.example.blockchain.record.keeping.models.Certificate;
 import com.example.blockchain.record.keeping.models.Department;
 import com.example.blockchain.record.keeping.models.Student;
@@ -16,6 +17,8 @@ import java.util.Optional;
 @Repository
 public interface StudentRepository extends JpaRepository<Student,Long> {
 
+    Optional<Student> findByIdAndStatus(Long id, Status status);
+
     boolean existsBystudentCode(String studentCode);
 
     Optional<Student> findByStudentCode(String studentCode);
@@ -26,16 +29,18 @@ public interface StudentRepository extends JpaRepository<Student,Long> {
             """, nativeQuery = true)
     List<Student> findByStudentClassId(@Param("studentClassId") Long studentClassId);
 
-    // tìm sinh viên theo mssv trong 1 lớp
+    // tìm sinh viên theo mssv trong 1 Trường
     @Query(value = """
     SELECT s.* FROM students s
     JOIN student_class sc ON s.student_class_id = sc.id
+    Join departments d on sc.department_id = d.id
+    join universitys u on d.university_id= u.id
     WHERE s.student_code = :studentCode
-      AND sc.id = :classId
+      AND u.id = :universityId
       AND s.status = 'ACTIVE'
     """, nativeQuery = true)
-    Optional<Student> findByStudentCodeOfClass(@Param("studentCode") String studentCode,
-                                                       @Param("classId") Long classId);
+    Optional<Student> findByStudentCodeOfUniversity(@Param("studentCode") String studentCode,
+                                                       @Param("universityId") Long universityId);
 
     //kiểm tra co trung email sv trong 1 khoa k
     @Query(value = """

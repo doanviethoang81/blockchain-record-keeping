@@ -67,7 +67,7 @@ public class StudentClassController {
                             (int) Math.ceil((double) studentClassList.size() / size)));
 
 
-            return ApiResponseBuilder.success("Lấy danh sách lớp theo thành công", data);
+            return ApiResponseBuilder.success("Lấy danh sách lớp của trường thành công", data);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -194,7 +194,8 @@ public class StudentClassController {
             return ApiResponseBuilder.internalError("Đã xảy ra lỗi: " + e.getMessage());
         }
     }
-    //
+
+
 
 
 

@@ -9,6 +9,7 @@ import com.example.blockchain.record.keeping.models.*;
 import com.example.blockchain.record.keeping.repositorys.CertificateRepository;
 import com.example.blockchain.record.keeping.repositorys.StudentRepository;
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.multipart.MultipartFile;
@@ -19,6 +20,7 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+@RequiredArgsConstructor
 public class CertificateExcelListener extends AnalysisEventListener<CertificateExcelRowDTO> {
 
     private final List<CertificateExcelRowDTO> dataList = new ArrayList<>();
@@ -33,17 +35,6 @@ public class CertificateExcelListener extends AnalysisEventListener<CertificateE
     private final MultipartFile imageFile;
     private final StudentClassService studentClassService;
 
-    public CertificateExcelListener(StudentRepository studentRepository, CertificateRepository certificateRepository, UniversityService universityService, UniversityCertificateTypeService universityCertificateTypeService, UserService userService, CertificateTypeService certificateTypeService, String nameCertificateType, MultipartFile imageFile, StudentClassService studentClassService) {
-        this.studentRepository = studentRepository;
-        this.certificateRepository = certificateRepository;
-        this.universityService = universityService;
-        this.universityCertificateTypeService = universityCertificateTypeService;
-        this.userService = userService;
-        this.certificateTypeService = certificateTypeService;
-        this.nameCertificateType = nameCertificateType;
-        this.imageFile = imageFile;
-        this.studentClassService = studentClassService;
-    }
 
     @Override
     public void invoke(CertificateExcelRowDTO row, AnalysisContext context) {

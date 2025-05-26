@@ -8,5 +8,6 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 public class DepartmentReponse {
+    private Long id;
     private String name;
 }

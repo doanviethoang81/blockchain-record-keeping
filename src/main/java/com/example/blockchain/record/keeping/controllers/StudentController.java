@@ -1,12 +1,19 @@
 package com.example.blockchain.record.keeping.controllers;
 
+import com.alibaba.excel.EasyExcel;
 import com.example.blockchain.record.keeping.dtos.CertificateDTO;
 import com.example.blockchain.record.keeping.dtos.DegreeDTO;
+import com.example.blockchain.record.keeping.dtos.request.StudentExcelRowRequest;
 import com.example.blockchain.record.keeping.dtos.request.StudentRequest;
+import com.example.blockchain.record.keeping.dtos.request.UpdateStudentRequest;
+import com.example.blockchain.record.keeping.enums.Status;
 import com.example.blockchain.record.keeping.models.*;
+import com.example.blockchain.record.keeping.repositorys.StudentClassRepository;
+import com.example.blockchain.record.keeping.repositorys.StudentRepository;
 import com.example.blockchain.record.keeping.response.*;
 import com.example.blockchain.record.keeping.services.*;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.Value;
@@ -15,10 +22,14 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.util.StringUtils;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
-import org.thymeleaf.util.StringUtils;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -29,17 +40,13 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @SecurityRequirement(name = "bearerAuth")
 public class StudentController {
-    private final PasswordEncoder passwordEncoder;
     private final UniversityService universityService;
     private final UserService userService;
     private final DepartmentService departmentService;
-    private final RoleService roleService;
-    private final PermissionService permissionService;
-    private final UserPermissionService userPermissionService;
     private final StudentService studentService;
-    private final CertificateService certificateService;
-    private final DegreeService degreeService;
     private final StudentClassService studentClassService;
+    private final StudentClassRepository studentClassRepository;
+    private final StudentRepository studentRepository;
 
     //---------------------------- PDT -------------------------------------------------------
     //danh sách sinh viên của 1 trường
@@ -105,6 +112,45 @@ public class StudentController {
         }
     }
 
+    // hiện các khoa của lớp (đã chọn lớp trong giao diện thêm sinh viên)
+    @PreAuthorize("hasAuthority('READ')")
+    @GetMapping("/pdt/get-department-of-class")
+    public ResponseEntity<?> getDepartmentOfClass(@RequestParam Long classId) {
+        try{
+            StudentClass studentClass = studentClassService.findById(classId);
+            Department department = studentClass.getDepartment();
+            DepartmentReponse departmentReponse = new DepartmentReponse(
+                      department.getId(),
+                      department.getName()
+            );
+            return ApiResponseBuilder.success("Thông tin khoa của lớp",departmentReponse);
+
+        } catch (Exception e) {
+            return ApiResponseBuilder.internalError("Lỗi " + e.getMessage());
+        }
+    }
+
+    // hiện các lớp của 1 khoa (đã chọn khoa trong giao diện thêm sinh viên)
+    @PreAuthorize("hasAuthority('READ')")
+    @GetMapping("/pdt/get-class-of-department")
+    public ResponseEntity<?> getClassOfDepartment(@RequestParam Long departmentId) {
+        try{
+            Department department = departmentService.findById(departmentId);
+            List<StudentClass> studentClassList = studentClassService.findAllClassesByDepartmentId(department.getId(),null);
+
+            List<StudentClassReponse> studentClassReponseList = studentClassList.stream()
+                    .map(s -> new StudentClassReponse(
+                            s.getId(),
+                            s.getName()
+                    ))
+                    .collect(Collectors.toList());
+            return ApiResponseBuilder.success("Thông tin khoa của lớp",studentClassReponseList);
+
+        } catch (Exception e) {
+            return ApiResponseBuilder.internalError("Lỗi " + e.getMessage());
+        }
+    }
+
     // thêm sinh viên
     @PreAuthorize("hasAuthority('WRITE')")
     @PostMapping("/pdt/create-student")
@@ -112,16 +158,21 @@ public class StudentController {
             @Valid @RequestBody StudentRequest studentRequest, BindingResult bindingResult
     ){
         if (bindingResult.hasErrors()) {
-            // Lấy danh sách lỗi và trả về
             List<String> errors = bindingResult.getFieldErrors().stream()
                     .map(fieldError -> fieldError.getField() + ": " + fieldError.getDefaultMessage())
                     .collect(Collectors.toList());
             return ApiResponseBuilder.listBadRequest("Dữ liệu không hợp lệ", errors);
         }
         try{
-            Student existingStudent  = studentService.findByStudentCodeOfClass(studentRequest.getStudentCode(),studentRequest.getClassId());
-            Student checkEmialStudent = studentService.findByEmailStudentCodeOfDepartment(studentRequest.getEmail(),studentRequest.getDepartmetnId());
-            if(existingStudent !=null){
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String username = authentication.getName();
+            University university = universityService.getUniversityByEmail(username);
+
+            Student checkStudentCode  = studentService.findByStudentCodeOfUniversity(
+                    studentRequest.getStudentCode(),university.getId());
+            Student checkEmialStudent = studentService.findByEmailStudentCodeOfDepartment(
+                    studentRequest.getEmail(),studentRequest.getDepartmetnId());
+            if(checkStudentCode !=null){
                 return ApiResponseBuilder.badRequest("Mã số sinh viên đã tồn tại!");
             }
             if(checkEmialStudent !=null){
@@ -131,6 +182,86 @@ public class StudentController {
             return ApiResponseBuilder.success("Thêm sinh viên thành công", null);
         } catch (Exception e) {
             return ApiResponseBuilder.internalError("Lỗi" + e.getMessage());
+        }
+    }
+
+    // thêm sinh viên bằng excel
+    @PreAuthorize("hasAuthority('WRITE')")
+    @PostMapping("/pdt/create-student-excel")
+    public ResponseEntity<?> createStudentExcel(
+            @RequestParam("file") MultipartFile file) throws IOException
+    {
+        if(file.isEmpty()){
+            return ApiResponseBuilder.badRequest("Vui lòng chọn file excel để thêm sinh viên!");
+        }
+        String contentType = file.getContentType();
+        String fileName = file.getOriginalFilename();
+
+        if (!("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet".equals(contentType)
+                || "application/vnd.ms-excel".equals(contentType))
+                || fileName == null
+                || (!fileName.endsWith(".xlsx") && !fileName.endsWith(".xls"))) {
+            return ApiResponseBuilder.badRequest("File không đúng định dạng Excel (.xlsx hoặc .xls)");
+        }
+        EasyExcel.read(
+                file.getInputStream(),
+                StudentExcelRowRequest.class,
+                new StudentExcelListener(
+                        studentRepository,
+                        departmentService,
+                        universityService,
+                        studentClassService,
+                        studentService
+                )
+        ).sheet().doRead();
+        return ApiResponseBuilder.success("Thêm sinh viên thành công", null);
+    }
+
+
+    //sửa
+    @PreAuthorize("hasAuthority('READ')")
+    @PutMapping("/pdt/update-student/{id}")
+    public ResponseEntity<?> updateStudent(
+             @Valid @PathVariable("id")  Long id,
+             @RequestBody UpdateStudentRequest studentRequest,
+             BindingResult bindingResult)
+    {
+        if (bindingResult.hasErrors()) {
+            List<String> errors = bindingResult.getFieldErrors().stream()
+                    .map(fieldError -> fieldError.getField() + ": " + fieldError.getDefaultMessage())
+                    .collect(Collectors.toList());
+            return ApiResponseBuilder.listBadRequest("Dữ liệu không hợp lệ", errors);
+        }
+        try {
+            Student student = studentService.findById(id);
+            Student checkStudentCode  = studentService.findByStudentCodeOfUniversity(
+                    studentRequest.getStudentCode(),student.getStudentClass().getDepartment().getUniversity().getId());
+            Student checkEmialStudent = studentService.findByEmailStudentCodeOfDepartment(
+                    studentRequest.getEmail(),student.getStudentClass().getDepartment().getId());
+            if (checkStudentCode != null && !checkStudentCode.getId().equals(id)) {
+                return ApiResponseBuilder.badRequest("Mã số sinh viên đã tồn tại!");
+            }
+            if (checkEmialStudent != null && !checkEmialStudent.getId().equals(id)) {
+                return ApiResponseBuilder.badRequest("Email sinh viên đã tồn tại trong khoa này!");
+            }
+            studentService.update(id, studentRequest);
+            return ApiResponseBuilder.success("Sửa thông tin sinh viên thành công", null);
+        } catch (Exception e) {
+            return ApiResponseBuilder.badRequest(e.getMessage());
+        }
+    }
+
+    //xóa
+    @PreAuthorize("hasAuthority('READ')")
+    @DeleteMapping("/pdt/delete-student/{id}")
+    public ResponseEntity<?> deleteStudent(
+            @PathVariable("id")  Long id)
+    {
+        try {
+            studentService.delete(id);
+            return ApiResponseBuilder.success("Xóa sinh viên thành công", null);
+        } catch (Exception e) {
+            return ApiResponseBuilder.badRequest(e.getMessage());
         }
     }
 

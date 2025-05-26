@@ -4,6 +4,7 @@ import com.example.blockchain.record.keeping.models.Department;
 import com.example.blockchain.record.keeping.models.University;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface IDepartmentService {
     Department save(Department department);
@@ -17,4 +18,6 @@ public interface IDepartmentService {
     Department deleteDepartment(Long id);
 
     Department findById(Long id);
+
+    Optional<Department> findByDepartmentNameOfUniversity(Long universityId, String name);
 }

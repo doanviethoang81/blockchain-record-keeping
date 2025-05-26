@@ -69,6 +69,11 @@ public class StudentClassService implements IStudentClassService{
         return studentClassRepository.findByNameContainingAndStatus(name, Status.ACTIVE);
     }
 
+    @Override
+    public Optional<StudentClass> findByClassNameAndDepartmentId(Long departmentId, String className) {
+        return studentClassRepository.findByClassNameAndDepartmentId(departmentId,className);
+    }
+
 
     public List<StudentClassReponse> getAllClassofUniversity(Long id,String name){
         List<StudentClass> studentClassList = studentClassRepository.findAllClassOfUniversityByName(id, name);

@@ -1,6 +1,7 @@
 package com.example.blockchain.record.keeping.services;
 
 import com.example.blockchain.record.keeping.dtos.request.StudentRequest;
+import com.example.blockchain.record.keeping.dtos.request.UpdateStudentRequest;
 import com.example.blockchain.record.keeping.models.Department;
 import com.example.blockchain.record.keeping.models.Student;
 import com.example.blockchain.record.keeping.models.StudentClass;
@@ -11,7 +12,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface IStudentService {
-    Student findByStudentCodeOfClass(String studentCode,Long classId);
+    Student findByStudentCodeOfUniversity(String studentCode,Long universityId);
 
     List<Student> getAllStudentOfUniversity(Long universityId, String departmentName, String className, String studentCode, String studentName);
 
@@ -20,4 +21,11 @@ public interface IStudentService {
     Student createStudent(StudentRequest studentRequest);
 
     Student findByEmailStudentCodeOfDepartment(String email, Long departmentId);
+
+    Student update(Long id , UpdateStudentRequest updateStudentRequest);
+
+    Student delete(Long id);
+
+    Optional<StudentClass>  findByClassNameAndDepartmentId(Long id, String name);
+
 }
