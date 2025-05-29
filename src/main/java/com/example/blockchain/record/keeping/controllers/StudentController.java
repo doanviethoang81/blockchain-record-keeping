@@ -45,7 +45,6 @@ public class StudentController {
     private final DepartmentService departmentService;
     private final StudentService studentService;
     private final StudentClassService studentClassService;
-    private final StudentClassRepository studentClassRepository;
     private final StudentRepository studentRepository;
 
     //---------------------------- PDT -------------------------------------------------------
@@ -65,7 +64,6 @@ public class StudentController {
             if (size < 1) size = 10;
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             String username = authentication.getName();
-            User user = userService.findByUser(username);
             University university = universityService.getUniversityByEmail(username);
 
             List<Student> studentList = studentService.getAllStudentOfUniversity(

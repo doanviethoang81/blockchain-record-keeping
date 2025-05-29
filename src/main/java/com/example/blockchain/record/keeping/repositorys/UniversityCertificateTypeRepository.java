@@ -17,7 +17,6 @@ public interface UniversityCertificateTypeRepository extends JpaRepository<Unive
 
     Optional<UniversityCertificateType> findById(Long id);
 
-//    Optional<University> findByUniversity(University university);
     Optional<UniversityCertificateType> findByCertificateType(CertificateType certificateType);
 
     List<UniversityCertificateType> findByUniversity(University university);

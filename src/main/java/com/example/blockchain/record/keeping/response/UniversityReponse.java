@@ -1,23 +1,20 @@
 package com.example.blockchain.record.keeping.response;
 
-import lombok.*;
-
-import java.time.LocalDate;
-import java.time.LocalDateTime;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class UniversityDetailResponse {
+public class UniversityReponse {
+    private Long id;
     private String name;
     private String email;
     private String address;
     private String taxCode;
     private String website;
     private String logo;
-    private boolean isLocked;
-    private boolean isVerifile;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
 }

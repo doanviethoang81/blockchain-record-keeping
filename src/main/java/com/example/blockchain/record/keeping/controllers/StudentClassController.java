@@ -107,7 +107,7 @@ public class StudentClassController {
         }
     }
 
-    //update khoa
+    //update
     @PreAuthorize("hasAuthority('WRITE')")
     @PutMapping("/pdt/update-class/{id}")
     public ResponseEntity<?> updateClass(@PathVariable Long id, HttpServletRequest request){
@@ -134,7 +134,7 @@ public class StudentClassController {
         }
     }
 
-    //xóa khoa
+    //xóa
     @PreAuthorize("hasAuthority('WRITE')")
     @DeleteMapping("/pdt/delete-class/{id}")
     public ResponseEntity<?> deleteDepartment(@PathVariable Long id){
@@ -161,23 +161,51 @@ public class StudentClassController {
             String username = authentication.getName();
             User user = userService.findByUser(username);
 
-            List<StudentClass> studentClassList =
-                    studentClassService.findAllClassesByDepartmentId(user.getDepartment().getId(), name);
+            List<StudentClassReponse> studentClassReponseList=
+                    studentClassService.listClassOfDepartmentId(user.getDepartment().getId(), name);
             if(name!= null && !name.isEmpty()){
-                if(studentClassList.isEmpty()){
+                if(studentClassReponseList.isEmpty()){
                     return ApiResponseBuilder.success("Không tìm thấy lớp!", null);
                 }
             }
-
-            List<StudentClassReponse> studentClassReponseList= new ArrayList<>();
-            for (StudentClass studentClass : studentClassList){
-                StudentClassReponse studentClassReponse = new StudentClassReponse(
-                        studentClass.getId(),
-                        studentClass.getName()
-                );
-                studentClassReponseList.add(studentClassReponse);
+            int start = (page - 1) * size;
+            int end = Math.min(start + size, studentClassReponseList.size());
+            if (start >= studentClassReponseList.size()) {
+                return ApiResponseBuilder.success("Chưa có lớp nào!", null);
             }
 
+            List<StudentClassReponse> pagedResult = studentClassReponseList.subList(start, end);
+            PaginatedData<StudentClassReponse> data = new PaginatedData<>(pagedResult,
+                    new PaginationMeta(studentClassReponseList.size(), pagedResult.size(), size, page ,
+                            (int) Math.ceil((double) studentClassReponseList.size() / size)));
+
+            return ApiResponseBuilder.success("Danh sách lớp của một khoa", data);
+        } catch (Exception e) {
+            return ApiResponseBuilder.internalError("Đã xảy ra lỗi: " + e.getMessage());
+        }
+    }
+
+    //---------------------------- ADMIN -------------------------------------------------------
+
+    // ds lớp của 1 khoa (admin)
+    @PreAuthorize("hasAuthority('READ')")
+    @GetMapping("/admin/list-class-of-department/{id}")
+    public ResponseEntity<?> getListClassOfDepartmentAdmin(
+            @PathVariable Long id,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String name
+    ){
+        try {
+            if (page < 1) page = 1;
+            if (size < 1) size = 10;
+            List<StudentClassReponse> studentClassReponseList=
+                    studentClassService.listClassOfDepartmentId(id, name);
+            if(name!= null && !name.isEmpty()){
+                if(studentClassReponseList.isEmpty()){
+                    return ApiResponseBuilder.success("Không tìm thấy lớp!", null);
+                }
+            }
             int start = (page - 1) * size;
             int end = Math.min(start + size, studentClassReponseList.size());
             if (start >= studentClassReponseList.size()) {

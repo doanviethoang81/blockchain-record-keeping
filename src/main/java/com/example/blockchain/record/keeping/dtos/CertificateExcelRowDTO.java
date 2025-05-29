@@ -9,51 +9,18 @@ import java.time.LocalDate;
 @Data
 public class CertificateExcelRowDTO {
 
-    @ExcelProperty("Lớp")
-    private String studenClass;
-
-    @ExcelProperty("Tên sinh viên")
-    private String name;
-
     @ExcelProperty("Mã số sinh viên")
     private String studentCode;
 
-    @ExcelProperty("Email")
-    private String email;
+    @ExcelProperty(value= "Ngày cấp")
+    private String issueDate;
 
-    @ExcelProperty("Lớp")
-    private String className;
-
-    @ExcelProperty(value = "Ngày sinh", converter = LocalDateConverter.class)
-    private LocalDate dateOfBirth;
-
-    @ExcelProperty("Khóa học")
-    private String course;
-
-    @ExcelProperty("Danh hiệu")
-    private String degreeTitle;
-
-    @ExcelProperty("Năm tốt nghiệp")
-    private String graduationYear;
-
-    @ExcelProperty("Xếp loại")
-    private String rating;
-
-    @ExcelProperty(value= "Ngày cấp", converter = LocalDateConverter.class)
-    private LocalDate issueDate;
-
-    @ExcelProperty("Hình thức đào tạo")
-    private String educationMode;
-
-    @ExcelProperty("Địa điểm đào tạo")
-    private String trainingLocation;
+    @ExcelProperty("Chức vụ người cấp")
+    private String grantor;
 
     @ExcelProperty("Người ký")
     private String signer;
 
     @ExcelProperty("Số hiệu bằng")
     private String diplomaNumber;
-
-    @ExcelProperty("Số vào xổ cấp bằng")
-    private String lotteryNumber;
 }

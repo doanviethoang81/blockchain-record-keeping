@@ -28,4 +28,7 @@ public interface IStudentService {
 
     Optional<StudentClass>  findByClassNameAndDepartmentId(Long id, String name);
 
+    List<Student> findByStudentOfDepartment(Long departmentId, String studentCode);
+
+    Optional<Student> findByOneStudentOfDepartment(Long departmentId, String studentCode);
 }

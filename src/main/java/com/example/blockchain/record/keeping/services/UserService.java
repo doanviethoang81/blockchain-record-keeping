@@ -2,11 +2,14 @@ package com.example.blockchain.record.keeping.services;
 
 import com.example.blockchain.record.keeping.dtos.request.ChangePasswordDepartmentRequest;
 import com.example.blockchain.record.keeping.dtos.request.ChangePasswordRequest;
+import com.example.blockchain.record.keeping.exceptions.BadRequestException;
 import com.example.blockchain.record.keeping.models.*;
 import com.example.blockchain.record.keeping.repositorys.PermissionRepository;
 import com.example.blockchain.record.keeping.repositorys.StudentRepository;
 import com.example.blockchain.record.keeping.repositorys.UserPermissionRepository;
 import com.example.blockchain.record.keeping.repositorys.UserRepository;
+import com.example.blockchain.record.keeping.response.ApiResponseBuilder;
+import com.example.blockchain.record.keeping.response.UserReponse;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -14,8 +17,10 @@ import org.springframework.stereotype.Service;
 
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -25,6 +30,7 @@ public class UserService implements IUserService{
     private final PasswordEncoder passwordEncoder;
     private final PermissionRepository permissionRepository;
     private final UserPermissionRepository userPermissionRepository;
+
 
     @Override
     public User findByUser(String email) {
@@ -75,7 +81,7 @@ public class UserService implements IUserService{
     @Override
     public User finbById(Long id) {
         return userRepository.findById(id)
-                .orElseThrow(()-> new RuntimeException("Không tìm thấy khoa!"));
+                .orElseThrow(()-> new BadRequestException("Không tìm thấy user có id: "+ id));
     }
 
 
@@ -145,5 +151,36 @@ public class UserService implements IUserService{
             save(user);
             return true;
         }
+    }
+
+    @Override
+    public User findByUniversity(University university) {
+        return userRepository.findByUniversity(university);
+    }
+
+    // danh sách user khoa thuộc 1 tr
+    public List<UserReponse> getDepartmentDetailOfUniversity(Long id, String name) {
+
+        List<User> listUser = userRepository.findUserDepartmentByUniversity(id, name);
+
+        List<UserReponse> userReponses = new ArrayList<>();
+
+        for (User user : listUser) {
+            List<UserPermission> userPermissions = userPermissionRepository.findByUser(user);
+
+            List<String> permissions = userPermissions.stream()
+                    .map(up -> up.getPermission().getAction())
+                    .collect(Collectors.toList());
+
+            UserReponse userReponse = new UserReponse(
+                    user.getId(),
+                    user.getDepartment().getName(),
+                    user.getEmail(),
+                    user.isLocked(),
+                    permissions
+            );
+            userReponses.add(userReponse);
+        }
+        return userReponses;
     }
 }

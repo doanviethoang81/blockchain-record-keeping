@@ -9,5 +9,5 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class DepartmentDetailResponse {
     private String nameDepartment;
-    private UniversityDetailResponse universityDetailResponse;
+    private UniversityReponse universityReponse;
 }

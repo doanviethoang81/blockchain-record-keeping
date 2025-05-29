@@ -4,15 +4,20 @@ import com.example.blockchain.record.keeping.enums.Status;
 import com.example.blockchain.record.keeping.models.Department;
 import com.example.blockchain.record.keeping.models.University;
 import com.example.blockchain.record.keeping.models.User;
+import com.example.blockchain.record.keeping.models.UserPermission;
 import com.example.blockchain.record.keeping.repositorys.DepartmentRepository;
 import com.example.blockchain.record.keeping.repositorys.UserRepository;
+import com.example.blockchain.record.keeping.response.ApiResponseBuilder;
+import com.example.blockchain.record.keeping.response.UserReponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -82,6 +87,5 @@ public class DepartmentService  implements IDepartmentService{
     public Optional<Department> findByDepartmentNameOfUniversity(Long universityId, String name) {
         return departmentRepository.findByDepartmentNameOfUniversity(universityId,name);
     }
-
 
 }

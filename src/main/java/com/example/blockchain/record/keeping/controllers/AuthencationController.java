@@ -47,6 +47,7 @@ public class AuthencationController {
     private final BrevoApiEmailService brevoApiEmailService;
     private final UserService userService;
     private final ImageLogoService imageLogoService;
+    private final DepartmentService departmentService;
 
 
     @PostMapping("/register")
@@ -167,15 +168,28 @@ public class AuthencationController {
                 case "KHOA" -> redirectUrl = "/khoa/dashboard";
                 default -> redirectUrl = "/error";
             }
-
-            LoginResponse response = new LoginResponse(
-                    university.get().getName(),
-                    user.getEmail(),
-                    token,
-                    role,
-                    redirectUrl,
-                    authorities
-            );
+            LoginResponse response;
+            if(!university.isEmpty()){
+                 response = new LoginResponse(
+                        university.get().getName(),
+                        user.getEmail(),
+                        token,
+                        role,
+                        redirectUrl,
+                        authorities
+                );
+            }
+            else{
+                Department department = departmentService.findById(user.getDepartment().getId());
+                 response = new LoginResponse(
+                        department.getName(),
+                        user.getEmail(),
+                        token,
+                        role,
+                        redirectUrl,
+                        authorities
+                );
+            }
             return ApiResponseBuilder.success("Đăng nhập thành công!", response);
         } catch (Exception e) {
             return ApiResponseBuilder.unauthorized("Email hoặc mật khẩu không đúng!");

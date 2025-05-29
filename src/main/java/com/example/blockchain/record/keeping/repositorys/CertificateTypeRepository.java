@@ -25,6 +25,7 @@ public interface CertificateTypeRepository extends JpaRepository<CertificateType
     JOIN UniversityCertificateType uct ON ct.id = uct.certificateType.id
     WHERE uct.university.id = :universityId AND LOWER(ct.name) LIKE LOWER(CONCAT('%', :name, '%'))
     """)
-    List<CertificateType> searchByUniversityAndName(@Param("universityId") Long universityId, @Param("name") String name);
+    List<CertificateType> searchByUniversityAndName(@Param("universityId") Long universityId,
+                                                    @Param("name") String name);
 
 }

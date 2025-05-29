@@ -25,6 +25,7 @@ public interface StudentClassRepository extends JpaRepository<StudentClass,Long>
         WHERE u.id = :universityId 
           AND s.status = 'ACTIVE'
           AND (:className IS NULL OR LOWER(s.name) LIKE LOWER(CONCAT('%', :className, '%')))
+          ORDER BY s.created_at DESC
     """, nativeQuery = true)
     List<StudentClass> findAllClassOfUniversityByName(
             @Param("universityId") Long universityId,
@@ -32,12 +33,13 @@ public interface StudentClassRepository extends JpaRepository<StudentClass,Long>
     );
 
 
-    //lay ds lop theo khoa vs tìm (khoa)
+    //lay ds lop theo khoa vs tìm lớp (khoa)
     @Query(value = """
         SELECT sc.* FROM student_class sc
         JOIN departments d ON sc.department_id = d.id
         WHERE d.id = :departmentId and sc.status='ACTIVE'
             AND (:className IS NULL OR LOWER(sc.name) LIKE LOWER(CONCAT('%', :className, '%')))
+            ORDER BY sc.created_at DESC
         """, nativeQuery = true)
     List<StudentClass> findAllClassesByDepartmentId(
             @Param("departmentId") Long departmentId,
@@ -48,6 +50,7 @@ public interface StudentClassRepository extends JpaRepository<StudentClass,Long>
             select d.* from departments d
             JOIN universitys u on d.university_id =u.id
             where u.id = :universityId and d.status='ACTIVE'
+            ORDER BY d.created_at DESC
             """, nativeQuery = true)
     List<Department> findAllDeparmentOfUniversity(@Param("universityId") Long universityId);
 

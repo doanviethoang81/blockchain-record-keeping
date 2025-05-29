@@ -63,6 +63,7 @@ public interface StudentRepository extends JpaRepository<Student,Long> {
     JOIN departments d on sc.department_id = d.id
     JOIN universitys u on d.university_id =u.id
     where u.id = :universityId and d.status='ACTIVE'
+    ORDER BY s.created_at DESC
     """, nativeQuery = true)
     List<Student> getAllStudentOfUniversity(@Param("universityId") Long universityId);
 
@@ -91,6 +92,7 @@ public interface StudentRepository extends JpaRepository<Student,Long> {
       AND s.status = 'ACTIVE'
       and sc.status ='ACTIVE'
       AND d.status = 'ACTIVE' 
+      ORDER BY s.created_at DESC
     """, nativeQuery = true)
     List<Student> searchStudents(@Param("departmentId") Long departmentId,
                                  @Param("className") String className,
@@ -111,6 +113,7 @@ public interface StudentRepository extends JpaRepository<Student,Long> {
       AND s.status = 'ACTIVE'
       and sc.status ='ACTIVE'
       AND d.status = 'ACTIVE' 
+      ORDER BY s.created_at DESC
     """, nativeQuery = true)
     List<Student> searchStudentsByUniversity(
                                  @Param("universityId") Long universityId,
@@ -119,5 +122,33 @@ public interface StudentRepository extends JpaRepository<Student,Long> {
                                  @Param("studentCode") String studentCode,
                                  @Param("studentName") String studentName);
 
+    // tim kiem 1 list sinh vien trong khoa
+    @Query(value = """
+            select s.* from students s
+            join student_class sc on s.student_class_id = sc.id
+            join departments d on sc.department_id = d.id
+            where d.id = :departmentId
+            and (:studentCode IS NULL OR s.student_code LIKE CONCAT('%', :studentCode, '%'))
+            and s.status = 'ACTIVE'
+            and d.status = 'ACTIVE'
+            """, nativeQuery = true)
+    List<Student> findByStudentOfDepartment(
+            @Param("departmentId") Long departmentId,
+            @Param("studentCode") String studentCode
+    );
 
+    // tim kiem 1 sv theo khoa
+    @Query(value = """
+            select s.* from students s
+            join student_class sc on s.student_class_id = sc.id
+            join departments d on sc.department_id = d.id
+            where d.id = :departmentId
+            and (s.student_code LIKE CONCAT(:studentCode))
+            and s.status = 'ACTIVE'
+            and d.status = 'ACTIVE'
+            """, nativeQuery = true)
+    Optional<Student> findByOneStudentOfDepartment(
+            @Param("departmentId") Long departmentId,
+            @Param("studentCode") String studentCode
+    );
 }

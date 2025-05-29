@@ -5,7 +5,7 @@ import com.example.blockchain.record.keeping.models.University;
 import com.example.blockchain.record.keeping.models.User;
 import com.example.blockchain.record.keeping.response.ApiResponseBuilder;
 import com.example.blockchain.record.keeping.response.DepartmentDetailResponse;
-import com.example.blockchain.record.keeping.response.UniversityDetailResponse;
+import com.example.blockchain.record.keeping.response.UniversityReponse;
 import com.example.blockchain.record.keeping.services.UniversityService;
 import com.example.blockchain.record.keeping.services.UserService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -28,7 +28,7 @@ public class UserController {
 
     //---------------------------- ADMIN -------------------------------------------------------
     //---------------------------- PDT -------------------------------------------------------
-    //thông tin của tr
+    //thông tin chi tiết của tr
     @PreAuthorize("hasAuthority('READ')")
     @GetMapping("/pdt/user-detail")
     public ResponseEntity<?> userDetailUniversity() {
@@ -37,7 +37,8 @@ public class UserController {
             String username = authentication.getName();
             University university = universityService.getUniversityByEmail(username);
 
-            UniversityDetailResponse universityDetailReponse= new UniversityDetailResponse();
+            UniversityReponse universityDetailReponse= new UniversityReponse();
+            universityDetailReponse.setId(university.getId());
             universityDetailReponse.setName(university.getName());
             universityDetailReponse.setEmail(university.getEmail());
             universityDetailReponse.setAddress(university.getAddress());
@@ -87,7 +88,8 @@ public class UserController {
             String username = authentication.getName();
             User user = userService.findByUser(username);
 
-            UniversityDetailResponse universityDetailReponse= new UniversityDetailResponse();
+            UniversityReponse universityDetailReponse= new UniversityReponse();
+            universityDetailReponse.setId(user.getUniversity().getId());
             universityDetailReponse.setName(user.getUniversity().getName());
             universityDetailReponse.setEmail(user.getUniversity().getEmail());
             universityDetailReponse.setAddress(user.getUniversity().getAddress());
@@ -98,7 +100,7 @@ public class UserController {
 
             DepartmentDetailResponse departmentDetailResponse= new DepartmentDetailResponse();
             departmentDetailResponse.setNameDepartment(user.getDepartment().getName());
-            departmentDetailResponse.setUniversityDetailResponse(universityDetailReponse);
+            departmentDetailResponse.setUniversityReponse(universityDetailReponse);
             return ApiResponseBuilder.success("Thông tin chi tiết của khoa", departmentDetailResponse);
         } catch (Exception e) {
             return ApiResponseBuilder.internalError("Đã xảy ra lỗi!");

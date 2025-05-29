@@ -144,7 +144,7 @@ public class BlockchainRecordKeepingApplication {
 //		} catch (IOException e) {
 //			e.printStackTrace();
 //		}
-    }
+	}
 	// Hàm resize ảnh
 	public static BufferedImage resizeImage(BufferedImage originalImage, int targetWidth, int targetHeight) {
 		Image resultingImage = originalImage.getScaledInstance(targetWidth, targetHeight, Image.SCALE_SMOOTH);

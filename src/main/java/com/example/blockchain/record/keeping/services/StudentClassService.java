@@ -4,6 +4,7 @@ import com.example.blockchain.record.keeping.enums.Status;
 import com.example.blockchain.record.keeping.models.Department;
 import com.example.blockchain.record.keeping.models.StudentClass;
 import com.example.blockchain.record.keeping.repositorys.StudentClassRepository;
+import com.example.blockchain.record.keeping.response.ApiResponseBuilder;
 import com.example.blockchain.record.keeping.response.DepartmentWithClassReponse;
 import com.example.blockchain.record.keeping.response.StudentClassReponse;
 import lombok.AllArgsConstructor;
@@ -88,4 +89,18 @@ public class StudentClassService implements IStudentClassService{
         return  studentClassReponseList;
     }
 
+    // list class của 1 khoa theo id khoa
+    public List<StudentClassReponse> listClassOfDepartmentId(Long departmentId, String name){
+        List<StudentClass> studentClassList = studentClassRepository.findAllClassesByDepartmentId(departmentId, name);
+
+        List<StudentClassReponse> studentClassReponseList = new ArrayList<>();
+        for (StudentClass studentClass : studentClassList){
+            StudentClassReponse studentClassReponse = new StudentClassReponse(
+                    studentClass.getId(),
+                    studentClass.getName()
+            );
+            studentClassReponseList.add(studentClassReponse);
+        }
+        return studentClassReponseList;
+    }
 }

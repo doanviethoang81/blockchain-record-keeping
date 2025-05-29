@@ -15,7 +15,7 @@ import java.util.Optional;
 public interface UserRepository extends JpaRepository<User,Long> {
     Optional<User> findByEmail(String email);
 
-    List<User> findByUniversity(University university);
+    User findByUniversity(University university);
     List<Department> findByDepartment(University university);
     boolean existsByEmail(String email);
     boolean existsById(Long id);
@@ -24,6 +24,7 @@ public interface UserRepository extends JpaRepository<User,Long> {
 
     Optional<User> findByDepartment(Department department);
 
+    // danh sach khoa thuoc 1 truong va tim ten
     @Query(value = """
             SELECT u.*
             FROM departments d
@@ -32,9 +33,11 @@ public interface UserRepository extends JpaRepository<User,Long> {
             JOIN user_permissions up ON up.user_id = u.id
             JOIN permissions p ON p.id = up.permission_id
             WHERE un.id = :universityId
+            AND u.department_id IS NOT NULL
             AND d.status = 'ACTIVE'
             AND (:nameDepartment IS NULL OR LOWER(d.name) LIKE LOWER(CONCAT('%', :nameDepartment, '%')))
-            GROUP BY d.id, d.name;        
+            GROUP BY d.id, d.name
+            ORDER BY u.created_at DESC       
     """, nativeQuery = true)
     List<User> findUserDepartmentByUniversity(@Param("universityId") Long universityId,
                                           @Param("nameDepartment") String nameDepartment);

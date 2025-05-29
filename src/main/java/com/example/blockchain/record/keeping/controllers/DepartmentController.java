@@ -12,6 +12,7 @@ import com.example.blockchain.record.keeping.response.UserReponse;
 import com.example.blockchain.record.keeping.services.*;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
+import org.apache.xmlbeans.impl.xb.xsdschema.Attribute;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -44,7 +45,7 @@ public class DepartmentController {
     //các khoa của trường đại học
     @PreAuthorize("hasAuthority('READ')")
     @GetMapping("/pdt/list-department-of-university")
-    public ResponseEntity<?> getListUserOfUniversity(
+    public ResponseEntity<?> getListDepartmentOfUniversity(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) String name
@@ -55,35 +56,13 @@ public class DepartmentController {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             String username = authentication.getName();
             University university = universityService.getUniversityByEmail(username);
-            User currentUser = userService.findByUser(username);
-            List<User> listUser = userService.listDepartmentOfUniversity(university.getId(), name).stream()
-                    .filter(user -> user.getDepartment() != null) // chỉ lấy user có khoa
-                    .filter(user -> !user.getId().equals(currentUser.getId())) // loại bỏ user đang đăng nhập
-                    .filter(user -> user.getDepartment().getStatus() != Status.DELETED)
-                    .collect(Collectors.toList());
 
-            if(name!= null && !name.isEmpty()){
-                if(listUser.isEmpty()){
-                    return ApiResponseBuilder.success("Không tìm thấy khoa "+ name, null);
+            List<UserReponse> userReponses= userService.getDepartmentDetailOfUniversity(university.getId(),name);
+
+            if (name != null && !name.isEmpty()) {
+                if (userReponses.isEmpty()) {
+                    return ApiResponseBuilder.success("Không tìm thấy khoa " + name, null);
                 }
-            }
-            List<UserReponse> userReponses = new ArrayList<>();
-
-            for (User user : listUser) {
-                List<UserPermission> userPermissions = userPermissionService.listUserPermissions(user);
-
-                List<String> permissions = userPermissions.stream()
-                        .map(up -> up.getPermission().getAction())
-                        .collect(Collectors.toList());
-
-                UserReponse userReponse = new UserReponse(
-                        user.getId(),
-                        user.getDepartment().getName(),
-                        user.getEmail(),
-                        user.isLocked(),
-                        permissions
-                );
-                userReponses.add(userReponse);
             }
 
             int start = (page-1) * size;
@@ -260,5 +239,46 @@ public class DepartmentController {
             return ApiResponseBuilder.internalError("Đã xảy ra lỗi: " + e.getMessage());
         }
     }
+
+    // xem chi tiết các khoa 1 trường đh
+    @PreAuthorize("hasAuthority('READ')")
+    @GetMapping("/admin/list-department-of-university/{id}")
+    public ResponseEntity<?> getListDepartmentOfUniversityAdmin(
+            @PathVariable Long id,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String name
+    ){
+        try{
+            if (page < 1) page = 1;
+            if (size < 1) size = 10;
+
+            List<UserReponse> userReponses= userService.getDepartmentDetailOfUniversity(id,name);
+
+            if (name != null && !name.isEmpty()) {
+                if (userReponses.isEmpty()) {
+                    return ApiResponseBuilder.success("Không tìm thấy khoa " + name, null);
+                }
+            }
+
+            int start = (page-1) * size;
+            int end = Math.min(start + size, userReponses.size());
+            if (start >= userReponses.size()) {
+                return ApiResponseBuilder.success("Chưa có khoa nào", null);
+            }
+
+            List<UserReponse> pagedResult = userReponses.subList(start, end);
+            PaginatedData<UserReponse> data = new PaginatedData<>(pagedResult,
+                    new PaginationMeta(userReponses.size(), pagedResult.size(), size, page,
+                            (int) Math.ceil((double) userReponses.size() / size)));
+
+            return ApiResponseBuilder.success(
+                    "Lấy danh sách các khoa của trường thành công.",data);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
 
 }

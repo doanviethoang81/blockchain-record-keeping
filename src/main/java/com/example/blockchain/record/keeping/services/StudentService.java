@@ -96,6 +96,16 @@ public class StudentService implements IStudentService{
         return studentClassRepository.findByClassNameAndDepartmentId(departmentId,className);
     }
 
+    @Override
+    public List<Student> findByStudentOfDepartment(Long departmentId, String studentCode) {
+        return studentRepository.findByStudentOfDepartment(departmentId,studentCode);
+    }
+
+    @Override
+    public Optional<Student> findByOneStudentOfDepartment(Long departmentId, String studentCode) {
+        return studentRepository.findByOneStudentOfDepartment(departmentId,studentCode);
+    }
+
     public Student findById(Long id){
         return studentRepository.findByIdAndStatus(id, Status.ACTIVE)
                 .orElseThrow(()-> new RuntimeException("Không tìm thấy sinh viên id" + id) );

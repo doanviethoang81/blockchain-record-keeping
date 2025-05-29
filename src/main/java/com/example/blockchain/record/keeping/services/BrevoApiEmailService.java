@@ -64,21 +64,22 @@ public class BrevoApiEmailService {
     }
 
 
-    public void sendEmailsToStudentsExcel(List<CertificateExcelRowDTO> students) {
-        List<CompletableFuture<Void>> futures = new ArrayList<>();
-        for (CertificateExcelRowDTO student : students) {
-            String email = student.getEmail();
-            String name = student.getName();
-            String certificateUrl = "https://yourdomain.com/certificates/" + student.getStudentCode();
-
-            // Gọi phương thức sendEmail bất đồng bộ và thêm vào list futures
-            //Trong vòng lặp, sendEmail được gọi thông qua CompletableFuture.runAsync(). Điều này có nghĩa là mỗi email sẽ được gửi trong một luồng riêng biệt mà không làm chậm quá trình gửi email cho các sinh viên khác.
-            futures.add(CompletableFuture.runAsync(() -> sendEmail(email, name, certificateUrl), executorService));
-        }
-
-        // Đợi tất cả các tác vụ bất đồng bộ hoàn thành
-        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
-    }
+    // gửi gmail cho sinh viên nhớ viết lại
+//    public void sendEmailsToStudentsExcel(List<CertificateExcelRowDTO> students) {
+//        List<CompletableFuture<Void>> futures = new ArrayList<>();
+//        for (CertificateExcelRowDTO student : students) {
+//            String email = student.getEmail();
+//            String name = student.getName();
+//            String certificateUrl = "https://yourdomain.com/certificates/" + student.getStudentCode();
+//
+//            // Gọi phương thức sendEmail bất đồng bộ và thêm vào list futures
+//            //Trong vòng lặp, sendEmail được gọi thông qua CompletableFuture.runAsync(). Điều này có nghĩa là mỗi email sẽ được gửi trong một luồng riêng biệt mà không làm chậm quá trình gửi email cho các sinh viên khác.
+//            futures.add(CompletableFuture.runAsync(() -> sendEmail(email, name, certificateUrl), executorService));
+//        }
+//
+//        // Đợi tất cả các tác vụ bất đồng bộ hoàn thành
+//        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+//    }
 
     //gửi thông báo cấp văn bằng cho sv
     public void sendEmailNotificationOfDiplomaIssuanceExcel(List<DegreeExcelRowRequest> students) {

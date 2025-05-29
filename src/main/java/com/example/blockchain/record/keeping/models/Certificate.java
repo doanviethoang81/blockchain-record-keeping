@@ -1,5 +1,6 @@
 package com.example.blockchain.record.keeping.models;
 
+import com.example.blockchain.record.keeping.enums.Status;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
@@ -38,6 +39,12 @@ public class Certificate {
     @Column(name = "diploma_number")
     private String diplomaNumber;
 
+    @Column(name = "signer")
+    private String signer;
+
+    @Column(name = "grantor")
+    private String grantor;
+
     @Column(name = "blockchain_tx_hash")
     private String blockchainTxHash;
 
@@ -47,8 +54,9 @@ public class Certificate {
     @Column(name = "qr_code_url")
     private String qrCodeUrl;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "status")
-    private String status;
+    private Status status;
 
     @Column(name="created_at")
     private LocalDateTime createdAt;

@@ -23,4 +23,5 @@ public interface IUserService {
 
     boolean togglePermission(Long userId, String active);
 
+    User findByUniversity(University university);
 }
