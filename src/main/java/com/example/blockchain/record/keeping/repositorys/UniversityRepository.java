@@ -21,7 +21,7 @@ public interface UniversityRepository extends JpaRepository<University, Long> {
             JOIN roles r on u.role_id = r.id
             WHERE (:name IS NULL OR un.name LIKE CONCAT('%', :name, '%'))
             AND r.name ='PDT'
-            ORDER BY u.created_at DESC
+            ORDER BY u.updated_at DESC
             """, nativeQuery = true)
     List<User> findAllUserUniversity(@Param("name") String name);
 }

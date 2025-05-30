@@ -1,22 +1,24 @@
 package com.example.blockchain.record.keeping.services;
-
-
-import com.example.blockchain.record.keeping.dtos.CertificateDTO;
-import com.example.blockchain.record.keeping.dtos.StudentDTO;
 import com.example.blockchain.record.keeping.dtos.request.CertificatePrintData;
+import com.example.blockchain.record.keeping.dtos.request.CertificateRequest;
 import com.example.blockchain.record.keeping.enums.Status;
 import com.example.blockchain.record.keeping.models.*;
 import com.example.blockchain.record.keeping.repositorys.*;
+import com.example.blockchain.record.keeping.response.ApiResponseBuilder;
 import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.web3j.protocol.Web3j;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Optional;
 
@@ -31,17 +33,6 @@ public class CertificateService implements ICertificateService{
 
     @Autowired
     private Web3j web3j;
-
-    @Override
-    public Certificate saveAll(CertificateDTO certificateDTO, StudentDTO studentDTO){
-//        Student student = modelMapper.map(studentDTO, Student.class);
-//        studentRepository.save(student);
-//
-//        Certificate certificate = modelMapper.map(certificateDTO, Certificate.class);
-//        certificate.setStudent(student);
-
-        return null;
-    }
 
     @Override
     public List<Certificate> listCertificateOfStudent(Student student) {
@@ -87,15 +78,64 @@ public class CertificateService implements ICertificateService{
         return certificateRepository.saveAll(certificateList);
     }
 
+    @Override
+    public Certificate findByIdAndStatus(Long id, Status status) {
+        return certificateRepository.findByIdAndStatus(id,status);
+    }
+
+    @Override
+    public List<Certificate> listCertificateOfDepartment(Long departmentId, String className, String studentCode, String studentName) {
+        return certificateRepository.listCertificateOfDepartment(departmentId, className,studentCode,studentName );
+
+    }
+
+    @Override
+    public List<Certificate> listCertificateOfUniversity(Long universittyId, String departmentName, String className, String studentCode, String studentName) {
+        return certificateRepository.listCertificateOfUniversity(universittyId,departmentName,className,studentCode,studentName);
+    }
+
+    @Override
+    public Certificate update(Certificate certificate, CertificateRequest request) {
+        ZonedDateTime vietnamTime = ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+        LocalDate issueDate = LocalDate.parse(request.getIssueDate(), formatter);
+
+        certificate.setIssueDate(issueDate);
+        certificate.setDiplomaNumber(request.getDiplomaNumber());
+        certificate.setGrantor(request.getGrantor());
+        certificate.setSigner(request.getSigner());
+        certificate.setUpdatedAt(vietnamTime.toLocalDateTime());
+
+        // tạo anh
+        CertificatePrintData printData = new CertificatePrintData();
+        printData.setUniversityName(certificate.getUniversityCertificateType().getUniversity().getName());
+        printData.setCertificateTitle("GIẤY CHỨNG NHẬN");
+        printData.setStudentName(certificate.getStudent().getName());
+        printData.setDepartmentName("Khoa " + certificate.getStudent().getStudentClass().getDepartment().getName());
+        printData.setCertificateName(certificate.getUniversityCertificateType().getCertificateType().getName());
+        printData.setDiplomaNumber("Số: " + request.getDiplomaNumber());
+        printData.setIssueDate("Ngày " + issueDate.getDayOfMonth() + " tháng " + issueDate.getMonthValue() + " năm " + issueDate.getYear());
+        printData.setGrantor(request.getGrantor());
+        printData.setSigner(request.getSigner());
+
+        String image = graphicsTextWriter.drawCertificateText(printData);
+        certificate.setImageUrl(image);
+        return certificateRepository.save(certificate);
+    }
+
     @Transactional
     public void createCertificate(Student student,JsonNode jsonNode) {
         ZonedDateTime vietnamTime = ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
         String certificateTypeId = jsonNode.get("certificateTypeId").asText();
-        LocalDate issueDate =  LocalDate.parse(jsonNode.get("issueDate").asText());
+//        LocalDate issueDate =  LocalDate.parse();
         String diplomaNumber = jsonNode.get("diplomaNumber").asText();
         String signer = jsonNode.get("signer").asText();
         String grantor = jsonNode.get("grantor").asText();
+
+        LocalDate issueDate = LocalDate.parse(jsonNode.get("issueDate").asText(), formatter);
 
 
         Certificate certificate = new Certificate();
@@ -134,6 +174,7 @@ public class CertificateService implements ICertificateService{
 
         certificate.setStatus(Status.PENDING);
         certificate.setCreatedAt(vietnamTime.toLocalDateTime());
+        certificate.setUpdatedAt(vietnamTime.toLocalDateTime());
 
         // Lưu dữ liệu lên blockchain
 //            String contractAddress = "0x3D9433e04432406335CBEf89cB39784fC1Fd7d7B"; // Thay bằng địa chỉ hợp đồng của bạn

@@ -24,6 +24,8 @@ public class CertificateDetailReponse {
     private String email;
     private LocalDate birthDate;
     private String course;
+    private String grantor;
+    private String signer;
     private String image_url;
     private String qrCodeUrl;
     private LocalDateTime createdAt;

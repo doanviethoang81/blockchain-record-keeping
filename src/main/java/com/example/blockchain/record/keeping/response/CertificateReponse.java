@@ -14,6 +14,8 @@ import java.util.Date;
 public class CertificateReponse {
     private Long id;
     private String nameStudent;
+    private String className;
+    private String department;
     private LocalDate issueDate;
     private String diploma_number;
     private String certificateName;

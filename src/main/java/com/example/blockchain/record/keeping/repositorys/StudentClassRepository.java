@@ -25,7 +25,7 @@ public interface StudentClassRepository extends JpaRepository<StudentClass,Long>
         WHERE u.id = :universityId 
           AND s.status = 'ACTIVE'
           AND (:className IS NULL OR LOWER(s.name) LIKE LOWER(CONCAT('%', :className, '%')))
-          ORDER BY s.created_at DESC
+          ORDER BY s.updated_at DESC
     """, nativeQuery = true)
     List<StudentClass> findAllClassOfUniversityByName(
             @Param("universityId") Long universityId,

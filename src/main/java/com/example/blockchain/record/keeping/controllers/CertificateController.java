@@ -4,7 +4,9 @@ import com.alibaba.excel.EasyExcel;
 import com.example.blockchain.record.keeping.dtos.CertificateDTO;
 import com.example.blockchain.record.keeping.dtos.CertificateExcelRowDTO;
 import com.example.blockchain.record.keeping.dtos.CertificateStudentRequest;
+import com.example.blockchain.record.keeping.dtos.request.CertificateRequest;
 import com.example.blockchain.record.keeping.dtos.request.StudentExcelRowRequest;
+import com.example.blockchain.record.keeping.enums.Status;
 import com.example.blockchain.record.keeping.models.*;
 import com.example.blockchain.record.keeping.repositorys.CertificateRepository;
 import com.example.blockchain.record.keeping.repositorys.StudentRepository;
@@ -13,16 +15,24 @@ import com.example.blockchain.record.keeping.services.*;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.time.format.ResolverStyle;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -44,7 +54,7 @@ public class CertificateController {
     //---------------------------- ADMIN -------------------------------------------------------
     // xem all chứng chỉ
     @PreAuthorize("hasAuthority('READ')")
-    @GetMapping("/admin/list-certificate")
+    @GetMapping("/admin/list-certificates")
     public ResponseEntity<?> getAllCertificate(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
@@ -66,6 +76,8 @@ public class CertificateController {
                     .map(s -> new CertificateReponse(
                             s.getId(),
                             s.getStudent().getName(),
+                            s.getStudent().getStudentClass().getName(),
+                            s.getStudent().getStudentClass().getDepartment().getName(),
                             s.getIssueDate(),
                             s.getDiplomaNumber(),
                             s.getUniversityCertificateType().getCertificateType().getName(),
@@ -75,7 +87,7 @@ public class CertificateController {
             int start = (page - 1) * size;
             int end = Math.min(start + size, certificateReponseList.size());
             if (start >= certificateReponseList.size()) {
-                return ApiResponseBuilder.success("Chưa có lớp nào!", null);
+                return ApiResponseBuilder.success("Chưa có chứng chỉ nào!", null);
             }
 
             List<CertificateReponse> pagedResult = certificateReponseList.subList(start, end);
@@ -92,8 +104,8 @@ public class CertificateController {
     }
 
     //chi tieets 1 chung chi
-    @PreAuthorize("hasAuthority('READ')")
-    @GetMapping("/admin/certificate-detail/{id}")
+    @PreAuthorize("(hasAnyRole('ADMIN', 'PDT', 'KHOA')) and hasAuthority('READ')")
+    @GetMapping("/certificate-detail/{id}")
     public ResponseEntity<?> getDetailCertificate(
             @PathVariable Long id
     ) {
@@ -112,6 +124,8 @@ public class CertificateController {
                     certificate.getStudent().getEmail(),
                     certificate.getStudent().getBirthDate(),
                     certificate.getStudent().getCourse(),
+                    certificate.getGrantor(),
+                    certificate.getSigner(),
                     certificate.getImageUrl(),
                     certificate.getQrCodeUrl(),
                     certificate.getCreatedAt()
@@ -124,10 +138,115 @@ public class CertificateController {
         }
     }
 
+    //---------------------------- PDT -------------------------------------------------------
+    // all chunng chi cua 1 tr
+    @PreAuthorize("hasAuthority('READ')")
+    @GetMapping("/pdt/list-certificates")
+    public ResponseEntity<?> getCertificateOfUniversity(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String departmentName,
+            @RequestParam(required = false) String className,
+            @RequestParam(required = false) String studentCode,
+            @RequestParam(required = false) String studentName
+    ) {
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String username = authentication.getName();
+            University university = universityService.getUniversityByEmail(username);
+            List<Certificate> certificateList = certificateService.listCertificateOfUniversity(
+                    university.getId(),
+                    departmentName,
+                    className,
+                    studentCode,
+                    studentName
+            );
+            List<CertificateReponse> certificateReponseList = certificateList.stream()
+                    .map(s -> new CertificateReponse(
+                            s.getId(),
+                            s.getStudent().getName(),
+                            s.getStudent().getStudentClass().getName(),
+                            s.getStudent().getStudentClass().getDepartment().getName(),
+                            s.getIssueDate(),
+                            s.getDiplomaNumber(),
+                            s.getUniversityCertificateType().getCertificateType().getName(),
+                            s.getCreatedAt()
+                    ))
+                    .collect(Collectors.toList());
+            int start = (page - 1) * size;
+            int end = Math.min(start + size, certificateReponseList.size());
+            if (start >= certificateReponseList.size()) {
+                return ApiResponseBuilder.success("Chưa có chứng chỉ nào!", null);
+            }
+
+            List<CertificateReponse> pagedResult = certificateReponseList.subList(start, end);
+            PaginatedData<CertificateReponse> data = new PaginatedData<>(pagedResult,
+                    new PaginationMeta(certificateReponseList.size(), pagedResult.size(), size, page ,
+                            (int) Math.ceil((double) certificateReponseList.size() / size)));
+
+            return ApiResponseBuilder.success("Danh sách chứng chỉ của một trường",data);
+        } catch (IllegalArgumentException e) {
+            return ApiResponseBuilder.badRequest(e.getMessage());
+        } catch (Exception e) {
+            return ApiResponseBuilder.internalError("Lỗi" + e.getMessage());
+        }
+    }
 
 
 
     //---------------------------- KHOA -------------------------------------------------------
+
+    // all chunng chi cua 1 khoa
+    @PreAuthorize("hasAuthority('READ')")
+    @GetMapping("/khoa/list-certificates")
+    public ResponseEntity<?> getCertificateOfDepartment(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String className,
+            @RequestParam(required = false) String studentCode,
+            @RequestParam(required = false) String studentName
+    ) {
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String username = authentication.getName();
+            User user = userService.findByUser(username);
+            List<Certificate> certificateList = certificateService.listCertificateOfDepartment(
+                    user.getDepartment().getId(),
+                    className,
+                    studentCode,
+                    studentName
+            );
+            List<CertificateReponse> certificateReponseList = certificateList.stream()
+                    .map(s -> new CertificateReponse(
+                            s.getId(),
+                            s.getStudent().getName(),
+                            s.getStudent().getStudentClass().getName(),
+                            s.getStudent().getStudentClass().getDepartment().getName(),
+                            s.getIssueDate(),
+                            s.getDiplomaNumber(),
+                            s.getUniversityCertificateType().getCertificateType().getName(),
+                            s.getCreatedAt()
+                    ))
+                    .collect(Collectors.toList());
+            int start = (page - 1) * size;
+            int end = Math.min(start + size, certificateReponseList.size());
+            if (start >= certificateReponseList.size()) {
+                return ApiResponseBuilder.success("Chưa có chứng chỉ nào!", null);
+            }
+
+            List<CertificateReponse> pagedResult = certificateReponseList.subList(start, end);
+            PaginatedData<CertificateReponse> data = new PaginatedData<>(pagedResult,
+                    new PaginationMeta(certificateReponseList.size(), pagedResult.size(), size, page ,
+                            (int) Math.ceil((double) certificateReponseList.size() / size)));
+
+            return ApiResponseBuilder.success("Danh sách chứng chỉ của một khoa",data);
+        } catch (IllegalArgumentException e) {
+            return ApiResponseBuilder.badRequest(e.getMessage());
+        } catch (Exception e) {
+            return ApiResponseBuilder.internalError("Lỗi" + e.getMessage());
+        }
+    }
+
     // tìm kiem sinh vien cho khoa để lấy id sinh viên -> cho thêm chứng chỉ
     @PreAuthorize("hasAuthority('READ')")
     @GetMapping("/khoa/student-search")
@@ -160,8 +279,8 @@ public class CertificateController {
         }
     }
 
-    // kiểm tra chứng chỉ đó đã cấp chưa cho sv đó chưa
-    // kiểm tra sinh viên xem mssv trong file excel có trùng k gmail trùng k
+    //tao chung chi
+    // chưa có kiểm tra ngày nhập sai trong khoảng 1 năm
     @PreAuthorize("hasAuthority('WRITE')")
     @PostMapping("/khoa/create-certificate")
     public ResponseEntity<?> createCertificate(
@@ -181,6 +300,21 @@ public class CertificateController {
             if(!certificate.isEmpty()){
                 return ApiResponseBuilder.badRequest("Sinh viên đã có loại chứng chỉ này");
             }
+            try {
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+                LocalDate localDate = LocalDate.parse(jsonNode.get("issueDate").asText(), formatter);
+                ZonedDateTime issueDate = localDate.atStartOfDay(ZoneId.of("Asia/Ho_Chi_Minh"));
+                ZonedDateTime now = ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
+                ZonedDateTime oneYearAgo = now.minusYears(1);
+                ZonedDateTime oneYearLater = now.plusYears(1);
+
+                if (issueDate.isBefore(oneYearAgo) || issueDate.isAfter(oneYearLater)) {
+                    return ApiResponseBuilder.badRequest("Ngày cấp chứng chỉ phải trong vòng 1 năm trước và 1 năm sau kể từ hôm nay");
+                }
+            } catch (DateTimeParseException e) {
+                return ApiResponseBuilder.badRequest("Ngày cấp chứng chỉ không đúng định dạng dd/MM/yyyy");
+            }
+
             certificateService.createCertificate(student, jsonNode );
             return ApiResponseBuilder.success("Tạo chứng chỉ thành công, chờ PDT duyệt ", null);
         } catch (IllegalArgumentException e) {
@@ -190,6 +324,7 @@ public class CertificateController {
         }
     }
 
+    //xét ngày cấp
     @PreAuthorize("hasAuthority('WRITE')")
     @PostMapping("/khoa/certificate/create-excel")
     public ResponseEntity<?> uploadExcel(
@@ -231,5 +366,48 @@ public class CertificateController {
         // nào chạy thì mở
 //            brevoApiEmailService.sendEmailsToStudentsExcel(validStudents);
         return ApiResponseBuilder.success("Tạo chứng chỉ thành công" , null);
+    }
+
+    // sửa chung chi
+    @PreAuthorize("hasAuthority('READ')")
+    @PutMapping("/khoa/update-certificate/{id}")
+    public ResponseEntity<?> updateCertificateType(
+            @PathVariable("id")  Long id,
+            @RequestBody CertificateRequest request)
+    {
+        try {
+            if (request == null
+                    || !StringUtils.hasText(request.getIssueDate())
+                    || !StringUtils.hasText(request.getDiplomaNumber())
+                    || !StringUtils.hasText(request.getGrantor())
+                    || !StringUtils.hasText(request.getSigner())) {
+                return ApiResponseBuilder.badRequest("Vui lòng nhập đầy đủ thông tin!");
+            }
+            try {
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+                LocalDate localDate = LocalDate.parse(request.getIssueDate(), formatter);
+                ZonedDateTime issueDate = localDate.atStartOfDay(ZoneId.of("Asia/Ho_Chi_Minh"));
+                ZonedDateTime now = ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
+                ZonedDateTime oneYearAgo = now.minusYears(1);
+                ZonedDateTime oneYearLater = now.plusYears(1);
+
+                if (issueDate.isBefore(oneYearAgo) || issueDate.isAfter(oneYearLater)) {
+                    return ApiResponseBuilder.badRequest("Ngày cấp chứng chỉ phải trong vòng 1 năm trước và 1 năm sau kể từ hôm nay");
+                }
+            } catch (DateTimeParseException e) {
+                return ApiResponseBuilder.badRequest("Ngày cấp chứng chỉ không đúng định dạng dd/MM/yyyy");
+            }
+
+            Certificate certificate = certificateService.findByIdAndStatus(id, Status.PENDING);
+
+            if(certificate == null){
+                return ApiResponseBuilder.badRequest("Chứng chỉ này đã được duyệt không chỉnh sửa được!");
+            }
+
+            certificateService.update(certificate, request);
+            return ApiResponseBuilder.success("Sửa thông tin loại chứng chỉ thành công", null);
+        } catch (Exception e) {
+            return ApiResponseBuilder.badRequest(e.getMessage());
+        }
     }
 }

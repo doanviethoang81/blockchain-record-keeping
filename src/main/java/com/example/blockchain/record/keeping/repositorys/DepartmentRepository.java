@@ -25,9 +25,9 @@ public interface DepartmentRepository extends JpaRepository<Department,Long> {
         SELECT d.* FROM departments d
         JOIN universitys u ON d.university_id = u.id
         WHERE d.name COLLATE utf8mb4_unicode_ci = :departmentName COLLATE utf8mb4_unicode_ci
-          AND u.id = :universityId
-          AND d.status = 'ACTIVE'
-          ORDER BY d.created_at DESC
+        AND u.id = :universityId
+        AND d.status = 'ACTIVE'
+        ORDER BY d.updated_at DESC
         """, nativeQuery = true)
     Optional<Department> findByDepartmentNameOfUniversity(@Param("universityId") Long universityId,
                                                           @Param("departmentName") String departmentName);

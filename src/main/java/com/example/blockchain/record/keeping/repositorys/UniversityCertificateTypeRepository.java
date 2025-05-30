@@ -28,7 +28,7 @@ public interface UniversityCertificateTypeRepository extends JpaRepository<Unive
             JOIN university_certificate_types uct on ct.id =uct.certificate_type_id
             JOIN universitys u on  uct.university_id = u.id
             where u.id = :universityId and ct.status='ACTIVE'
-            ORDER BY ct.created_at DESC;
+            ORDER BY ct.updated_at DESC;
             """, nativeQuery = true)
     List<CertificateType> findAllByUniversityOrderByCreatedAtDesc(@Param("universityId") Long universityId);
 }

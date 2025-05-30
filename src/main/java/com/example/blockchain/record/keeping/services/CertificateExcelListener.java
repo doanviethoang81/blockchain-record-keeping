@@ -127,7 +127,6 @@ public class CertificateExcelListener extends AnalysisEventListener<CertificateE
                 continue;
             }
 
-
             if (row.getGrantor() == null || row.getGrantor().isBlank()) {
                 errors.add("Dòng " + rowIndex + ": Chức vụ người cấp không được để trống");
                 continue;
@@ -184,6 +183,7 @@ public class CertificateExcelListener extends AnalysisEventListener<CertificateE
             certificate.setQrCodeUrl("2347234234");// fake
             certificate.setStatus(Status.PENDING);
             certificate.setCreatedAt(now.toLocalDateTime());
+            certificate.setUpdatedAt(now.toLocalDateTime());
 
             certificatesToSave.add(certificate);
 

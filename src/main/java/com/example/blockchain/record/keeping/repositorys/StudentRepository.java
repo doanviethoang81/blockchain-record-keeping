@@ -63,7 +63,7 @@ public interface StudentRepository extends JpaRepository<Student,Long> {
     JOIN departments d on sc.department_id = d.id
     JOIN universitys u on d.university_id =u.id
     where u.id = :universityId and d.status='ACTIVE'
-    ORDER BY s.created_at DESC
+    ORDER BY s.updated_at DESC
     """, nativeQuery = true)
     List<Student> getAllStudentOfUniversity(@Param("universityId") Long universityId);
 
@@ -76,7 +76,7 @@ public interface StudentRepository extends JpaRepository<Student,Long> {
       AND s.status = 'ACTIVE'
       AND sc.status = 'ACTIVE'
       AND d.status = 'ACTIVE'
-    ORDER BY s.created_at DESC
+    ORDER BY s.updated_at DESC
     """, nativeQuery = true)
     List<Student> getAllStudentOfDepartment(@Param("departmentId") Long departmentId);
 
@@ -92,7 +92,7 @@ public interface StudentRepository extends JpaRepository<Student,Long> {
       AND s.status = 'ACTIVE'
       and sc.status ='ACTIVE'
       AND d.status = 'ACTIVE' 
-      ORDER BY s.created_at DESC
+      ORDER BY s.updated_at DESC
     """, nativeQuery = true)
     List<Student> searchStudents(@Param("departmentId") Long departmentId,
                                  @Param("className") String className,
@@ -113,7 +113,7 @@ public interface StudentRepository extends JpaRepository<Student,Long> {
       AND s.status = 'ACTIVE'
       and sc.status ='ACTIVE'
       AND d.status = 'ACTIVE' 
-      ORDER BY s.created_at DESC
+      ORDER BY s.updated_at DESC
     """, nativeQuery = true)
     List<Student> searchStudentsByUniversity(
                                  @Param("universityId") Long universityId,
