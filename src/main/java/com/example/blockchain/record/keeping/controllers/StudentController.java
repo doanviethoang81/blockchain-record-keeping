@@ -326,4 +326,28 @@ public class StudentController {
             return ApiResponseBuilder.badRequest("Lỗi không lấy được dữ liệu! " + e.getMessage());
         }
     }
+
+    // chi tiết 1 sinh viên
+    @PreAuthorize("(hasAnyRole('ADMIN', 'PDT', 'KHOA')) and hasAuthority('READ')")
+    @GetMapping("/detail-student/{id}")
+    public ResponseEntity<?> getDetatilStudent(
+            @PathVariable("id") Long id)
+    {
+        try{
+            Student student = studentService.findById(id);
+            StudentDetailReponse studentDetailReponse= new StudentDetailReponse(
+                    student.getName(),
+                    student.getStudentCode(),
+                    student.getEmail(),
+                    student.getBirthDate(),
+                    student.getCourse(),
+                    student.getStudentClass().getName(),
+                    student.getStudentClass().getDepartment().getName(),
+                    student.getStudentClass().getDepartment().getUniversity().getName()
+            );
+            return ApiResponseBuilder.success("Thông chi tiết một sinh viên",studentDetailReponse);
+        } catch (Exception e) {
+            return ApiResponseBuilder.internalError("Lỗi " + e.getMessage());
+        }
+    }
 }

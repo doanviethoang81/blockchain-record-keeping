@@ -108,6 +108,6 @@ public class StudentService implements IStudentService{
 
     public Student findById(Long id){
         return studentRepository.findByIdAndStatus(id, Status.ACTIVE)
-                .orElseThrow(()-> new RuntimeException("Không tìm thấy sinh viên id" + id) );
+                .orElseThrow(()-> new RuntimeException("Không tìm thấy sinh viên id " + id) );
     }
 }

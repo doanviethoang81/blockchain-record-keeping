@@ -13,12 +13,12 @@ import java.util.List;
 @Builder
 @AllArgsConstructor
 public class StudentDetailReponse {
-
     private String name;
     private String studentCode;
     private String email;
     private LocalDate birthDate;
     private String course;
-    private List<DegreeDTO> degrees;
-    private List<CertificateDTO> certificates;
+    private String className;
+    private String departmentName;
+    private String universityName;
 }
