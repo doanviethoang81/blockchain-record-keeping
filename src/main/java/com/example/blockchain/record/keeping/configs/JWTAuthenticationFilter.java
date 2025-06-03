@@ -2,6 +2,7 @@ package com.example.blockchain.record.keeping.configs;
 
 import com.example.blockchain.record.keeping.response.ApiResponseBuilder;
 import com.example.blockchain.record.keeping.services.CustomUserDetailService;
+import com.example.blockchain.record.keeping.services.TokenBlacklistService;
 import com.example.blockchain.record.keeping.utils.JWTUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
@@ -24,10 +25,11 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter {
 
     private final JWTUtil jwtUtil;
     private final CustomUserDetailService customUserDetailService;
-
-    public JWTAuthenticationFilter(JWTUtil jwtUtil, CustomUserDetailService customUserDetailService) {
+    private final TokenBlacklistService tokenBlacklistService;
+    public JWTAuthenticationFilter(JWTUtil jwtUtil, CustomUserDetailService customUserDetailService, TokenBlacklistService tokenBlacklistService) {
         this.jwtUtil = jwtUtil;
         this.customUserDetailService = customUserDetailService;
+        this.tokenBlacklistService = tokenBlacklistService;
     }
 
     @Override
@@ -46,7 +48,6 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter {
                 return;
             }
 
-
             final String authHeader = request.getHeader("Authorization");
 
             // Kiểm tra và lấy token từ header Authorization
@@ -59,6 +60,10 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter {
             //Lấy token từ header: "Authorization: Bearer <token>"
             if (authHeader != null && authHeader.startsWith("Bearer ")) {
                 jwt = authHeader.substring(7); // Bỏ chữ "Bearer "
+
+                if (tokenBlacklistService.isTokenBlacklisted(jwt)) {
+                    throw new RuntimeException("Tài khoản đã đăng xuất");
+                }
                 email = jwtUtil.getEmailFromToken(jwt);
             }
 
@@ -96,9 +101,6 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter {
 
             response.getWriter().write(errorJson);
             response.getWriter().flush();
-//            String errorJson = String.format("{\"error\": \"%s\"}", ex.getMessage());
-//            response.getWriter().write(errorJson);
-//            response.getWriter().flush();
         }
     }
 }

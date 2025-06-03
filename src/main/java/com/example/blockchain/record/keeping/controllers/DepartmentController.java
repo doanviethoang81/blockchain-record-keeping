@@ -40,6 +40,7 @@ public class DepartmentController {
     private final RoleService roleService;
     private final PermissionService permissionService;
     private final UserPermissionService userPermissionService;
+    private final BrevoApiEmailService brevoApiEmailService;
 
     //---------------------------- PDT -------------------------------------------------------
     //các khoa của trường đại học
@@ -138,22 +139,33 @@ public class DepartmentController {
         }
     }
 
-    //cap lai mk cho khoa xem lại sau nhe
+    //cap lai mk cho khoa
     @PreAuthorize("hasAuthority('WRITE')")
-    @PutMapping("/pdt/change-password-of-department")
+    @PutMapping("/pdt/change-password-of-department/{id}")
     public ResponseEntity<?> changePasswordDerpartment(
+            @PathVariable("id") Long id,
             @RequestBody ChangePasswordDepartmentRequest changePassword
     ) {
         try {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             String username = authentication.getName();
+            User userUniversity = userService.findByUser(username);
             if (changePassword == null ||
                     !StringUtils.hasText(changePassword.getNewPassword())) {
-                return ApiResponseBuilder.badRequest("Vui lòng nhập mật khẩu mới cho khoa!");
+                return ApiResponseBuilder.badRequest("Vui lòng nhập đầy đủi dữ liệu!");
             }
-            boolean isPasswordChanged = userService.changePasswordDepartment(changePassword);
+            if(!changePassword.getConfirmPassword().equals(changePassword.getNewPassword())){
+                return ApiResponseBuilder.badRequest("Mật khẩu mới không giống nhau!");
+            }
+            if(!passwordEncoder.matches(changePassword.getPasswordUniversity(), userUniversity.getPassword())){
+                return ApiResponseBuilder.badRequest("Mật khẩu của trường không đúng!");
+            }
+            boolean isPasswordChanged = userService.changePasswordDepartment(id, changePassword);
             if (isPasswordChanged) {
-                return ApiResponseBuilder.success("Mật khẩu đã được thay đổi thành công.",null);
+                // gửi gmail thông báo
+                brevoApiEmailService.sendPasswordChange(id, changePassword.getNewPassword());
+                return ApiResponseBuilder.success("Thay đổi mật khẩu thành công.",null);
+
             } else {
                 return ApiResponseBuilder.badRequest("Thay đổi mật khẩu thất bại!");
             }
@@ -170,7 +182,8 @@ public class DepartmentController {
             User user =userService.finbById(id);
             boolean newLockStatus = !user.isLocked();
             userService.updateLocked(id);
-            String message = newLockStatus ? "Khóa tài khoản khoa thành công" : "Mở khóa tài khoản khoa thành công";
+            String message = newLockStatus ? "Đã cấp quyền READ cho khoa" : "Đã thu hồi quyền READ của khoa";
+            // gửi gmail
             return ApiResponseBuilder.success(message, null);
         } catch (Exception e) {
             return ApiResponseBuilder.internalError("Lỗi");
@@ -185,6 +198,9 @@ public class DepartmentController {
             String active = "WRITE";
             boolean granted = userService.togglePermission(id,active);
             String message = granted ? "Đã cấp quyền WRITE cho khoa" : "Đã thu hồi quyền WRITE của khoa";
+            String actionType = granted ? "được cấp quyền WRITE ":" bị thu hồi quyền WRITE";
+            // Gửi email
+            brevoApiEmailService.sendPermissionNotification(id, actionType);
             return ApiResponseBuilder.success(message, null);
         } catch (Exception e) {
             return ApiResponseBuilder.internalError("Đã xảy ra lỗi: " + e.getMessage());
@@ -199,6 +215,9 @@ public class DepartmentController {
             String active = "READ";
             boolean granted = userService.togglePermission(id,active);
             String message = granted ? "Đã cấp quyền READ cho khoa" : "Đã thu hồi quyền READ của khoa";
+            String actionType = granted ? "được cấp quyền READ ":" bị thu hồi quyền READ";
+            // Gửi email
+            brevoApiEmailService.sendPermissionNotification(id, actionType);
             return ApiResponseBuilder.success(message, null);
         } catch (Exception e) {
             return ApiResponseBuilder.internalError("Đã xảy ra lỗi: " + e.getMessage());
@@ -208,7 +227,7 @@ public class DepartmentController {
     //update khoa
     @PreAuthorize("hasAuthority('WRITE')")
     @PutMapping("/pdt/update-department/{id}")
-    public ResponseEntity<?> updateDepartment(@PathVariable Long id, @RequestBody DepartmentRequest departmentRequest){
+    public ResponseEntity<?> updateDepartment(@PathVariable Long id, @RequestBody DepartmentRequest departmentRequest) {
         try {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             String username = authentication.getName();
@@ -221,7 +240,7 @@ public class DepartmentController {
                 return ApiResponseBuilder.badRequest("Email này đã được đăng ký!");
             }
 
-            departmentService.updateDepartment(id,departmentRequest.getName(), departmentRequest.getEmail());
+            departmentService.updateDepartment(id, departmentRequest.getName(), departmentRequest.getEmail());
             return ApiResponseBuilder.success("Cập nhật thông tin khoa thành công", null);
         } catch (Exception e) {
             return ApiResponseBuilder.internalError("Đã xảy ra lỗi: " + e.getMessage());

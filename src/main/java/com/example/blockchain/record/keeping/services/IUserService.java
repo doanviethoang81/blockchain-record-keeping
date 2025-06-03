@@ -1,5 +1,6 @@
 package com.example.blockchain.record.keeping.services;
 
+import com.example.blockchain.record.keeping.dtos.StatisticsAdminDTO;
 import com.example.blockchain.record.keeping.dtos.request.ChangePasswordDepartmentRequest;
 import com.example.blockchain.record.keeping.models.Department;
 import com.example.blockchain.record.keeping.models.University;
@@ -19,9 +20,13 @@ public interface IUserService {
 
     User finbById(Long id);
 
-    boolean changePasswordDepartment(ChangePasswordDepartmentRequest changePasswordDepartmentRequest);
+    boolean changePasswordDepartment(Long id,ChangePasswordDepartmentRequest changePasswordDepartmentRequest);
 
     boolean togglePermission(Long userId, String active);
 
     User findByUniversity(University university);
+
+    StatisticsAdminDTO dashboardAdmin();
+
+    User findByDepartment(Department department);
 }

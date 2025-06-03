@@ -30,7 +30,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/api/auth")
 @AllArgsConstructor
 public class AuthencationController {
 
@@ -48,9 +47,10 @@ public class AuthencationController {
     private final UserService userService;
     private final ImageLogoService imageLogoService;
     private final DepartmentService departmentService;
+    private final TokenBlacklistService tokenBlacklistService;
 
 
-    @PostMapping("/register")
+    @PostMapping("/api/auth/register")
     public ResponseEntity<?> register(@Valid @ModelAttribute RegisterRequest request, BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             // Lấy danh sách lỗi và trả về
@@ -123,7 +123,7 @@ public class AuthencationController {
     }
 
 
-    @PostMapping("/login")
+    @PostMapping("/api/auth/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request) {
         try {
             Authentication authentication = authenticationManager.authenticate(
@@ -196,7 +196,7 @@ public class AuthencationController {
         }
     }
 
-    @PostMapping("/verify-otp")
+    @PostMapping("/api/auth/verify-otp")
     public ResponseEntity<?> verifyOtp(@RequestBody VerifyOtpRequest request) {
         String email = request.getEmail();
         String otp = request.getOtp();
@@ -218,5 +218,16 @@ public class AuthencationController {
         else{
             return ApiResponseBuilder.badRequest("OTP sai hoặc đã hết hạn");
         }
+    }
+
+    @PostMapping("/api/logout")
+    public ResponseEntity<ApiResponse<String>> logout(@RequestHeader("Authorization") String authHeader) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ApiResponseBuilder.badRequest("Token không hợp lệ");
+        }
+        String token = authHeader.substring(7);
+        tokenBlacklistService.blacklistToken(token);
+
+        return ApiResponseBuilder.success("Đăng xuất thành công", null);
     }
 }

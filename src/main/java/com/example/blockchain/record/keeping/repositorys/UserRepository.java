@@ -1,5 +1,6 @@
 package com.example.blockchain.record.keeping.repositorys;
 
+import com.example.blockchain.record.keeping.dtos.StatisticsAdminDTO;
 import com.example.blockchain.record.keeping.models.Department;
 import com.example.blockchain.record.keeping.models.University;
 import com.example.blockchain.record.keeping.models.User;
@@ -41,4 +42,36 @@ public interface UserRepository extends JpaRepository<User,Long> {
     """, nativeQuery = true)
     List<User> findUserDepartmentByUniversity(@Param("universityId") Long universityId,
                                           @Param("nameDepartment") String nameDepartment);
+
+    // thống kê admin
+    @Query(value = """
+    SELECT
+        (SELECT COUNT(*) FROM universitys un
+         join users u on un.id = u.university_id) AS university_count,
+        (SELECT COUNT(*) FROM students WHERE students.status ='ACTIVE' ) AS student_count,
+        (SELECT COUNT(*) FROM certificates WHERE certificates.status ='PENDING') AS certificate_Pending,
+        (SELECT COUNT(*) FROM certificates WHERE certificates.status ='APPROVED') AS certificate_Approved,
+        (SELECT COUNT(*) FROM certificates WHERE certificates.status ='REJECTED') AS certificate_Rejected,
+        (SELECT COUNT(*) FROM degrees WHERE degrees.status ='PENDING') AS degrees_Pending,
+        (SELECT COUNT(*) FROM degrees WHERE degrees.status ='APPROVED') AS degrees_Approved,
+        (SELECT COUNT(*) FROM degrees WHERE degrees.status ='REJECTED') AS degrees_Rejected;
+    """, nativeQuery = true)
+    StatisticsAdminDTO getStatisticsAdmin();
+
+//    // thống kê university
+//    @Query(value = """
+//    SELECT
+//        (SELECT COUNT(*) FROM universitys un
+//         join users u on un.id = u.university_id) AS university_count,
+//        (SELECT COUNT(*) FROM students WHERE students.status ='ACTIVE' ) AS student_count,
+//        (SELECT COUNT(*) FROM certificates WHERE certificates.status ='PENDING') AS certificate_Pending,
+//        (SELECT COUNT(*) FROM certificates WHERE certificates.status ='APPROVED') AS certificate_Approved,
+//        (SELECT COUNT(*) FROM certificates WHERE certificates.status ='REJECTED') AS certificate_Rejected,
+//        (SELECT COUNT(*) FROM degrees WHERE degrees.status ='PENDING') AS degrees_Pending,
+//        (SELECT COUNT(*) FROM degrees WHERE degrees.status ='APPROVED') AS degrees_Approved,
+//        (SELECT COUNT(*) FROM degrees WHERE degrees.status ='REJECTED') AS degrees_Rejected;
+//    """, nativeQuery = true)
+//    StatisticsAdminDTO getStatisticsUniversity();
+
+
 }

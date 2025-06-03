@@ -123,18 +123,4 @@ public class SecurityConfigs {
             response.getWriter().flush();
         };
     }
-
-//    @Bean
-//    public AccessDeniedHandler customAccessDeniedHandler() {
-//        return (request, response, accessDeniedException) -> {
-//            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-//            response.setContentType("application/json");
-//            response.setCharacterEncoding("UTF-8");
-//            response.setContentType("application/json;charset=UTF-8");
-//            response.getWriter().write("{\"error\": \"Bạn không có quyền thực hiện hành động này!\"}");
-//        };
-//    }
-
-
-
 }

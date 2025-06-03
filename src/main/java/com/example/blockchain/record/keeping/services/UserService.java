@@ -1,13 +1,11 @@
 package com.example.blockchain.record.keeping.services;
 
+import com.example.blockchain.record.keeping.dtos.StatisticsAdminDTO;
 import com.example.blockchain.record.keeping.dtos.request.ChangePasswordDepartmentRequest;
 import com.example.blockchain.record.keeping.dtos.request.ChangePasswordRequest;
 import com.example.blockchain.record.keeping.exceptions.BadRequestException;
 import com.example.blockchain.record.keeping.models.*;
-import com.example.blockchain.record.keeping.repositorys.PermissionRepository;
-import com.example.blockchain.record.keeping.repositorys.StudentRepository;
-import com.example.blockchain.record.keeping.repositorys.UserPermissionRepository;
-import com.example.blockchain.record.keeping.repositorys.UserRepository;
+import com.example.blockchain.record.keeping.repositorys.*;
 import com.example.blockchain.record.keeping.response.ApiResponseBuilder;
 import com.example.blockchain.record.keeping.response.UserReponse;
 import jakarta.transaction.Transactional;
@@ -30,6 +28,7 @@ public class UserService implements IUserService{
     private final PasswordEncoder passwordEncoder;
     private final PermissionRepository permissionRepository;
     private final UserPermissionRepository userPermissionRepository;
+    private final DepartmentRepository departmentRepository;
 
 
     @Override
@@ -106,14 +105,20 @@ public class UserService implements IUserService{
     }
 
     @Override
-    public boolean changePasswordDepartment(ChangePasswordDepartmentRequest changePasswordDepartmentRequest){
+    public boolean changePasswordDepartment(Long id, ChangePasswordDepartmentRequest changePasswordDepartmentRequest){
         ZonedDateTime vietnamTime = ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
-        Optional<User> userOptional = userRepository.findById(changePasswordDepartmentRequest.getId());
+
+        Optional<User> userOptional = userRepository.findById(id);
+        Department department = departmentRepository.findById(userOptional.get().getDepartment().getId())
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy khoa") );
         if (userOptional.isPresent()) {
             User user = userOptional.get();
-            user.setPassword(changePasswordDepartmentRequest.getNewPassword());
+            user.setPassword(passwordEncoder.encode(changePasswordDepartmentRequest.getNewPassword()));
             user.setUpdatedAt(vietnamTime.toLocalDateTime());
             userRepository.save(user);
+
+            department.setUpdatedAt(vietnamTime.toLocalDateTime());
+            departmentRepository.save(department);
             return true;
         }
         return false;
@@ -156,6 +161,17 @@ public class UserService implements IUserService{
     @Override
     public User findByUniversity(University university) {
         return userRepository.findByUniversity(university);
+    }
+
+    @Override
+    public StatisticsAdminDTO dashboardAdmin() {
+        return  userRepository.getStatisticsAdmin();
+    }
+
+    @Override
+    public User findByDepartment(Department department) {
+        return userRepository.findByDepartment(department)
+                .orElseThrow(()-> new RuntimeException("Không tìm thấy khoa !"));
     }
 
     // danh sách user khoa thuộc 1 tr
