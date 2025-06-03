@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Thông báo quyền truy cập</title>
+</head>
+<body style="font-family: Arial, sans-serif; background-color: #f6f6f6; padding: 20px; color: #000;">
+<div style="max-width: 600px; margin: auto; background-color: #ffffff; padding: 20px; border-radius: 8px; border: 1px solid #ddd;">
+
+    <h2 style="color: #000;">📢 Thông báo quyền truy cấp hệ thống CertX</h2>
+
+    <p style="color: #000;">Kính gửi Khoa <strong><span th:text="${departmentName}">Tên Khoa</span></strong>,</p>
+
+    <p style="color: #000;">
+        Phòng đào tạo xin thông báo tài khoản Khoa
+        <strong><span th:text="${departmentName}">
+    </span></strong>
+        đã
+        <strong><span th:text="${actionType}"></span></strong>
+        bởi phòng đào tạo.
+    </p>
+
+    <p style="color: #000;">
+        Nếu bạn có bất kỳ thắc mắc nào, vui lòng liên hệ với phòng đào tạo để được hỗ trợ.
+    </p>
+
+    <p style="color: #000;">Trân trọng,<br>
+        Phòng đào tạo<br>
+        <span th:text="${universityName}">Trường Đại học ABC</span></p>
+</div>
+</body>
+</html>

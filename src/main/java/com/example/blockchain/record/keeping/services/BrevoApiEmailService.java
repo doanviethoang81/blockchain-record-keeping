@@ -117,7 +117,7 @@ public class BrevoApiEmailService {
             Context context = new Context();
             context.setVariable("otpCode", otpCode);
             context.setVariable("email", toEmail);
-            String contentHtml = templateEngine.process("otp-email-template", context); // tên file template
+            String contentHtml = templateEngine.process("otp-email-template", context);
 
             // 2. Gửi email qua Brevo API
             RestTemplate restTemplate = new RestTemplate();
@@ -157,7 +157,7 @@ public class BrevoApiEmailService {
             context.setVariable("email", toEmail);
             context.setVariable("universityName",universityName);
             context.setVariable("departmentName",departmentName);
-            String contentHtml = templateEngine.process("password-change-notice-template", context); // tên file template
+            String contentHtml = templateEngine.process("password-change-notice-template", context);
 
             RestTemplate restTemplate = new RestTemplate();
 
@@ -179,7 +179,7 @@ public class BrevoApiEmailService {
         }
     }
 
-    // gửi emial thông báo cho khoa
+    // gửi emial thông báo cho khoa quyền truy cập
     @Async
     public void sendPermissionNotification(Long id, String action) {
         try {
@@ -194,7 +194,7 @@ public class BrevoApiEmailService {
             context.setVariable("universityName",universityName);
             context.setVariable("departmentName",departmentName);
             context.setVariable("actionType",action);
-            String contentHtml = templateEngine.process("permission-notification", context); // tên file template
+            String contentHtml = templateEngine.process("permission-notification", context);
 
             RestTemplate restTemplate = new RestTemplate();
 
@@ -204,6 +204,78 @@ public class BrevoApiEmailService {
 
             Map<String, Object> body = new HashMap<>();
             body.put("sender", Map.of("name", "Phòng đạo tạo" , "email", "hoangdoanviet81@gmail.com"));
+            body.put("to", List.of(Map.of("email", toEmail)));
+            body.put("subject", "Thông báo ");
+            body.put("htmlContent", contentHtml);
+
+            HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
+
+            ResponseEntity<String> response = restTemplate.postForEntity(url, entity, String.class);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    // gửi emial thông báo tài khoản khoa đã bị khóa/mở
+    @Async
+    public void sendPermissionToDepartment(Long id, String action) {
+        try {
+            User user= userService.finbById(id);
+            String toEmail = user.getEmail();
+            String universityName = user.getUniversity().getName();
+            String departmentName = user.getDepartment().getName();
+            String url = "https://api.brevo.com/v3/smtp/email";
+
+            Context context = new Context();
+            context.setVariable("email", toEmail);
+            context.setVariable("universityName",universityName);
+            context.setVariable("departmentName",departmentName);
+            context.setVariable("actionType",action);
+            String contentHtml = templateEngine.process("account-department-locked-notification", context);
+
+            RestTemplate restTemplate = new RestTemplate();
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("api-key", API_KEY);
+            headers.setContentType(MediaType.APPLICATION_JSON);
+
+            Map<String, Object> body = new HashMap<>();
+            body.put("sender", Map.of("name", "Phòng đạo tạo" , "email", "hoangdoanviet81@gmail.com"));
+            body.put("to", List.of(Map.of("email", toEmail)));
+            body.put("subject", "Thông báo ");
+            body.put("htmlContent", contentHtml);
+
+            HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
+
+            ResponseEntity<String> response = restTemplate.postForEntity(url, entity, String.class);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    // gửi emial thông báo khóa tài khoản của trường (admin)
+    @Async
+    public void sendNoticeToUnniversity(Long id, String action) {
+        try {
+            User user= userService.finbById(id);
+            String toEmail = user.getEmail();
+            String universityName = user.getUniversity().getName();
+            String url = "https://api.brevo.com/v3/smtp/email";
+
+            Context context = new Context();
+            context.setVariable("email", toEmail);
+            context.setVariable("universityName",universityName);
+            context.setVariable("actionType",action);
+            String contentHtml = templateEngine.process("account-locked-notification", context);
+
+            RestTemplate restTemplate = new RestTemplate();
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("api-key", API_KEY);
+            headers.setContentType(MediaType.APPLICATION_JSON);
+
+            Map<String, Object> body = new HashMap<>();
+            body.put("sender", Map.of("name", "Hệ thống CertX" , "email", "hoangdoanviet81@gmail.com"));
             body.put("to", List.of(Map.of("email", toEmail)));
             body.put("subject", "Thông báo ");
             body.put("htmlContent", contentHtml);

@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Thông báo tài khoản</title>
+</head>
+<body style="font-family: Arial, sans-serif; background-color: #f2f2f2; padding: 20px; color: #000;">
+<div style="max-width: 600px; margin: auto; background-color: #ffffff; padding: 20px; border-radius: 8px; border: 1px solid #ccc;">
+
+  <h2 style="color: #000;">📢 Thông báo tài khoản của bạn </h2>
+
+  <p  style="color: #000;">Kính gửi Quý Trường <strong><span th:text="${universityName}">Trường Đại học ABC</span></strong>,</p>
+
+  <p  style="color: #000;">Chúng tôi xin thông báo rằng tài khoản của trường đã <strong><span th:text="${actionType}"></span></strong></p>
+
+  <p  style="color: #000;">Nếu quý trường cho rằng đây là sự nhầm lẫn hoặc cần hỗ trợ, vui lòng liên hệ với Phòng quản trị hệ thống qua email hoặc số điện thoại hỗ trợ.</p>
+
+  <p  style="color: #000;">Trân trọng,<br>
+    <p  style="color: #000;">Đội ngũ hỗ trợ hệ thống CertX</p>
+  </p>
+</div>
+</body>
+</html>

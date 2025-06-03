@@ -1,6 +1,8 @@
 package com.example.blockchain.record.keeping.services;
 
 import com.example.blockchain.record.keeping.dtos.StatisticsAdminDTO;
+import com.example.blockchain.record.keeping.dtos.StatisticsDepartmentDTO;
+import com.example.blockchain.record.keeping.dtos.StatisticsUniversityDTO;
 import com.example.blockchain.record.keeping.dtos.request.ChangePasswordDepartmentRequest;
 import com.example.blockchain.record.keeping.models.Department;
 import com.example.blockchain.record.keeping.models.University;
@@ -27,6 +29,8 @@ public interface IUserService {
     User findByUniversity(University university);
 
     StatisticsAdminDTO dashboardAdmin();
+    StatisticsUniversityDTO dashboardUniversity(Long universityId);
+    StatisticsDepartmentDTO dashboarDepartment(Long departmentId);
 
     User findByDepartment(Department department);
 }

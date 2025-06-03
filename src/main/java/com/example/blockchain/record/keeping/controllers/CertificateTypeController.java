@@ -147,6 +147,7 @@ public class CertificateTypeController {
                 return ApiResponseBuilder.badRequest("Vui lòng nhập đầy đủ thông tin!");
             }
 
+            // sửa lại
             boolean exists = universityCertificateTypeService.existsByUniversityAndCertificateName(university, certificateType.getName());
             if (exists) {
                 return ApiResponseBuilder.badRequest("Tên chứng chỉ đã tồn tại trong trường này!");

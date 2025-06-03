@@ -139,7 +139,7 @@ public class CertificateController {
     }
 
     //---------------------------- PDT -------------------------------------------------------
-    // all chunng chi cua 1 tr
+    // all chunng chi cua 1 tr pending
     @PreAuthorize("hasAuthority('READ')")
     @GetMapping("/pdt/list-certificates")
     public ResponseEntity<?> getCertificateOfUniversity(

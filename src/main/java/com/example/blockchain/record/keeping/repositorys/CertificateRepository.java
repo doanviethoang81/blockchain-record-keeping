@@ -39,6 +39,7 @@ public interface CertificateRepository extends JpaRepository<Certificate,Long> {
             where d.id= :departmentId
             and s.status ='ACTIVE'
             and sc.status ='ACTIVE'      
+            and c.status ='PENDING'
             AND (:className IS NULL OR sc.name LIKE CONCAT('%', :className, '%'))
             AND (:studentCode IS NULL OR s.student_code LIKE CONCAT('%', :studentCode, '%'))
             AND (:studentName IS NULL OR s.name LIKE CONCAT('%', :studentName, '%'))
@@ -49,7 +50,7 @@ public interface CertificateRepository extends JpaRepository<Certificate,Long> {
                                                   @Param("studentCode") String studentCode,
                                                   @Param("studentName") String studentName);
 
-    //danh sách ch chỉ của 1 truong
+    //danh sách ch chỉ của 1 truong pending
     @Query(value = """
             select c.* from certificates c
             join students s on c.student_id = s.id
@@ -60,6 +61,7 @@ public interface CertificateRepository extends JpaRepository<Certificate,Long> {
             and s.status ='ACTIVE'
             and sc.status ='ACTIVE'
             and d.status ='ACTIVE'          
+            and c.status = 'PENDING'
             AND (:departmentName IS NULL OR d.name LIKE CONCAT('%', :departmentName, '%'))
             AND (:className IS NULL OR sc.name LIKE CONCAT('%', :className, '%'))
             AND (:studentCode IS NULL OR s.student_code LIKE CONCAT('%', :studentCode, '%'))

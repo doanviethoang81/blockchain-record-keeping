@@ -1,6 +1,8 @@
 package com.example.blockchain.record.keeping.services;
 
 import com.example.blockchain.record.keeping.dtos.StatisticsAdminDTO;
+import com.example.blockchain.record.keeping.dtos.StatisticsDepartmentDTO;
+import com.example.blockchain.record.keeping.dtos.StatisticsUniversityDTO;
 import com.example.blockchain.record.keeping.dtos.request.ChangePasswordDepartmentRequest;
 import com.example.blockchain.record.keeping.dtos.request.ChangePasswordRequest;
 import com.example.blockchain.record.keeping.exceptions.BadRequestException;
@@ -166,6 +168,16 @@ public class UserService implements IUserService{
     @Override
     public StatisticsAdminDTO dashboardAdmin() {
         return  userRepository.getStatisticsAdmin();
+    }
+
+    @Override
+    public StatisticsUniversityDTO dashboardUniversity(Long universityId) {
+        return userRepository.getStatisticsUniversity(universityId);
+    }
+
+    @Override
+    public StatisticsDepartmentDTO dashboarDepartment(Long departmentId) {
+        return userRepository.getStatisticsDepartment(departmentId);
     }
 
     @Override
