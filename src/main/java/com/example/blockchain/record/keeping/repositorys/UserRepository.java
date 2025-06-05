@@ -39,7 +39,6 @@ public interface UserRepository extends JpaRepository<User,Long> {
             AND u.department_id IS NOT NULL
             AND d.status = 'ACTIVE'
             AND (:nameDepartment IS NULL OR LOWER(d.name) LIKE LOWER(CONCAT('%', :nameDepartment, '%')))
-            GROUP BY d.id, d.name
             ORDER BY u.updated_at DESC       
     """, nativeQuery = true)
     List<User> findUserDepartmentByUniversity(@Param("universityId") Long universityId,

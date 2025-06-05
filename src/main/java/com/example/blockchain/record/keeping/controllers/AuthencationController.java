@@ -159,7 +159,7 @@ public class AuthencationController {
                 return ApiResponseBuilder.forbidden("Tài khoản của bạn không có quyền vào hệ thống!");
             }
 
-            String token = jwtUtil.generateToken(user.getEmail(), List.of(role), authorities);// Tạo JWT token từ email và roles
+            String token = jwtUtil.generateToken(user.getEmail(), List.of(role), authorities);
 
             String redirectUrl;
             switch (role) {
