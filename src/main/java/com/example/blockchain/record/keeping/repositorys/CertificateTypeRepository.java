@@ -19,14 +19,17 @@ public interface CertificateTypeRepository extends JpaRepository<CertificateType
     //tìm all chứng chỉ theo tên
     List<CertificateType> findTop10ByNameContainingIgnoreCase(String name);
 
-    // tìm chứng chỉ theo pdt
-    @Query("""
-    SELECT ct FROM CertificateType ct
-    JOIN UniversityCertificateType uct ON ct.id = uct.certificateType.id
-    WHERE uct.university.id = :universityId AND LOWER(ct.name) LIKE LOWER(CONCAT('%', :name, '%'))
+    //all chứng chỉ của 1 trường và tìm chứng chỉ theo tên (pdt)
+    @Query(value = """
+    SELECT ct.* FROM certificate_types ct
+    JOIN university_certificate_types uct ON ct.id = uct.certificate_type_id
+    WHERE uct.university_id = :universityId
+    AND (:name IS NULL OR LOWER(ct.name) LIKE LOWER(CONCAT('%', :name, '%')))
     and ct.status ='ACTIVE'
-    """)
+    ORDER BY ct.updated_at DESC    
+    """, nativeQuery = true)
     List<CertificateType> searchByUniversityAndName(@Param("universityId") Long universityId,
                                                     @Param("name") String name);
+
 
 }

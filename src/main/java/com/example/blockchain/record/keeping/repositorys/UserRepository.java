@@ -33,8 +33,6 @@ public interface UserRepository extends JpaRepository<User,Long> {
             FROM departments d
             join universitys un on d.university_id = un.id
             JOIN users u ON u.department_id = d.id
-            JOIN user_permissions up ON up.user_id = u.id
-            JOIN permissions p ON p.id = up.permission_id
             WHERE un.id = :universityId
             AND u.department_id IS NOT NULL
             AND d.status = 'ACTIVE'

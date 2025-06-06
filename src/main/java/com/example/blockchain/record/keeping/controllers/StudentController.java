@@ -122,7 +122,6 @@ public class StudentController {
                       department.getName()
             );
             return ApiResponseBuilder.success("Thông tin khoa của lớp",departmentReponse);
-
         } catch (Exception e) {
             return ApiResponseBuilder.internalError("Lỗi " + e.getMessage());
         }
@@ -133,7 +132,8 @@ public class StudentController {
     @GetMapping("/pdt/get-class-of-department")
     public ResponseEntity<?> getClassOfDepartment(@RequestParam Long departmentId) {
         try{
-            Department department = departmentService.findById(departmentId);
+            User user= userService.finbById(departmentId);
+            Department department = departmentService.findById(user.getDepartment().getId());
             List<StudentClass> studentClassList = studentClassService.findAllClassesByDepartmentId(department.getId(),null);
 
             List<StudentClassReponse> studentClassReponseList = studentClassList.stream()
@@ -142,7 +142,10 @@ public class StudentController {
                             s.getName()
                     ))
                     .collect(Collectors.toList());
-            return ApiResponseBuilder.success("Thông tin khoa của lớp",studentClassReponseList);
+            if(studentClassReponseList.isEmpty()){
+                return ApiResponseBuilder.success("Khoa này chưa có lớp nào",null);
+            }
+            return ApiResponseBuilder.success("Các lớp của khoa",studentClassReponseList);
 
         } catch (Exception e) {
             return ApiResponseBuilder.internalError("Lỗi " + e.getMessage());
@@ -153,7 +156,8 @@ public class StudentController {
     @PreAuthorize("hasAuthority('WRITE')")
     @PostMapping("/pdt/create-student")
     public ResponseEntity<?> createStudent(
-            @Valid @RequestBody StudentRequest studentRequest, BindingResult bindingResult
+            @Valid @RequestBody StudentRequest studentRequest,
+            BindingResult bindingResult
     ){
         if (bindingResult.hasErrors()) {
             List<String> errors = bindingResult.getFieldErrors().stream()

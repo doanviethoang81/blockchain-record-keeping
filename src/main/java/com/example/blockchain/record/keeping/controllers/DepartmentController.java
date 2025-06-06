@@ -200,7 +200,7 @@ public class DepartmentController {
             String message = granted ? "Đã cấp quyền WRITE cho khoa" : "Đã thu hồi quyền WRITE của khoa";
             String actionType = granted ? "được cấp quyền WRITE ":" bị thu hồi quyền WRITE";
             // Gửi email
-            brevoApiEmailService.sendPermissionNotification(id, actionType);
+//            brevoApiEmailService.sendPermissionNotification(id, actionType);
             return ApiResponseBuilder.success(message, null);
         } catch (Exception e) {
             return ApiResponseBuilder.internalError("Đã xảy ra lỗi: " + e.getMessage());
@@ -217,7 +217,7 @@ public class DepartmentController {
             String message = granted ? "Đã cấp quyền READ cho khoa" : "Đã thu hồi quyền READ của khoa";
             String actionType = granted ? "được cấp quyền READ ":" bị thu hồi quyền READ";
             // Gửi email
-            brevoApiEmailService.sendPermissionNotification(id, actionType);
+//            brevoApiEmailService.sendPermissionNotification(id, actionType);
             return ApiResponseBuilder.success(message, null);
         } catch (Exception e) {
             return ApiResponseBuilder.internalError("Đã xảy ra lỗi: " + e.getMessage());

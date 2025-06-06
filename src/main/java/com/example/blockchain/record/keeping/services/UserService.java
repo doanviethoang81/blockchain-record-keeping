@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -195,9 +196,12 @@ public class UserService implements IUserService{
         for (User user : listUser) {
             List<UserPermission> userPermissions = userPermissionRepository.findByUser(user);
 
-            List<String> permissions = userPermissions.stream()
+            List<String> permissions = Optional.ofNullable(userPermissionRepository.findByUser(user))
+                    .orElse(Collections.emptyList())
+                    .stream()
                     .map(up -> up.getPermission().getAction())
                     .collect(Collectors.toList());
+
 
             UserReponse userReponse = new UserReponse(
                     user.getId(),

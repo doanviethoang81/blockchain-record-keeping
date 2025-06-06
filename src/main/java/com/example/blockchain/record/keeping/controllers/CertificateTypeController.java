@@ -56,7 +56,7 @@ public class CertificateTypeController {
     }
 
     //---------------------------- PDT -------------------------------------------------------
-    //ds chứng chỉ cho tr vs tìm theo ten
+    //ds loại chứng chỉ cho tr vs tìm theo ten
     @PreAuthorize("hasAuthority('READ')")
     @GetMapping("/pdt/certificate-type")
     public ResponseEntity<?> getCertificateTypePDT(
@@ -73,36 +73,25 @@ public class CertificateTypeController {
             University university = universityService.getUniversityByEmail(username);
             List<CertificateTypeDTO> certificateTypeDTOS = new ArrayList<>();
 
+            List<CertificateType> result = certificateTypeService.searchByUniversityAndName(university.getId(), name);
+
+            for(CertificateType certificateType : result){
+                CertificateTypeDTO certificateTypeDTO = new CertificateTypeDTO(
+                        certificateType.getId(),
+                        certificateType.getName()
+                );
+                certificateTypeDTOS.add(certificateTypeDTO);
+            }
             if (name != null && !name.isEmpty()) {// tìm theo tên
-                List<CertificateType> result = certificateTypeService.searchByUniversityAndName(university.getId(), name);
-
-                for(CertificateType certificateType : result){
-                    CertificateTypeDTO certificateTypeDTO = new CertificateTypeDTO(
-                            certificateType.getId(),
-                            certificateType.getName()
-                    );
-                    certificateTypeDTOS.add(certificateTypeDTO);
-                }
-
                 if (CollectionUtils.isEmpty(result)) {
                     return ApiResponseBuilder.success("Không tìm thấy!", null);
                 }
-                message = certificateTypeDTOS.isEmpty() ? "Không tìm thấy chứng chỉ!" : "Tìm thành công";
-
-            } else {
-                List<CertificateType> allResult = universityCertificateTypeService
-                        .listUniversityCertificateTypes(university.getId());
-                for(CertificateType certificateType : allResult){
-                    CertificateTypeDTO certificateTypeDTO = new CertificateTypeDTO(
-                            certificateType.getId(),
-                            certificateType.getName()
-                    );
-                    certificateTypeDTOS.add(certificateTypeDTO);
+                else {
+                    message = certificateTypeDTOS.isEmpty() ? "Không tìm thấy loại chứng chỉ này!" : "Tìm thành công";
                 }
-                message = certificateTypeDTOS.isEmpty() ? "Không có dữ liệu!" : "Lấy danh sách loại chứng chỉ cho trường thành công";
             }
             if (CollectionUtils.isEmpty(certificateTypeDTOS)) {
-                return ApiResponseBuilder.success("Không có giấy chứng nhận nào!", null);
+                return ApiResponseBuilder.success("Không có loại chứng chỉ nào!", null);
             }
             int start = (page-1) * size;
             int end = Math.min(start + size, certificateTypeDTOS.size());
