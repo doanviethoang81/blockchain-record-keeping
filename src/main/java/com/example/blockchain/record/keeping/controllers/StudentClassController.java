@@ -81,10 +81,10 @@ public class StudentClassController {
         try{
             ZonedDateTime vietnamTime = ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
             String id = request.getParameter("id");
-            Long departmentId = Long.parseLong(id);
+            User user = userService.finbById(Long.valueOf(id));
             String name = request.getParameter("name").trim();
 
-            Department department= departmentService.findById(departmentId);
+            Department department= departmentService.findById(user.getDepartment().getId());
 
             if(request == null ||!StringUtils.hasText(name)){
                 return ApiResponseBuilder.badRequest("Vui lòng nhập đầy đủ thông tin!");

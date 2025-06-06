@@ -24,6 +24,7 @@ public interface StudentClassRepository extends JpaRepository<StudentClass,Long>
         JOIN universitys u ON d.university_id = u.id
         WHERE u.id = :universityId 
           AND s.status = 'ACTIVE'
+          And d.status = 'ACTIVE'
           AND (:className IS NULL OR LOWER(s.name) LIKE LOWER(CONCAT('%', :className, '%')))
           ORDER BY s.updated_at DESC
     """, nativeQuery = true)
@@ -37,9 +38,10 @@ public interface StudentClassRepository extends JpaRepository<StudentClass,Long>
     @Query(value = """
         SELECT sc.* FROM student_class sc
         JOIN departments d ON sc.department_id = d.id
-        WHERE d.id = :departmentId and sc.status='ACTIVE'
-            AND (:className IS NULL OR LOWER(sc.name) LIKE LOWER(CONCAT('%', :className, '%')))
-            ORDER BY sc.created_at DESC
+        WHERE d.id = :departmentId 
+        and sc.status='ACTIVE'
+        AND (:className IS NULL OR LOWER(sc.name) LIKE LOWER(CONCAT('%', :className, '%')))
+        ORDER BY sc.created_at DESC
         """, nativeQuery = true)
     List<StudentClass> findAllClassesByDepartmentId(
             @Param("departmentId") Long departmentId,

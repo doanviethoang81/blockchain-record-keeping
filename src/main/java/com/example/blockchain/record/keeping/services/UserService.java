@@ -145,7 +145,7 @@ public class UserService implements IUserService{
             //nếu đã có quyền, thu hồi
             userPermissionRepository.delete(userPermission.get());
             user.setUpdatedAt(vietnamTime.toLocalDateTime());
-            save(user);
+            userRepository.save(user);
             return false;
         } else {
             // neu chưa có quyền, thêm vào
@@ -155,7 +155,7 @@ public class UserService implements IUserService{
             userPermissionRepository.save(newPermission);
 
             user.setUpdatedAt(vietnamTime.toLocalDateTime());
-            save(user);
+            userRepository.save(user);
             return true;
         }
     }

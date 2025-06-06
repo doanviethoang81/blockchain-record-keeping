@@ -182,7 +182,7 @@ public class DepartmentController {
             User user =userService.finbById(id);
             boolean newLockStatus = !user.isLocked();
             userService.updateLocked(id);
-            String message = newLockStatus ? "Đã cấp quyền READ cho khoa" : "Đã thu hồi quyền READ của khoa";
+            String message = newLockStatus ? "Khóa tài khoản khoa thành công" : "Mở khóa tài khoản khoa thành công";
             // gửi gmail
             return ApiResponseBuilder.success(message, null);
         } catch (Exception e) {
@@ -232,6 +232,7 @@ public class DepartmentController {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             String username = authentication.getName();
             University university = universityService.getUniversityByEmail(username);
+            User user = userService.finbById(id);
 
             if (departmentService.existsByNameAndUniversity(departmentRequest.getName(), university.getId())) {
                 return ApiResponseBuilder.badRequest("Tên khoa đã tồn tại trong trường này!");
@@ -240,7 +241,7 @@ public class DepartmentController {
                 return ApiResponseBuilder.badRequest("Email này đã được đăng ký!");
             }
 
-            departmentService.updateDepartment(id, departmentRequest.getName(), departmentRequest.getEmail());
+            departmentService.updateDepartment(user.getDepartment().getId(), departmentRequest.getName(), departmentRequest.getEmail());
             return ApiResponseBuilder.success("Cập nhật thông tin khoa thành công", null);
         } catch (Exception e) {
             return ApiResponseBuilder.internalError("Đã xảy ra lỗi: " + e.getMessage());
@@ -252,7 +253,8 @@ public class DepartmentController {
     @DeleteMapping("/pdt/delete-department/{id}")
     public ResponseEntity<?> deleteDepartment(@PathVariable Long id){
         try {
-            departmentService.deleteDepartment(id);
+            User user = userService.finbById(id);
+            departmentService.deleteDepartment(user.getDepartment().getId());
             return ApiResponseBuilder.success("Xóa khoa thành công", null);
         } catch (Exception e) {
             return ApiResponseBuilder.internalError("Đã xảy ra lỗi: " + e.getMessage());
