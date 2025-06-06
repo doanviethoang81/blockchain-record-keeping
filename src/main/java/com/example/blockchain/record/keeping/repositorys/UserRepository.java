@@ -29,7 +29,7 @@ public interface UserRepository extends JpaRepository<User,Long> {
 
     // danh sach khoa thuoc 1 truong va tim ten
     @Query(value = """
-            SELECT u.*
+            SELECT DISTINCT u.*
             FROM departments d
             join universitys un on d.university_id = un.id
             JOIN users u ON u.department_id = d.id

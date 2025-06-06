@@ -190,7 +190,6 @@ public class UserService implements IUserService{
     public List<UserReponse> getDepartmentDetailOfUniversity(Long id, String name) {
 
         List<User> listUser = userRepository.findUserDepartmentByUniversity(id, name);
-
         List<UserReponse> userReponses = new ArrayList<>();
 
         for (User user : listUser) {
