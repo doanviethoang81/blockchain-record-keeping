@@ -30,6 +30,7 @@ public class CertificateService implements ICertificateService{
     private final UniversityCertificateTypeService universityCertificateTypeService;
     private final CertificateTypeService certificateTypeService;
     private final GraphicsTextWriter graphicsTextWriter;
+    private final BrevoApiEmailService brevoApiEmailService;
 
     @Autowired
     private Web3j web3j;
@@ -86,7 +87,11 @@ public class CertificateService implements ICertificateService{
     @Override
     public List<Certificate> listCertificateOfDepartment(Long departmentId, String className, String studentCode, String studentName) {
         return certificateRepository.listCertificateOfDepartment(departmentId, className,studentCode,studentName );
+    }
 
+    @Override
+    public List<Certificate> listCertificateOfDepartmentPending(Long departmentId, String className, String studentCode, String studentName) {
+        return certificateRepository.listCertificateOfDepartmentPending(departmentId, className,studentCode,studentName );
     }
 
     @Override
@@ -122,6 +127,11 @@ public class CertificateService implements ICertificateService{
         String image = graphicsTextWriter.drawCertificateText(printData);
         certificate.setImageUrl(image);
         return certificateRepository.save(certificate);
+    }
+
+    @Override
+    public List<Certificate> listCertificateOfUniversityPending(Long universittyId, String departmentName, String className, String studentCode, String studentName) {
+        return certificateRepository.listCertificateOfUniversityPending(universittyId,departmentName,className,studentCode,studentName);
     }
 
     @Transactional
@@ -175,23 +185,6 @@ public class CertificateService implements ICertificateService{
         certificate.setStatus(Status.PENDING);
         certificate.setCreatedAt(vietnamTime.toLocalDateTime());
         certificate.setUpdatedAt(vietnamTime.toLocalDateTime());
-
-        // Lưu dữ liệu lên blockchain
-//            String contractAddress = "0x3D9433e04432406335CBEf89cB39784fC1Fd7d7B"; // Thay bằng địa chỉ hợp đồng của bạn
-//            String privateKey = "2177b99edb64e06030c7ef418d69e95f397b7cb4640b2108539057ab2fd4e599"; // Thay bằng private key từ MetaMask
-//            Credentials credentials = Credentials.create(privateKey);
-//
-//            CertificateStorage contract = new CertificateStorage(contractAddress, web3j, credentials);
-//            TransactionReceipt receipt = contract.storeCertificate(
-//                    studentCode,
-//                    certificate.getDiplomaNumber(),
-//                    certificate.getDegreeTitle()
-//            );
-//            certificate.setBlockchainTxHash(receipt.getTransactionHash());
-//
-//            // Lưu transaction hash vào certificate
-//            certificate.setBlockchainTxHash(receipt.getTransactionHash());
-
         // Lưu certificate
         certificateRepository.save(certificate);
 
@@ -202,6 +195,32 @@ public class CertificateService implements ICertificateService{
 //            brevoApiEmailService.sendEmail(student.getEmail(), student.getName(), certificateUrl);
 //        } catch (Exception e) {
 //            System.err.println("Lỗi khi gửi email cho sinh viên: " + student.getEmail());
+//            e.printStackTrace(); // Hoặc ghi log nếu bạn có hệ thống logging
+//        }
+    }
+
+    // them dau moc
+    @Transactional
+    public void certificateValidation (University university,Long idCertificate) {
+        ZonedDateTime vietnamTime = ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
+
+        Certificate certificate = certificateRepository.findById(idCertificate)
+                .orElseThrow(()-> new RuntimeException("Không tìm thấy chứng chỉ có id "+ idCertificate));
+
+        String image_url = graphicsTextWriter.certificateValidation(certificate.getImageUrl(), university.getLogo());
+
+        certificate.setImageUrl(image_url);
+        certificate.setStatus(Status.APPROVED);
+        certificate.setUpdatedAt(vietnamTime.toLocalDateTime());
+        certificateRepository.save(certificate);
+
+//        //sửa lại đường dẫn chứng chỉ
+//        String certificateUrl = "https://yourdomain.com/certificates/" + certificate.getStudent().getStudentCode();
+//        try {
+//            //chưa gửi
+//            brevoApiEmailService.sendEmail(certificate.getStudent().getEmail(), certificate.getStudent().getName(), certificateUrl);
+//        } catch (Exception e) {
+//            System.err.println("Lỗi khi gửi email cho sinh viên: " + certificate.getStudent().getEmail());
 //            e.printStackTrace(); // Hoặc ghi log nếu bạn có hệ thống logging
 //        }
     }

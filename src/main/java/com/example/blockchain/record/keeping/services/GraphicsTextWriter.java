@@ -3,6 +3,7 @@ package com.example.blockchain.record.keeping.services;
 import com.example.blockchain.record.keeping.BlockchainRecordKeepingApplication;
 import com.example.blockchain.record.keeping.dtos.request.CertificatePrintData;
 import com.example.blockchain.record.keeping.exceptions.BadRequestException;
+import com.example.blockchain.record.keeping.models.Certificate;
 import com.example.blockchain.record.keeping.utils.FontProvider;
 import com.example.blockchain.record.keeping.utils.RandomString;
 import com.example.blockchain.record.keeping.utils.TextFormatter;
@@ -14,9 +15,11 @@ import org.springframework.stereotype.Component;
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 
 @Component
 @RequiredArgsConstructor
@@ -24,6 +27,7 @@ public class GraphicsTextWriter {
     private final ImageUploadService imageUploadService;
     private final FontProvider fontProvider;
 
+    //tạo chứng chỉ
     public String drawCertificateText(CertificatePrintData printData) {
         try {
             BufferedImage template = ImageIO.read(new File("templateImg/certificate_temp.jpeg"));
@@ -59,6 +63,28 @@ public class GraphicsTextWriter {
 
         } catch (IOException e) {
             throw new BadRequestException("Lỗi khi tạo ảnh!");
+        }
+    }
+
+//    // xác thực in mộc
+    public String certificateValidation(String imageCertificateUrl, String sealImageUrl) {
+        try {
+            BufferedImage certificateImage = ImageIO.read(new URL(imageCertificateUrl));
+
+            BufferedImage sealImage = ImageIO.read(new URL(sealImageUrl));
+
+            Image scaledSeal = sealImage.getScaledInstance(200, 200, Image.SCALE_SMOOTH);
+
+            Graphics2D g2d = certificateImage.createGraphics();
+            int x = 950;
+            int y = 584;
+            g2d.drawImage(scaledSeal, x, y, null);
+            g2d.dispose();
+
+            return imageUploadService.uploadImage(certificateImage, "png");
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
         }
     }
 

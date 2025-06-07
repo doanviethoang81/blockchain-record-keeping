@@ -39,7 +39,6 @@ public interface CertificateRepository extends JpaRepository<Certificate,Long> {
             where d.id= :departmentId
             and s.status ='ACTIVE'
             and sc.status ='ACTIVE'      
-            and c.status ='PENDING'
             AND (:className IS NULL OR sc.name LIKE CONCAT('%', :className, '%'))
             AND (:studentCode IS NULL OR s.student_code LIKE CONCAT('%', :studentCode, '%'))
             AND (:studentName IS NULL OR s.name LIKE CONCAT('%', :studentName, '%'))
@@ -49,6 +48,27 @@ public interface CertificateRepository extends JpaRepository<Certificate,Long> {
                                                   @Param("className") String className,
                                                   @Param("studentCode") String studentCode,
                                                   @Param("studentName") String studentName);
+
+    //danh sách ch chỉ chưa được xác thực của 1 khoa
+    @Query(value = """
+            select c.* from certificates c
+            join students s on c.student_id = s.id
+            join student_class sc on s.student_class_id= sc.id
+            join departments d on sc.department_id = d.id
+            where d.id= :departmentId
+            and s.status ='ACTIVE'
+            and sc.status ='ACTIVE'      
+            and c.status ='PENDING'
+            AND (:className IS NULL OR sc.name LIKE CONCAT('%', :className, '%'))
+            AND (:studentCode IS NULL OR s.student_code LIKE CONCAT('%', :studentCode, '%'))
+            AND (:studentName IS NULL OR s.name LIKE CONCAT('%', :studentName, '%'))
+            ORDER BY c.updated_at DESC      
+            """,nativeQuery = true)
+    List<Certificate> listCertificateOfDepartmentPending(@Param("departmentId") Long departmentId,
+                                                  @Param("className") String className,
+                                                  @Param("studentCode") String studentCode,
+                                                  @Param("studentName") String studentName);
+
 
     //danh sách ch chỉ của 1 truong pending
     @Query(value = """
@@ -98,4 +118,29 @@ public interface CertificateRepository extends JpaRepository<Certificate,Long> {
             @Param("studentCode") String studentCode,
             @Param("studentName") String studentName
     );
+
+    //danh sách ch chỉ của 1 truong chưa xác thực
+    @Query(value = """
+            select c.* from certificates c
+            join students s on c.student_id = s.id
+            join student_class sc on s.student_class_id= sc.id
+            join departments d on sc.department_id = d.id
+            join universitys u on d.university_id =u.id
+            where u.id= :universityId
+            and s.status ='ACTIVE'
+            and sc.status ='ACTIVE'
+            and d.status ='ACTIVE'          
+            and c.status = 'PENDING'
+            AND (:departmentName IS NULL OR d.name LIKE CONCAT('%', :departmentName, '%'))
+            AND (:className IS NULL OR sc.name LIKE CONCAT('%', :className, '%'))
+            AND (:studentCode IS NULL OR s.student_code LIKE CONCAT('%', :studentCode, '%'))
+            AND (:studentName IS NULL OR s.name LIKE CONCAT('%', :studentName, '%'))
+            ORDER BY c.updated_at DESC      
+            """, nativeQuery = true)
+    List<Certificate> listCertificateOfUniversityPending(@Param("universityId") Long universityId,
+                                                  @Param("departmentName") String departmentName,
+                                                  @Param("className") String className,
+                                                  @Param("studentCode") String studentCode,
+                                                  @Param("studentName") String studentName);
+
 }

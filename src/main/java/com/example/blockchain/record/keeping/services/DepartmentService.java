@@ -37,6 +37,11 @@ public class DepartmentService  implements IDepartmentService{
     }
 
     @Override
+    public boolean existsByNameIgnoreCaseAndUniversityIdAndStatusAndIdNot( String name, Long universityId, Long departmentId) {
+        return departmentRepository.existsByNameIgnoreCaseAndUniversityIdAndStatusAndIdNot(name.trim(), universityId, Status.ACTIVE, departmentId);
+    }
+
+    @Override
     public List<Department> listDepartmentOfUniversity(University university) {
         return departmentRepository.findByUniversity(university);
     }

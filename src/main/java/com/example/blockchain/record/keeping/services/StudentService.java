@@ -71,6 +71,9 @@ public class StudentService implements IStudentService{
         ZonedDateTime vietnamTime = ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
         Student student = studentRepository.findById(id)
                 .orElseThrow(()-> new RuntimeException("Không tìm thấy sinh viên với id "+ id));
+        StudentClass studentClass = studentClassRepository.findById(updateStudentRequest.getClassId())
+                .orElseThrow(()-> new RuntimeException("Không tìm lớp với id "+ updateStudentRequest.getClassId()));
+        student.setStudentClass(studentClass);
         student.setName(updateStudentRequest.getName());
         student.setStudentCode(updateStudentRequest.getStudentCode());
         student.setEmail(updateStudentRequest.getEmail());

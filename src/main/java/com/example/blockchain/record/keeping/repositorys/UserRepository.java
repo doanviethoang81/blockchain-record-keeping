@@ -3,6 +3,7 @@ package com.example.blockchain.record.keeping.repositorys;
 import com.example.blockchain.record.keeping.dtos.StatisticsAdminDTO;
 import com.example.blockchain.record.keeping.dtos.StatisticsDepartmentDTO;
 import com.example.blockchain.record.keeping.dtos.StatisticsUniversityDTO;
+import com.example.blockchain.record.keeping.enums.Status;
 import com.example.blockchain.record.keeping.models.Department;
 import com.example.blockchain.record.keeping.models.University;
 import com.example.blockchain.record.keeping.models.User;
@@ -21,6 +22,7 @@ public interface UserRepository extends JpaRepository<User,Long> {
     User findByUniversity(University university);
     List<Department> findByDepartment(University university);
     boolean existsByEmail(String email);
+
     boolean existsById(Long id);
 
     Optional<User> findById(Long id);

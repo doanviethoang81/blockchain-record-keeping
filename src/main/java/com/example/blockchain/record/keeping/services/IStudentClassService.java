@@ -25,4 +25,6 @@ public interface IStudentClassService {
     List<StudentClass> searchNameClass(String name);
 
     Optional<StudentClass> findByClassNameAndDepartmentId(Long departmentId,String className);
+
+    boolean existsByIdAndDepartmentId(Long classId, Long departmentId);
 }

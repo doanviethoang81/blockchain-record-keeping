@@ -62,14 +62,14 @@ public class DepartmentController {
 
             if (name != null && !name.isEmpty()) {
                 if (userReponses.isEmpty()) {
-                    return ApiResponseBuilder.success("Không tìm thấy khoa " + name, null);
+                    return ApiResponseBuilder.notFound("Không tìm thấy khoa!");
                 }
             }
 
             int start = (page-1) * size;
             int end = Math.min(start + size, userReponses.size());
             if (start >= userReponses.size()) {
-                return ApiResponseBuilder.success("Chưa có khoa nào", null);
+                return ApiResponseBuilder.notFound("Chưa có khoa nào!");
             }
 
             List<UserReponse> pagedResult = userReponses.subList(start, end);
@@ -234,13 +234,15 @@ public class DepartmentController {
             University university = universityService.getUniversityByEmail(username);
             User user = userService.finbById(id);
 
-            if (departmentService.existsByNameAndUniversity(departmentRequest.getName(), university.getId())) {
+            // không xét chính nó
+            if (departmentService.existsByNameIgnoreCaseAndUniversityIdAndStatusAndIdNot(departmentRequest.getName(), university.getId(), user.getDepartment().getId())) {
                 return ApiResponseBuilder.badRequest("Tên khoa đã tồn tại trong trường này!");
             }
-            if (userService.isEmailRegistered(departmentRequest.getEmail())) {
-                return ApiResponseBuilder.badRequest("Email này đã được đăng ký!");
+            if(!departmentRequest.getEmail().equals( user.getEmail())){
+                if (userService.isEmailRegistered( departmentRequest.getEmail())) {
+                    return ApiResponseBuilder.badRequest("Email này đã được đăng ký!");
+                }
             }
-
             departmentService.updateDepartment(user.getDepartment().getId(), departmentRequest.getName(), departmentRequest.getEmail());
             return ApiResponseBuilder.success("Cập nhật thông tin khoa thành công", null);
         } catch (Exception e) {
@@ -278,14 +280,14 @@ public class DepartmentController {
 
             if (name != null && !name.isEmpty()) {
                 if (userReponses.isEmpty()) {
-                    return ApiResponseBuilder.success("Không tìm thấy khoa " + name, null);
+                    return ApiResponseBuilder.notFound("Không tìm thấy khoa!");
                 }
             }
 
             int start = (page-1) * size;
             int end = Math.min(start + size, userReponses.size());
             if (start >= userReponses.size()) {
-                return ApiResponseBuilder.success("Chưa có khoa nào", null);
+                return ApiResponseBuilder.notFound("Chưa có khoa nào!");
             }
 
             List<UserReponse> pagedResult = userReponses.subList(start, end);

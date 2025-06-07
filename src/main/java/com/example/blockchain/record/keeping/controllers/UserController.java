@@ -89,16 +89,6 @@ public class UserController {
         }
     }
 
-    //    Dashboard admin theem truong bi khoa
-    @GetMapping("/admin/dashboard")
-    public ResponseEntity<?> getDashboardAdmin(){
-        try{
-            StatisticsAdminDTO statisticsAdminDTO = userService.dashboardAdmin();
-            return ApiResponseBuilder.success("Lấy thông tin dashboard admin thành công", statisticsAdminDTO);
-        } catch (Exception e) {
-            return ApiResponseBuilder.internalError("Lỗi " + e.getMessage());
-        }
-    }
 
     //---------------------------- PDT -------------------------------------------------------
     //thông tin chi tiết của tr
@@ -174,22 +164,6 @@ public class UserController {
         }
     }
 
-    //    Dashboard pdt
-    @GetMapping("/pdt/dashboard")
-    public ResponseEntity<?> getDashboardUniversity(){
-        try{
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            String username = authentication.getName();
-            University university = universityService.getUniversityByEmail(username);
-
-            StatisticsUniversityDTO statisticsUniversityDTO = userService.dashboardUniversity(university.getId());
-            return ApiResponseBuilder.success("Lấy thông tin dashboard university thành công", statisticsUniversityDTO);
-        } catch (Exception e) {
-            return ApiResponseBuilder.internalError("Lỗi " + e.getMessage());
-        }
-    }
-
-    //---------------------------- KHOA -------------------------------------------------------
     //chi tiet tai khoan khoa dang nhap
     @PreAuthorize("hasAuthority('READ')")
     @GetMapping("/khoa/user-detail")
@@ -218,18 +192,5 @@ public class UserController {
         }
     }
 
-    //    Dashboard khoa
-    @GetMapping("/khoa/dashboard")
-    public ResponseEntity<?> getDashboardDepartment(){
-        try{
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            String username = authentication.getName();
-            User user = userService.findByUser(username);
 
-            StatisticsDepartmentDTO statisticsDepartmentDTO = userService.dashboarDepartment(user.getDepartment().getId());
-            return ApiResponseBuilder.success("Lấy thông tin dashboard khoa thành công", statisticsDepartmentDTO);
-        } catch (Exception e) {
-            return ApiResponseBuilder.internalError("Lỗi " + e.getMessage());
-        }
-    }
 }

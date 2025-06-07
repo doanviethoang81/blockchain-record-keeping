@@ -105,7 +105,7 @@ public interface StudentRepository extends JpaRepository<Student,Long> {
     JOIN student_class sc ON s.student_class_id = sc.id
     JOIN departments d ON sc.department_id = d.id
     JOIN universitys un on d.university_id= un.id
-    WHERE (:universityId IS NULL OR un.id = :universityId )
+    WHERE un.id = :universityId
       AND (:departmentName IS NULL OR d.name LIKE CONCAT('%', :departmentName, '%'))
       AND (:className IS NULL OR sc.name LIKE CONCAT('%', :className, '%'))
       AND (:studentCode IS NULL OR s.student_code LIKE CONCAT('%', :studentCode, '%'))

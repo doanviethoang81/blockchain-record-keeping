@@ -39,4 +39,9 @@ public interface ICertificateService {
     List<Certificate> listCertificateOfUniversity(Long universittyId, String departmentName,String className, String studentCode, String studentName);
 
     Certificate update(Certificate certificate, CertificateRequest certificateRequest);
+
+    List<Certificate> listCertificateOfUniversityPending(Long universittyId, String departmentName, String className, String studentCode, String studentName);
+
+    List<Certificate> listCertificateOfDepartmentPending(Long departmentId, String className, String studentCode, String studentName);
+
 }

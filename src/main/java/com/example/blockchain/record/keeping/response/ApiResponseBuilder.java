@@ -47,6 +47,17 @@ public class ApiResponseBuilder {
         );
     }
 
+    //404 k tim thay
+    public static <T> ResponseEntity<ApiResponse> notFound(String message){
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                ApiResponse.<T>builder()
+                        .status(HttpStatus.NOT_FOUND.value())
+                        .message(message)
+                        .data(null)
+                        .build()
+        );
+    }
+
     //500
     public static <T> ResponseEntity<ApiResponse<T>> internalError(String message) {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(

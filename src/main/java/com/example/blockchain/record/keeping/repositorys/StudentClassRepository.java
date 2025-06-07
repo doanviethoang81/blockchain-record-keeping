@@ -16,6 +16,9 @@ public interface StudentClassRepository extends JpaRepository<StudentClass,Long>
 
     Optional<StudentClass> findByName(String name);
 
+    //kiem tra lop co ton tai trong khoa nay k
+    boolean existsByIdAndDepartmentId(Long classId, Long departmentId);
+
     // lay ds lop cua 1 tr theo id trường và tìm lớp
     @Query(value = """
         SELECT s.* 

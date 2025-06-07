@@ -28,6 +28,7 @@ public class Department {
     @JoinColumn(name = "university_id ")
     private University university;
 
+    @Column(name = "status")
     @Enumerated(EnumType.STRING)
     private Status status;
 

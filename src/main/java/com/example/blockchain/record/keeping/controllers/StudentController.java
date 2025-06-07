@@ -74,7 +74,7 @@ public class StudentController {
                     || (className != null && !className.isEmpty())
                     || (studentName != null && !studentName.isEmpty())) {
                 if(studentList.isEmpty()){
-                    return ApiResponseBuilder.success("Không tìm thấy sinh viên!", null);
+                    return ApiResponseBuilder.notFound("Không tìm thấy sinh viên!");
                 }
             }
 
@@ -96,7 +96,7 @@ public class StudentController {
             int start = (page -1) * size;
             int end = Math.min(start + size, studentResponseList.size());
             if (start >= studentResponseList.size()) {
-                return ApiResponseBuilder.success("Chưa có khoa nào", null);
+                return ApiResponseBuilder.notFound("Không có sinh viên nào!");
             }
 
             List<StudentOfUniversityReponse> pagedResult = studentResponseList.subList(start, end);
@@ -143,7 +143,7 @@ public class StudentController {
                     ))
                     .collect(Collectors.toList());
             if(studentClassReponseList.isEmpty()){
-                return ApiResponseBuilder.success("Khoa này chưa có lớp nào",null);
+                return ApiResponseBuilder.notFound("Khoa này chưa có lớp nào!");
             }
             return ApiResponseBuilder.success("Các lớp của khoa",studentClassReponseList);
 
@@ -235,16 +235,27 @@ public class StudentController {
             return ApiResponseBuilder.listBadRequest("Dữ liệu không hợp lệ", errors);
         }
         try {
-            Student student = studentService.findById(id);
-            Student checkStudentCode  = studentService.findByStudentCodeOfUniversity(
-                    studentRequest.getStudentCode(),student.getStudentClass().getDepartment().getUniversity().getId());
-            Student checkEmialStudent = studentService.findByEmailStudentCodeOfDepartment(
-                    studentRequest.getEmail(),student.getStudentClass().getDepartment().getId());
-            if (checkStudentCode != null && !checkStudentCode.getId().equals(id)) {
-                return ApiResponseBuilder.badRequest("Mã số sinh viên đã tồn tại!");
+            //lấy id của khoa
+            User user = userService.finbById(studentRequest.getDepartmentId());
+
+            if(!studentClassService.existsByIdAndDepartmentId(studentRequest.getClassId(),user.getDepartment().getId())){
+                return ApiResponseBuilder.badRequest("Lớp này không thuộc khoa này!");
             }
-            if (checkEmialStudent != null && !checkEmialStudent.getId().equals(id)) {
-                return ApiResponseBuilder.badRequest("Email sinh viên đã tồn tại trong khoa này!");
+            Student student = studentService.findById(id);
+            if(!student.getStudentCode().equals(studentRequest.getStudentCode())){
+                Student checkStudentCode  = studentService.findByStudentCodeOfUniversity(
+                        studentRequest.getStudentCode(),student.getStudentClass().getDepartment().getUniversity().getId());
+                if (checkStudentCode != null && !checkStudentCode.getId().equals(id)) {
+                    return ApiResponseBuilder.badRequest("Mã số sinh viên đã tồn tại!");
+                }
+            }
+            if(!student.getEmail().equals(studentRequest.getEmail())){
+                Student checkEmialStudent = studentService.findByEmailStudentCodeOfDepartment(
+                        studentRequest.getEmail(),student.getStudentClass().getDepartment().getId());
+
+                if (checkEmialStudent != null && !checkEmialStudent.getId().equals(id)) {
+                    return ApiResponseBuilder.badRequest("Email sinh viên đã tồn tại trong khoa này!");
+                }
             }
             studentService.update(id, studentRequest);
             return ApiResponseBuilder.success("Sửa thông tin sinh viên thành công", null);
@@ -306,11 +317,11 @@ public class StudentController {
                     || (className != null && !className.isEmpty())
                     || (studentName != null && !studentName.isEmpty())) {
                 if(studentList.isEmpty()){
-                    return ApiResponseBuilder.success("Không tìm thấy sinh viên!", null);
+                    return ApiResponseBuilder.notFound("Không tìm thấy sinh viên!");
                 }
             }
             if (start >= studentResponseList.size()) {
-                return ApiResponseBuilder.success("Khoa chưa có sinh viên", null);
+                return ApiResponseBuilder.notFound("Khoa chưa có sinh viên nào!");
             }
 
             List<StudentResponse> pagedResult = studentResponseList.subList(start, end);

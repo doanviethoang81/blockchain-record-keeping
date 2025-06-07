@@ -8,7 +8,6 @@ import com.example.blockchain.record.keeping.models.University;
 import com.example.blockchain.record.keeping.models.UniversityCertificateType;
 import com.example.blockchain.record.keeping.models.User;
 import com.example.blockchain.record.keeping.response.ApiResponseBuilder;
-import com.example.blockchain.record.keeping.response.CertificateTypeResponse;
 import com.example.blockchain.record.keeping.response.PaginationMeta;
 import com.example.blockchain.record.keeping.response.PaginatedData;
 import com.example.blockchain.record.keeping.services.CertificateTypeService;
@@ -18,7 +17,6 @@ import com.example.blockchain.record.keeping.services.UserService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -28,9 +26,7 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -84,14 +80,14 @@ public class CertificateTypeController {
             }
             if (name != null && !name.isEmpty()) {// tìm theo tên
                 if (CollectionUtils.isEmpty(result)) {
-                    return ApiResponseBuilder.success("Không tìm thấy!", null);
+                    return ApiResponseBuilder.notFound("Không tìm thấy!");
                 }
                 else {
                     message = certificateTypeDTOS.isEmpty() ? "Không tìm thấy loại chứng chỉ này!" : "Tìm thành công";
                 }
             }
             if (CollectionUtils.isEmpty(certificateTypeDTOS)) {
-                return ApiResponseBuilder.success("Không có loại chứng chỉ nào!", null);
+                return ApiResponseBuilder.notFound("Không có loại chứng chỉ nào!");
             }
             int start = (page-1) * size;
             int end = Math.min(start + size, certificateTypeDTOS.size());
@@ -217,7 +213,7 @@ public class CertificateTypeController {
                     .collect(Collectors.toList());
 
             if (CollectionUtils.isEmpty(result)) {
-                return ApiResponseBuilder.success("Không có giấy chứng nhận nào!", null);
+                return ApiResponseBuilder.notFound("Không có chứng chỉ nào!");
             }
 
             return ApiResponseBuilder.success("Lấy danh sách loại chứng chỉ cho khoa thành công.", result);

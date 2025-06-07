@@ -5,6 +5,7 @@ import com.example.blockchain.record.keeping.dtos.StatisticsDepartmentDTO;
 import com.example.blockchain.record.keeping.dtos.StatisticsUniversityDTO;
 import com.example.blockchain.record.keeping.dtos.request.ChangePasswordDepartmentRequest;
 import com.example.blockchain.record.keeping.dtos.request.ChangePasswordRequest;
+import com.example.blockchain.record.keeping.enums.Status;
 import com.example.blockchain.record.keeping.exceptions.BadRequestException;
 import com.example.blockchain.record.keeping.models.*;
 import com.example.blockchain.record.keeping.repositorys.*;
@@ -59,7 +60,6 @@ public class UserService implements IUserService{
     public boolean existsById(Long id) {
         return userRepository.existsById(id);
     }
-
 
     @Override
     public boolean updateLocked(Long userId) {

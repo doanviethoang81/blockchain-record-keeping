@@ -30,6 +30,10 @@ public class UpdateStudentRequest {
     @NotBlank(message = "Khóa học không được để trống")
     private String course;
 
+    private Long classId;
+
+    private Long departmentId;
+
     public void setName(String name) {
         this.name = name != null ? name.trim() : null;
     }

@@ -17,6 +17,14 @@ public interface DepartmentRepository extends JpaRepository<Department,Long> {
 
     boolean existsByNameIgnoreCaseAndUniversityIdAndStatus(String name, Long universityId, Status status);
 
+    // kiểm tra bỏ id đó
+    boolean existsByNameIgnoreCaseAndUniversityIdAndStatusAndIdNot(
+            String name,
+            Long universityId,
+            Status status,
+            Long id
+    );
+
     List<Department> findByUniversity(University university);
 
 

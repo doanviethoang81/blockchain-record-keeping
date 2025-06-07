@@ -39,7 +39,7 @@ public class JWTUtil {
                     .parseClaimsJws(token)
                     .getBody();
         } catch (JwtException e) {
-            throw new RuntimeException("Token không hợp lệ! ");
+            throw new RuntimeException("Token đã hết hạn! ");
         }
     }
 

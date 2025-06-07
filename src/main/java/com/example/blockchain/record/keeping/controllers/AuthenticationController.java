@@ -10,10 +10,8 @@ import com.example.blockchain.record.keeping.response.ApiResponse;
 import com.example.blockchain.record.keeping.response.ApiResponseBuilder;
 import com.example.blockchain.record.keeping.services.*;
 import com.example.blockchain.record.keeping.utils.JWTUtil;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -31,7 +29,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @AllArgsConstructor
-public class AuthencationController {
+public class AuthenticationController {
 
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;

@@ -52,13 +52,13 @@ public class StudentClassController {
             List<StudentClassReponse> studentClassList = studentClassService.getAllClassofUniversity(university.getId(), name);
             if ((name != null && !name.isEmpty())) {
                 if(studentClassList.isEmpty()){
-                    return ApiResponseBuilder.success("Không tìm thấy lớp!", null);
+                    return ApiResponseBuilder.notFound("Không tìm thấy lớp!");
                 }
             }
             int start = (page - 1) * size;
             int end = Math.min(start + size, studentClassList.size());
             if (start >= studentClassList.size()) {
-                return ApiResponseBuilder.success("Trường chưa có lớp nào", null);
+                return ApiResponseBuilder.notFound("Trường chưa có lớp nào!");
             }
 
             List<StudentClassReponse> pagedResult = studentClassList.subList(start, end);
@@ -203,13 +203,13 @@ public class StudentClassController {
                     studentClassService.listClassOfDepartmentId(id, name);
             if(name!= null && !name.isEmpty()){
                 if(studentClassReponseList.isEmpty()){
-                    return ApiResponseBuilder.success("Không tìm thấy lớp!", null);
+                    return ApiResponseBuilder.notFound("Không tìm thấy lớp!");
                 }
             }
             int start = (page - 1) * size;
             int end = Math.min(start + size, studentClassReponseList.size());
             if (start >= studentClassReponseList.size()) {
-                return ApiResponseBuilder.success("Chưa có lớp nào!", null);
+                return ApiResponseBuilder.notFound("Chưa có lớp nào!");
             }
 
             List<StudentClassReponse> pagedResult = studentClassReponseList.subList(start, end);
