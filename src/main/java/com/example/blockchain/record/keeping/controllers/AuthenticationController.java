@@ -43,7 +43,7 @@ public class AuthenticationController {
     private final OtpService otpService;
     private final BrevoApiEmailService brevoApiEmailService;
     private final UserService userService;
-    private final ImageLogoService imageLogoService;
+    private final ImageUploadService imageUploadService;
     private final DepartmentService departmentService;
     private final TokenBlacklistService tokenBlacklistService;
 
@@ -57,7 +57,8 @@ public class AuthenticationController {
                     .collect(Collectors.toList());
             return ApiResponseBuilder.listBadRequest("Dữ liệu không hợp lệ", errors);
         }
-        if (request.getLogo() == null || request.getLogo().isEmpty()) {
+        if (request.getLogo() == null || request.getLogo().isEmpty() ||
+            request.getSealImageUrl() == null || request.getSealImageUrl().isEmpty()) {
             return ApiResponseBuilder.badRequest("Logo không được để trống");
         }
         try{
@@ -85,12 +86,20 @@ public class AuthenticationController {
             if (request.getLogo() != null && !request.getLogo().isEmpty()) {
                 String contentType = request.getLogo().getContentType();
                 if (!contentType.startsWith("image/")) {
-                    return ApiResponseBuilder.badRequest("File tải lên không phải là ảnh!");
+                    return ApiResponseBuilder.badRequest("Logo tải lên không phải là ảnh!");
                 }
-                String imageUrl = imageLogoService.uploadImage(request.getLogo());
+                String imageUrl = imageUploadService.uploadImage(request.getLogo());
                 university.setLogo(imageUrl);
             }
 
+            if (request.getSealImageUrl() != null && !request.getSealImageUrl().isEmpty()) {
+                String contentType = request.getSealImageUrl().getContentType();
+                if (!contentType.startsWith("image/")) {
+                    return ApiResponseBuilder.badRequest("Dấu mộc tải lên không phải là ảnh!");
+                }
+                String sealImageUrl = imageUploadService.uploadImage(request.getSealImageUrl());
+                university.setSealImageUrl(sealImageUrl);
+            }
 
             university.setCreatedAt(vietnamTime.toLocalDateTime());
             university.setUpdatedAt(vietnamTime.toLocalDateTime());

@@ -51,6 +51,7 @@ public class CertificateController {
     private final CertificateTypeService certificateTypeService;
     private final UniversityCertificateTypeService universityCertificateTypeService;
     private final GraphicsTextWriter graphicsTextWriter;
+    private final BrevoApiEmailService brevoApiEmailService;
 
     //---------------------------- ADMIN -------------------------------------------------------
     // xem all chứng chỉ
@@ -151,7 +152,7 @@ public class CertificateController {
     }
 
     //---------------------------- PDT -------------------------------------------------------
-    // all chunng chi cua 1 tr đã xác thực
+    // all chunng chi cua 1 tr
     @PreAuthorize("hasAuthority('READ')")
     @GetMapping("/pdt/list-certificates")
     public ResponseEntity<?> getCertificateOfUniversity(
@@ -206,7 +207,7 @@ public class CertificateController {
                     new PaginationMeta(certificateReponseList.size(), pagedResult.size(), size, page ,
                             (int) Math.ceil((double) certificateReponseList.size() / size)));
 
-            return ApiResponseBuilder.success("Danh sách chứng chỉ chưa xác thực của trường",data);
+            return ApiResponseBuilder.success("Danh sách chứng chỉ của trường",data);
         } catch (IllegalArgumentException e) {
             return ApiResponseBuilder.badRequest(e.getMessage());
         } catch (Exception e) {
@@ -269,7 +270,7 @@ public class CertificateController {
                     new PaginationMeta(certificateReponseList.size(), pagedResult.size(), size, page ,
                             (int) Math.ceil((double) certificateReponseList.size() / size)));
 
-            return ApiResponseBuilder.success("Danh sách chứng chỉ của một trường",data);
+            return ApiResponseBuilder.success("Danh sách chứng chỉ chưa xác thực của một trường",data);
         } catch (IllegalArgumentException e) {
             return ApiResponseBuilder.badRequest(e.getMessage());
         } catch (Exception e) {
@@ -286,8 +287,6 @@ public class CertificateController {
             String username = authentication.getName();
             University university = universityService.getUniversityByEmail(username);
 
-            //sua
-//            graphicsTextWriter
             certificateService.certificateValidation(university,id);
             return ApiResponseBuilder.success("Xác nhận thành công ", null);
         } catch (Exception e) {
@@ -411,7 +410,7 @@ public class CertificateController {
                     new PaginationMeta(certificateReponseList.size(), pagedResult.size(), size, page ,
                             (int) Math.ceil((double) certificateReponseList.size() / size)));
 
-            return ApiResponseBuilder.success("Danh sách chứng chỉ của một khoa",data);
+            return ApiResponseBuilder.success("Danh sách chứng chỉ chưa xác thực của một khoa",data);
         } catch (IllegalArgumentException e) {
             return ApiResponseBuilder.badRequest(e.getMessage());
         } catch (Exception e) {
@@ -534,8 +533,6 @@ public class CertificateController {
                 )
         ).sheet().doRead();
 
-        // nào chạy thì mở
-//            brevoApiEmailService.sendEmailsToStudentsExcel(validStudents);
         return ApiResponseBuilder.success("Tạo chứng chỉ thành công" , null);
     }
 

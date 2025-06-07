@@ -39,6 +39,9 @@ public class RegisterRequest {
     @JsonProperty("logo")
     private MultipartFile logo;
 
+    @JsonProperty("sealImageUrl")
+    private MultipartFile sealImageUrl;
+
     @NotBlank(message = "Mật khẩu không được để trống!")
     @JsonProperty("password")
     private String password;

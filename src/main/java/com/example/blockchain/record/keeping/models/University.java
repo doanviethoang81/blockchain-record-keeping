@@ -38,6 +38,9 @@ public class University {
     @Column(name ="logo")
     private String logo;
 
+    @Column(name ="seal_image_url")
+    private String sealImageUrl;
+
     @Column(name="created_at")
     private LocalDateTime createdAt;
 

@@ -5,6 +5,8 @@ import com.example.blockchain.record.keeping.enums.Status;
 import com.example.blockchain.record.keeping.models.*;
 import com.example.blockchain.record.keeping.repositorys.*;
 import com.example.blockchain.record.keeping.response.ApiResponseBuilder;
+import com.example.blockchain.record.keeping.utils.PinataUploader;
+import com.example.blockchain.record.keeping.utils.QrCodeUtil;
 import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -14,6 +16,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.web3j.protocol.Web3j;
 
+import java.io.IOException;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -31,6 +34,7 @@ public class CertificateService implements ICertificateService{
     private final CertificateTypeService certificateTypeService;
     private final GraphicsTextWriter graphicsTextWriter;
     private final BrevoApiEmailService brevoApiEmailService;
+    private final QrCodeUtil qrCodeUtil;
 
     @Autowired
     private Web3j web3j;
@@ -180,7 +184,7 @@ public class CertificateService implements ICertificateService{
         String image_url = graphicsTextWriter.drawCertificateText(printData);
 
         certificate.setImageUrl(image_url);
-        certificate.setQrCodeUrl("1313");//sua
+        certificate.setQrCodeUrl(null);//sua
 
         certificate.setStatus(Status.PENDING);
         certificate.setCreatedAt(vietnamTime.toLocalDateTime());
@@ -188,15 +192,7 @@ public class CertificateService implements ICertificateService{
         // Lưu certificate
         certificateRepository.save(certificate);
 
-        //sửa lại đường dẫn chứng chỉ
-//        String certificateUrl = "https://yourdomain.com/certificates/" + student.getStudentCode();
-//        try {
-//            //chưa gửi
-//            brevoApiEmailService.sendEmail(student.getEmail(), student.getName(), certificateUrl);
-//        } catch (Exception e) {
-//            System.err.println("Lỗi khi gửi email cho sinh viên: " + student.getEmail());
-//            e.printStackTrace(); // Hoặc ghi log nếu bạn có hệ thống logging
-//        }
+
     }
 
     // them dau moc
@@ -207,21 +203,34 @@ public class CertificateService implements ICertificateService{
         Certificate certificate = certificateRepository.findById(idCertificate)
                 .orElseThrow(()-> new RuntimeException("Không tìm thấy chứng chỉ có id "+ idCertificate));
 
-        String image_url = graphicsTextWriter.certificateValidation(certificate.getImageUrl(), university.getLogo());
+        String imageUrl = graphicsTextWriter.certificateValidation(certificate.getImageUrl(), university.getLogo());
 
-        certificate.setImageUrl(image_url);
+        certificate.setImageUrl(imageUrl);
+        try {
+            String ipfsUrl = PinataUploader.uploadFromUrlToPinata(imageUrl);
+            certificate.setIpfsUrl(ipfsUrl);
+
+            String certificateUrl = "https://yourwebsite.com/verify?certificateId=" + certificate.getIpfsUrl();
+            String qrBase64 = qrCodeUtil.generateQRCodeBase64(certificateUrl, 250, 250);
+            certificate.setQrCodeUrl(qrBase64);
+        } catch (IOException e) {
+            throw new RuntimeException("Lỗi khi upload ảnh lên IPFS: " + e.getMessage());
+        }
+
         certificate.setStatus(Status.APPROVED);
         certificate.setUpdatedAt(vietnamTime.toLocalDateTime());
         certificateRepository.save(certificate);
 
-//        //sửa lại đường dẫn chứng chỉ
-//        String certificateUrl = "https://yourdomain.com/certificates/" + certificate.getStudent().getStudentCode();
-//        try {
-//            //chưa gửi
-//            brevoApiEmailService.sendEmail(certificate.getStudent().getEmail(), certificate.getStudent().getName(), certificateUrl);
-//        } catch (Exception e) {
-//            System.err.println("Lỗi khi gửi email cho sinh viên: " + certificate.getStudent().getEmail());
-//            e.printStackTrace(); // Hoặc ghi log nếu bạn có hệ thống logging
-//        }
+        //sửa lại đường dẫn chứng chỉ
+        String certificateUrl = "https://yourwebsite.com/verify?certificateId=" + certificate.getIpfsUrl();
+        try {
+            brevoApiEmailService.sendEmailsToStudentsExcel(
+                    certificate.getStudent().getEmail(),
+                    certificate.getStudent().getName(),
+                    certificate.getStudent().getStudentClass().getDepartment().getUniversity().getName(),
+                    certificateUrl);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }

@@ -2,8 +2,10 @@ package com.example.blockchain.record.keeping.services;
 
 import com.example.blockchain.record.keeping.dtos.CertificateExcelRowDTO;
 import com.example.blockchain.record.keeping.dtos.request.DegreeExcelRowRequest;
+import com.example.blockchain.record.keeping.models.Certificate;
 import com.example.blockchain.record.keeping.models.Department;
 import com.example.blockchain.record.keeping.models.User;
+import com.example.blockchain.record.keeping.utils.QrCodeUtil;
 import com.example.blockchain.record.keeping.utils.TextFormatter;
 import io.github.cdimascio.dotenv.Dotenv;
 import lombok.RequiredArgsConstructor;
@@ -44,13 +46,13 @@ public class BrevoApiEmailService {
     private final ExecutorService executorService = Executors.newFixedThreadPool(THREAD_POOL_SIZE);
 
     @Async
-    public void sendEmail(String toEmail, String name, String templateData) {
+    public void sendEmail(String toEmail, String name, String universityName, String certificateUrl) {
         String url = "https://api.brevo.com/v3/smtp/email";
 
-        // 1. Render template từ Thymeleaf
         Context context = new Context();
-        context.setVariable("certificateUrl", templateData);
         context.setVariable("studentName", name);
+        context.setVariable("universityName", universityName);
+        context.setVariable("certificateUrl", certificateUrl);
         String contentHtml = templateEngine.process("email-template", context);
 
         // 2. Gửi email qua Brevo API
@@ -74,9 +76,14 @@ public class BrevoApiEmailService {
 
 
     // gửi gmail cho sinh viên nhớ viết lại
-//    public void sendEmailsToStudentsExcel(List<CertificateExcelRowDTO> students) {
+    public void sendEmailsToStudentsExcel(String email ,String name,String universityName,String certificateUrl) {
+        sendEmail(email, name,universityName,certificateUrl);
+    }
+
+    //gửi thông báo cấp văn bằng cho sv
+//    public void sendEmailNotificationOfDiplomaIssuanceExcel(List<DegreeExcelRowRequest> students) {
 //        List<CompletableFuture<Void>> futures = new ArrayList<>();
-//        for (CertificateExcelRowDTO student : students) {
+//        for (DegreeExcelRowRequest student : students) {
 //            String email = student.getEmail();
 //            String name = student.getName();
 //            String certificateUrl = "https://yourdomain.com/certificates/" + student.getStudentCode();
@@ -89,23 +96,6 @@ public class BrevoApiEmailService {
 //        // Đợi tất cả các tác vụ bất đồng bộ hoàn thành
 //        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
 //    }
-
-    //gửi thông báo cấp văn bằng cho sv
-    public void sendEmailNotificationOfDiplomaIssuanceExcel(List<DegreeExcelRowRequest> students) {
-        List<CompletableFuture<Void>> futures = new ArrayList<>();
-        for (DegreeExcelRowRequest student : students) {
-            String email = student.getEmail();
-            String name = student.getName();
-            String certificateUrl = "https://yourdomain.com/certificates/" + student.getStudentCode();
-
-            // Gọi phương thức sendEmail bất đồng bộ và thêm vào list futures
-            //Trong vòng lặp, sendEmail được gọi thông qua CompletableFuture.runAsync(). Điều này có nghĩa là mỗi email sẽ được gửi trong một luồng riêng biệt mà không làm chậm quá trình gửi email cho các sinh viên khác.
-            futures.add(CompletableFuture.runAsync(() -> sendEmail(email, name, certificateUrl), executorService));
-        }
-
-        // Đợi tất cả các tác vụ bất đồng bộ hoàn thành
-        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
-    }
 
     //gửi OTP
     @Async

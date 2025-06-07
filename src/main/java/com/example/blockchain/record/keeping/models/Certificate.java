@@ -51,6 +51,9 @@ public class Certificate {
     @Column(name = "image_url")
     private String imageUrl;
 
+    @Column(name = "ipfs_url")
+    private String ipfsUrl;
+
     @Column(name = "qr_code_url")
     private String qrCodeUrl;
 
