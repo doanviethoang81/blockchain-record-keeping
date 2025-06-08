@@ -8,11 +8,10 @@ import com.example.blockchain.record.keeping.models.*;
 import com.example.blockchain.record.keeping.response.ApiResponseBuilder;
 import com.example.blockchain.record.keeping.response.PaginatedData;
 import com.example.blockchain.record.keeping.response.PaginationMeta;
-import com.example.blockchain.record.keeping.response.UserReponse;
+import com.example.blockchain.record.keeping.response.UserResponse;
 import com.example.blockchain.record.keeping.services.*;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
-import org.apache.xmlbeans.impl.xb.xsdschema.Attribute;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -23,9 +22,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("${api.prefix:/api/v1}")
@@ -58,24 +55,24 @@ public class DepartmentController {
             String username = authentication.getName();
             University university = universityService.getUniversityByEmail(username);
 
-            List<UserReponse> userReponses= userService.getDepartmentDetailOfUniversity(university.getId(),name);
+            List<UserResponse> userRepons = userService.getDepartmentDetailOfUniversity(university.getId(),name);
 
             if (name != null && !name.isEmpty()) {
-                if (userReponses.isEmpty()) {
+                if (userRepons.isEmpty()) {
                     return ApiResponseBuilder.notFound("Không tìm thấy khoa!");
                 }
             }
 
             int start = (page-1) * size;
-            int end = Math.min(start + size, userReponses.size());
-            if (start >= userReponses.size()) {
+            int end = Math.min(start + size, userRepons.size());
+            if (start >= userRepons.size()) {
                 return ApiResponseBuilder.notFound("Chưa có khoa nào!");
             }
 
-            List<UserReponse> pagedResult = userReponses.subList(start, end);
-            PaginatedData<UserReponse> data = new PaginatedData<>(pagedResult,
-                    new PaginationMeta(userReponses.size(), pagedResult.size(), size, page,
-                            (int) Math.ceil((double) userReponses.size() / size)));
+            List<UserResponse> pagedResult = userRepons.subList(start, end);
+            PaginatedData<UserResponse> data = new PaginatedData<>(pagedResult,
+                    new PaginationMeta(userRepons.size(), pagedResult.size(), size, page,
+                            (int) Math.ceil((double) userRepons.size() / size)));
 
             return ApiResponseBuilder.success(
                     "Lấy danh sách các khoa của trường thành công.",data);
@@ -276,24 +273,24 @@ public class DepartmentController {
             if (page < 1) page = 1;
             if (size < 1) size = 10;
 
-            List<UserReponse> userReponses= userService.getDepartmentDetailOfUniversity(id,name);
+            List<UserResponse> userRepons = userService.getDepartmentDetailOfUniversity(id,name);
 
             if (name != null && !name.isEmpty()) {
-                if (userReponses.isEmpty()) {
+                if (userRepons.isEmpty()) {
                     return ApiResponseBuilder.notFound("Không tìm thấy khoa!");
                 }
             }
 
             int start = (page-1) * size;
-            int end = Math.min(start + size, userReponses.size());
-            if (start >= userReponses.size()) {
+            int end = Math.min(start + size, userRepons.size());
+            if (start >= userRepons.size()) {
                 return ApiResponseBuilder.notFound("Chưa có khoa nào!");
             }
 
-            List<UserReponse> pagedResult = userReponses.subList(start, end);
-            PaginatedData<UserReponse> data = new PaginatedData<>(pagedResult,
-                    new PaginationMeta(userReponses.size(), pagedResult.size(), size, page,
-                            (int) Math.ceil((double) userReponses.size() / size)));
+            List<UserResponse> pagedResult = userRepons.subList(start, end);
+            PaginatedData<UserResponse> data = new PaginatedData<>(pagedResult,
+                    new PaginationMeta(userRepons.size(), pagedResult.size(), size, page,
+                            (int) Math.ceil((double) userRepons.size() / size)));
 
             return ApiResponseBuilder.success(
                     "Lấy danh sách các khoa của trường thành công.",data);

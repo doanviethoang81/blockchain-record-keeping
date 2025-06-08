@@ -177,10 +177,10 @@ public class CertificateExcelListener extends AnalysisEventListener<CertificateE
             certificate.setDiplomaNumber(row.getDiplomaNumber());
             certificate.setGrantor(row.getGrantor());
             certificate.setSigner(row.getSigner());
-            certificate.setBlockchainTxHash("28374289784");// fake
+            certificate.setBlockchainTxHash(null);// fake
 
 
-            certificate.setQrCodeUrl("2347234234");// fake
+            certificate.setQrCodeUrl(null);// fake
             certificate.setStatus(Status.PENDING);
             certificate.setCreatedAt(now.toLocalDateTime());
             certificate.setUpdatedAt(now.toLocalDateTime());

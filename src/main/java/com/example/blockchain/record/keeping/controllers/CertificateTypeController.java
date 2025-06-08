@@ -44,13 +44,6 @@ public class CertificateTypeController {
     private final UserService userService;
     private final UniversityCertificateTypeService universityCertificateTypeService;
 
-    @PreAuthorize("hasAuthority('WRITE')")
-    @GetMapping("/check-role")
-    public ResponseEntity<?> checkRole(Authentication authentication) {
-        Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
-        return ApiResponseBuilder.success("Lấy quyền thành công", authorities);
-    }
-
     //---------------------------- PDT -------------------------------------------------------
     //ds loại chứng chỉ cho tr vs tìm theo ten
     @PreAuthorize("hasAuthority('READ')")
@@ -95,7 +88,7 @@ public class CertificateTypeController {
                 PaginatedData<CertificateTypeDTO> emptyData = new PaginatedData<>(List.of(),
                         new PaginationMeta(certificateTypeDTOS.size(), 0, size, page,
                                 (int) Math.ceil((double) certificateTypeDTOS.size() / size)));
-                return ApiResponseBuilder.success("Không có dữ liệu.", emptyData);
+                return ApiResponseBuilder.success("Không có dữ liệu!", emptyData);
             }
             List<CertificateTypeDTO> pagedResult = certificateTypeDTOS.subList(start, end);
             PaginatedData<CertificateTypeDTO> data = new PaginatedData<>(pagedResult,
@@ -114,7 +107,7 @@ public class CertificateTypeController {
     {
         try {
             CertificateType certificateType = certificateTypeService.findById(id);
-            return ApiResponseBuilder.success("Thông tin chi tiết chứng chỉ", certificateType);
+            return ApiResponseBuilder.success("Thông tin chi tiết loại chứng chỉ", certificateType);
         } catch (Exception e) {
             return ApiResponseBuilder.internalError("Lỗi: " + e.getMessage());
         }

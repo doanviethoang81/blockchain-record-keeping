@@ -5,12 +5,10 @@ import com.example.blockchain.record.keeping.dtos.StatisticsDepartmentDTO;
 import com.example.blockchain.record.keeping.dtos.StatisticsUniversityDTO;
 import com.example.blockchain.record.keeping.dtos.request.ChangePasswordDepartmentRequest;
 import com.example.blockchain.record.keeping.dtos.request.ChangePasswordRequest;
-import com.example.blockchain.record.keeping.enums.Status;
 import com.example.blockchain.record.keeping.exceptions.BadRequestException;
 import com.example.blockchain.record.keeping.models.*;
 import com.example.blockchain.record.keeping.repositorys.*;
-import com.example.blockchain.record.keeping.response.ApiResponseBuilder;
-import com.example.blockchain.record.keeping.response.UserReponse;
+import com.example.blockchain.record.keeping.response.UserResponse;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -188,10 +186,10 @@ public class UserService implements IUserService{
     }
 
     // danh sách user khoa thuộc 1 tr
-    public List<UserReponse> getDepartmentDetailOfUniversity(Long id, String name) {
+    public List<UserResponse> getDepartmentDetailOfUniversity(Long id, String name) {
 
         List<User> listUser = userRepository.findUserDepartmentByUniversity(id, name);
-        List<UserReponse> userReponses = new ArrayList<>();
+        List<UserResponse> userRepons = new ArrayList<>();
 
         for (User user : listUser) {
             List<UserPermission> userPermissions = userPermissionRepository.findByUser(user);
@@ -203,15 +201,15 @@ public class UserService implements IUserService{
                     .collect(Collectors.toList());
 
 
-            UserReponse userReponse = new UserReponse(
+            UserResponse userResponse = new UserResponse(
                     user.getId(),
                     user.getDepartment().getName(),
                     user.getEmail(),
                     user.isLocked(),
                     permissions
             );
-            userReponses.add(userReponse);
+            userRepons.add(userResponse);
         }
-        return userReponses;
+        return userRepons;
     }
 }

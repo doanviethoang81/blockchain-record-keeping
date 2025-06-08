@@ -4,12 +4,10 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.List;
-
 @Getter
 @Setter
 @AllArgsConstructor
-public class DepartmentWithClassReponse {
-    private String departmentName;
-    private List<StudentClassReponse> className;
+public class DepartmentResponse {
+    private Long id;
+    private String name;
 }

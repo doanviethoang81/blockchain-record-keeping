@@ -1,38 +1,27 @@
 package com.example.blockchain.record.keeping.controllers;
 
 import com.alibaba.excel.EasyExcel;
-import com.example.blockchain.record.keeping.dtos.CertificateDTO;
-import com.example.blockchain.record.keeping.dtos.DegreeDTO;
 import com.example.blockchain.record.keeping.dtos.request.StudentExcelRowRequest;
 import com.example.blockchain.record.keeping.dtos.request.StudentRequest;
 import com.example.blockchain.record.keeping.dtos.request.UpdateStudentRequest;
-import com.example.blockchain.record.keeping.enums.Status;
 import com.example.blockchain.record.keeping.models.*;
-import com.example.blockchain.record.keeping.repositorys.StudentClassRepository;
 import com.example.blockchain.record.keeping.repositorys.StudentRepository;
 import com.example.blockchain.record.keeping.response.*;
 import com.example.blockchain.record.keeping.services.*;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import lombok.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.util.StringUtils;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RestController
@@ -78,9 +67,9 @@ public class StudentController {
                 }
             }
 
-            List<StudentOfUniversityReponse> studentResponseList = new ArrayList<>();
+            List<StudentOfUniversityResponse> studentResponseList = new ArrayList<>();
             for(Student student : studentList){
-                StudentOfUniversityReponse studentResponse = new StudentOfUniversityReponse(
+                StudentOfUniversityResponse studentResponse = new StudentOfUniversityResponse(
                         student.getId(),
                         student.getName(),
                         student.getStudentClass().getName(),
@@ -99,8 +88,8 @@ public class StudentController {
                 return ApiResponseBuilder.notFound("Không có sinh viên nào!");
             }
 
-            List<StudentOfUniversityReponse> pagedResult = studentResponseList.subList(start, end);
-            PaginatedData<StudentOfUniversityReponse> data = new PaginatedData<>(pagedResult,
+            List<StudentOfUniversityResponse> pagedResult = studentResponseList.subList(start, end);
+            PaginatedData<StudentOfUniversityResponse> data = new PaginatedData<>(pagedResult,
                     new PaginationMeta(studentResponseList.size(), pagedResult.size(), size, page,
                             (int) Math.ceil((double) studentResponseList.size() / size)));
             return ApiResponseBuilder.success(
@@ -117,11 +106,11 @@ public class StudentController {
         try{
             StudentClass studentClass = studentClassService.findById(classId);
             Department department = studentClass.getDepartment();
-            DepartmentReponse departmentReponse = new DepartmentReponse(
+            DepartmentResponse departmentResponse = new DepartmentResponse(
                       department.getId(),
                       department.getName()
             );
-            return ApiResponseBuilder.success("Thông tin khoa của lớp",departmentReponse);
+            return ApiResponseBuilder.success("Thông tin khoa của lớp", departmentResponse);
         } catch (Exception e) {
             return ApiResponseBuilder.internalError("Lỗi " + e.getMessage());
         }
@@ -136,16 +125,16 @@ public class StudentController {
             Department department = departmentService.findById(user.getDepartment().getId());
             List<StudentClass> studentClassList = studentClassService.findAllClassesByDepartmentId(department.getId(),null);
 
-            List<StudentClassReponse> studentClassReponseList = studentClassList.stream()
-                    .map(s -> new StudentClassReponse(
+            List<StudentClassResponse> studentClassResponseList = studentClassList.stream()
+                    .map(s -> new StudentClassResponse(
                             s.getId(),
                             s.getName()
                     ))
                     .collect(Collectors.toList());
-            if(studentClassReponseList.isEmpty()){
+            if(studentClassResponseList.isEmpty()){
                 return ApiResponseBuilder.notFound("Khoa này chưa có lớp nào!");
             }
-            return ApiResponseBuilder.success("Các lớp của khoa",studentClassReponseList);
+            return ApiResponseBuilder.success("Các lớp của khoa", studentClassResponseList);
 
         } catch (Exception e) {
             return ApiResponseBuilder.internalError("Lỗi " + e.getMessage());
@@ -350,7 +339,7 @@ public class StudentController {
     {
         try{
             Student student = studentService.findById(id);
-            StudentDetailReponse studentDetailReponse= new StudentDetailReponse(
+            StudentDetailResponse studentDetailReponse= new StudentDetailResponse(
                     student.getName(),
                     student.getStudentCode(),
                     student.getEmail(),

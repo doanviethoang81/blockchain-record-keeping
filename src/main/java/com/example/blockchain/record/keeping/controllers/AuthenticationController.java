@@ -55,11 +55,11 @@ public class AuthenticationController {
             List<String> errors = bindingResult.getFieldErrors().stream()
                     .map(fieldError -> fieldError.getField() + ": " + fieldError.getDefaultMessage())
                     .collect(Collectors.toList());
-            return ApiResponseBuilder.listBadRequest("Dữ liệu không hợp lệ", errors);
+            return ApiResponseBuilder.listBadRequest("Dữ liệu không hợp lệ!", errors);
         }
         if (request.getLogo() == null || request.getLogo().isEmpty() ||
             request.getSealImageUrl() == null || request.getSealImageUrl().isEmpty()) {
-            return ApiResponseBuilder.badRequest("Logo không được để trống");
+            return ApiResponseBuilder.badRequest("Logo không được để trống!");
         }
         try{
             ZonedDateTime vietnamTime = ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
@@ -123,9 +123,9 @@ public class AuthenticationController {
             String otp = String.format("%06d", new Random().nextInt(999999));
             otpService.saveOtp(request.getEmail(), otp);
             brevoApiEmailService.sendActivationEmail(request.getEmail(), otp);
-            return ApiResponseBuilder.success("Đăng ký thành công! Vui lòng kiểm tra email để kích hoạt tài khoản", null);
+            return ApiResponseBuilder.success("Đăng ký thành công, Vui lòng kiểm tra email để kích hoạt tài khoản", null);
         } catch (Exception e) {
-            return ApiResponseBuilder.internalError("Đã xảy ra lỗi trong quá trình đăng ký");
+            return ApiResponseBuilder.internalError("Đã xảy ra lỗi trong quá trình đăng ký!");
         }
     }
 
@@ -223,14 +223,14 @@ public class AuthenticationController {
             return ApiResponseBuilder.success("OTP hợp lệ!", null);
         }
         else{
-            return ApiResponseBuilder.badRequest("OTP sai hoặc đã hết hạn");
+            return ApiResponseBuilder.badRequest("OTP sai hoặc đã hết hạn!");
         }
     }
 
     @PostMapping("/api/logout")
     public ResponseEntity<ApiResponse<String>> logout(@RequestHeader("Authorization") String authHeader) {
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            return ApiResponseBuilder.badRequest("Token không hợp lệ");
+            return ApiResponseBuilder.badRequest("Token không hợp lệ!");
         }
         String token = authHeader.substring(7);
         tokenBlacklistService.blacklistToken(token);

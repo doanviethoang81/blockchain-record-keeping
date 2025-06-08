@@ -1,10 +1,14 @@
 package com.example.blockchain.record.keeping.services;
+import com.certificate.contract.CertificateStorage_sol_CertificateStorage;
+import com.example.blockchain.record.keeping.configs.Constants;
 import com.example.blockchain.record.keeping.dtos.request.CertificatePrintData;
 import com.example.blockchain.record.keeping.dtos.request.CertificateRequest;
 import com.example.blockchain.record.keeping.enums.Status;
+import com.example.blockchain.record.keeping.exceptions.NotFoundRequestException;
 import com.example.blockchain.record.keeping.models.*;
 import com.example.blockchain.record.keeping.repositorys.*;
 import com.example.blockchain.record.keeping.response.ApiResponseBuilder;
+import com.example.blockchain.record.keeping.utils.EnvUtil;
 import com.example.blockchain.record.keeping.utils.PinataUploader;
 import com.example.blockchain.record.keeping.utils.QrCodeUtil;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -14,9 +18,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.web3j.crypto.Credentials;
 import org.web3j.protocol.Web3j;
+import org.web3j.protocol.core.methods.response.TransactionReceipt;
+import org.web3j.tx.gas.ContractGasProvider;
 
 import java.io.IOException;
+import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -35,6 +43,9 @@ public class CertificateService implements ICertificateService{
     private final GraphicsTextWriter graphicsTextWriter;
     private final BrevoApiEmailService brevoApiEmailService;
     private final QrCodeUtil qrCodeUtil;
+    private final Credentials credentials;
+    private final ContractGasProvider gasProvider;
+    private final CertificateStorage_sol_CertificateStorage contract;
 
     @Autowired
     private Web3j web3j;
@@ -99,6 +110,11 @@ public class CertificateService implements ICertificateService{
     }
 
     @Override
+    public Certificate findByIpfsUrl(String ipfsUrl) {
+        return certificateRepository.findByIpfsUrl(ipfsUrl);
+    }
+
+    @Override
     public List<Certificate> listCertificateOfUniversity(Long universittyId, String departmentName, String className, String studentCode, String studentName) {
         return certificateRepository.listCertificateOfUniversity(universittyId,departmentName,className,studentCode,studentName);
     }
@@ -144,7 +160,6 @@ public class CertificateService implements ICertificateService{
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
         String certificateTypeId = jsonNode.get("certificateTypeId").asText();
-//        LocalDate issueDate =  LocalDate.parse();
         String diplomaNumber = jsonNode.get("diplomaNumber").asText();
         String signer = jsonNode.get("signer").asText();
         String grantor = jsonNode.get("grantor").asText();
@@ -155,7 +170,6 @@ public class CertificateService implements ICertificateService{
         Certificate certificate = new Certificate();
         certificate.setStudent(student);
 
-        //lấy thong tin loai chung chi
         Long id = Long.valueOf(certificateTypeId);
         CertificateType certificateType= certificateTypeService.findById(id);
         UniversityCertificateType universityCertificateType =
@@ -166,8 +180,7 @@ public class CertificateService implements ICertificateService{
         certificate.setDiplomaNumber(diplomaNumber);
         certificate.setSigner(signer);
         certificate.setGrantor(grantor);
-        //sửa lại nếu có id block
-        certificate.setBlockchainTxHash("631273817");
+        certificate.setBlockchainTxHash(null);
 
         //tạo ảnh
         CertificatePrintData printData = new CertificatePrintData();
@@ -191,46 +204,106 @@ public class CertificateService implements ICertificateService{
         certificate.setUpdatedAt(vietnamTime.toLocalDateTime());
         // Lưu certificate
         certificateRepository.save(certificate);
-
-
     }
 
     // them dau moc
     @Transactional
-    public void certificateValidation (University university,Long idCertificate) {
-        ZonedDateTime vietnamTime = ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
-
-        Certificate certificate = certificateRepository.findById(idCertificate)
-                .orElseThrow(()-> new RuntimeException("Không tìm thấy chứng chỉ có id "+ idCertificate));
-
-        String imageUrl = graphicsTextWriter.certificateValidation(certificate.getImageUrl(), university.getLogo());
-
-        certificate.setImageUrl(imageUrl);
+    public void certificateValidation (University university,Long idCertificate) throws Exception {
         try {
+            ZonedDateTime vietnamTime = ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
+
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+
+            Certificate certificate = certificateRepository.findById(idCertificate)
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy chứng chỉ có id " + idCertificate));
+
+            String imageUrl = graphicsTextWriter.certificateValidation(certificate.getImageUrl(), university.getSealImageUrl());
+            certificate.setImageUrl(imageUrl);
+
             String ipfsUrl = PinataUploader.uploadFromUrlToPinata(imageUrl);
             certificate.setIpfsUrl(ipfsUrl);
 
-            String certificateUrl = "https://yourwebsite.com/verify?certificateId=" + certificate.getIpfsUrl();
+            //đường dẫn chứng chỉ IPFS
+            String certificateUrl = Constants.VERIFY_URL + ipfsUrl;
+
             String qrBase64 = qrCodeUtil.generateQRCodeBase64(certificateUrl, 250, 250);
             certificate.setQrCodeUrl(qrBase64);
-        } catch (IOException e) {
-            throw new RuntimeException("Lỗi khi upload ảnh lên IPFS: " + e.getMessage());
-        }
 
-        certificate.setStatus(Status.APPROVED);
-        certificate.setUpdatedAt(vietnamTime.toLocalDateTime());
-        certificateRepository.save(certificate);
-
-        //sửa lại đường dẫn chứng chỉ
-        String certificateUrl = "https://yourwebsite.com/verify?certificateId=" + certificate.getIpfsUrl();
-        try {
+            certificate.setStatus(Status.APPROVED);
+            certificate.setUpdatedAt(vietnamTime.toLocalDateTime());
             brevoApiEmailService.sendEmailsToStudentsExcel(
                     certificate.getStudent().getEmail(),
                     certificate.getStudent().getName(),
                     certificate.getStudent().getStudentClass().getDepartment().getUniversity().getName(),
                     certificateUrl);
+
+            String ipfsCertificateUrl = Constants.IPFS_URL + ipfsUrl;
+
+            //gửi blockchain và lấy txHash naof goij thi mo
+//            String txHash = issueCertificate(
+//                    certificate.getStudent().getStudentCode(),
+//                    certificate.getStudent().getName(),
+//                    certificate.getStudent().getBirthDate().format(formatter),
+//                    certificate.getStudent().getCourse(),
+//                    certificate.getUniversityCertificateType().getUniversity().getName(),
+//                    certificate.getIssueDate().format(formatter),
+//                    certificate.getDiplomaNumber(),
+//                    ipfsCertificateUrl
+//            );
+
+            String txHash = "123"; //sua
+            certificate.setBlockchainTxHash(txHash);
+            certificateRepository.save(certificate);
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
+
+    @Autowired
+    public CertificateService(CertificateRepository certificateRepository, UniversityCertificateTypeService universityCertificateTypeService, CertificateTypeService certificateTypeService, GraphicsTextWriter graphicsTextWriter, BrevoApiEmailService brevoApiEmailService, QrCodeUtil qrCodeUtil, Web3j web3j, Credentials credentials, ContractGasProvider gasProvider) {
+        this.certificateRepository = certificateRepository;
+        this.universityCertificateTypeService = universityCertificateTypeService;
+        this.certificateTypeService = certificateTypeService;
+        this.graphicsTextWriter = graphicsTextWriter;
+        this.brevoApiEmailService = brevoApiEmailService;
+        this.qrCodeUtil = qrCodeUtil;
+        this.web3j = web3j;
+        this.credentials = credentials;
+        this.gasProvider = gasProvider;
+
+        // Địa chỉ của smart contract sau khi deploy
+        String contractAddress = EnvUtil.get("SMART_CONTRACT_CERTIFICATE_ADDRESS");
+        this.contract = CertificateStorage_sol_CertificateStorage.load(contractAddress, web3j, credentials, gasProvider);
+    }
+
+    public String issueCertificate(
+            String studentCode,
+            String studentName,
+            String birthDate,
+            String course,
+            String university,
+            String createdAt,
+            String diplomaNumber,
+            String certificateImageHash
+    ) throws Exception {
+        try {
+            TransactionReceipt receipt = contract.issueCertificate(
+                    studentCode,
+                    studentName,
+                    birthDate,
+                    course,
+                    university,
+                    createdAt,
+                    diplomaNumber,
+                    certificateImageHash
+            ).send();
+
+            String txHash = receipt.getTransactionHash();
+            String status = receipt.getStatus();
+            return txHash;
+        } catch (Exception e) {
+            throw new Exception("Transaction failed: " + e.getMessage());
+        }
+    }
+
 }

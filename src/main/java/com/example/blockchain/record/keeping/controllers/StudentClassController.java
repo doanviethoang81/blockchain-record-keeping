@@ -19,7 +19,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -49,7 +48,7 @@ public class StudentClassController {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             String username = authentication.getName();
             University university = universityService.getUniversityByEmail(username);
-            List<StudentClassReponse> studentClassList = studentClassService.getAllClassofUniversity(university.getId(), name);
+            List<StudentClassResponse> studentClassList = studentClassService.getAllClassofUniversity(university.getId(), name);
             if ((name != null && !name.isEmpty())) {
                 if(studentClassList.isEmpty()){
                     return ApiResponseBuilder.notFound("Không tìm thấy lớp!");
@@ -61,8 +60,8 @@ public class StudentClassController {
                 return ApiResponseBuilder.notFound("Trường chưa có lớp nào!");
             }
 
-            List<StudentClassReponse> pagedResult = studentClassList.subList(start, end);
-            PaginatedData<StudentClassReponse> data = new PaginatedData<>(pagedResult,
+            List<StudentClassResponse> pagedResult = studentClassList.subList(start, end);
+            PaginatedData<StudentClassResponse> data = new PaginatedData<>(pagedResult,
                     new PaginationMeta(studentClassList.size(), pagedResult.size(), size, page,
                             (int) Math.ceil((double) studentClassList.size() / size)));
 
@@ -161,23 +160,23 @@ public class StudentClassController {
             String username = authentication.getName();
             User user = userService.findByUser(username);
 
-            List<StudentClassReponse> studentClassReponseList=
+            List<StudentClassResponse> studentClassResponseList =
                     studentClassService.listClassOfDepartmentId(user.getDepartment().getId(), name);
             if(name!= null && !name.isEmpty()){
-                if(studentClassReponseList.isEmpty()){
+                if(studentClassResponseList.isEmpty()){
                     return ApiResponseBuilder.success("Không tìm thấy lớp!", null);
                 }
             }
             int start = (page - 1) * size;
-            int end = Math.min(start + size, studentClassReponseList.size());
-            if (start >= studentClassReponseList.size()) {
+            int end = Math.min(start + size, studentClassResponseList.size());
+            if (start >= studentClassResponseList.size()) {
                 return ApiResponseBuilder.success("Chưa có lớp nào!", null);
             }
 
-            List<StudentClassReponse> pagedResult = studentClassReponseList.subList(start, end);
-            PaginatedData<StudentClassReponse> data = new PaginatedData<>(pagedResult,
-                    new PaginationMeta(studentClassReponseList.size(), pagedResult.size(), size, page ,
-                            (int) Math.ceil((double) studentClassReponseList.size() / size)));
+            List<StudentClassResponse> pagedResult = studentClassResponseList.subList(start, end);
+            PaginatedData<StudentClassResponse> data = new PaginatedData<>(pagedResult,
+                    new PaginationMeta(studentClassResponseList.size(), pagedResult.size(), size, page ,
+                            (int) Math.ceil((double) studentClassResponseList.size() / size)));
 
             return ApiResponseBuilder.success("Danh sách lớp của một khoa", data);
         } catch (Exception e) {
@@ -199,23 +198,23 @@ public class StudentClassController {
         try {
             if (page < 1) page = 1;
             if (size < 1) size = 10;
-            List<StudentClassReponse> studentClassReponseList=
+            List<StudentClassResponse> studentClassResponseList =
                     studentClassService.listClassOfDepartmentId(id, name);
             if(name!= null && !name.isEmpty()){
-                if(studentClassReponseList.isEmpty()){
+                if(studentClassResponseList.isEmpty()){
                     return ApiResponseBuilder.notFound("Không tìm thấy lớp!");
                 }
             }
             int start = (page - 1) * size;
-            int end = Math.min(start + size, studentClassReponseList.size());
-            if (start >= studentClassReponseList.size()) {
+            int end = Math.min(start + size, studentClassResponseList.size());
+            if (start >= studentClassResponseList.size()) {
                 return ApiResponseBuilder.notFound("Chưa có lớp nào!");
             }
 
-            List<StudentClassReponse> pagedResult = studentClassReponseList.subList(start, end);
-            PaginatedData<StudentClassReponse> data = new PaginatedData<>(pagedResult,
-                    new PaginationMeta(studentClassReponseList.size(), pagedResult.size(), size, page ,
-                            (int) Math.ceil((double) studentClassReponseList.size() / size)));
+            List<StudentClassResponse> pagedResult = studentClassResponseList.subList(start, end);
+            PaginatedData<StudentClassResponse> data = new PaginatedData<>(pagedResult,
+                    new PaginationMeta(studentClassResponseList.size(), pagedResult.size(), size, page ,
+                            (int) Math.ceil((double) studentClassResponseList.size() / size)));
 
             return ApiResponseBuilder.success("Danh sách lớp của một khoa", data);
         } catch (Exception e) {

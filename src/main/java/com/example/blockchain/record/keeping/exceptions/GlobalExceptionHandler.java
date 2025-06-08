@@ -26,4 +26,9 @@ public class GlobalExceptionHandler {
     public ResponseEntity<?> handleBadRequestException(BadRequestException ex) {
         return ApiResponseBuilder.badRequest(ex.getMessage());
     }
+
+    @ExceptionHandler(NotFoundRequestException.class)
+    public ResponseEntity<?> handleNotFoundRequestException(NotFoundRequestException ex) {
+        return ApiResponseBuilder.notFound(ex.getMessage());
+    }
 }

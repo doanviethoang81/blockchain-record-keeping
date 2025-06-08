@@ -69,8 +69,8 @@ public class StudentExcelListener extends AnalysisEventListener<StudentExcelRowR
             StudentExcelRowRequest row = rows.get(i);
             int rowIndex = i + 1;
 
-            if (rows.size() > 500) {
-                throw new BadRequestException("Chỉ cho phép tối đa 500 sinh viên/lần import");
+            if (rows.size() > 1000) {
+                throw new BadRequestException("Chỉ cho phép tối đa 1000 sinh viên/lần import");
             }
 
             if (!duplicateStudentCodes.add(row.getStudentCode())) {

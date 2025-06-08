@@ -142,4 +142,5 @@ public interface CertificateRepository extends JpaRepository<Certificate,Long> {
                                                   @Param("studentCode") String studentCode,
                                                   @Param("studentName") String studentName);
 
+    Certificate findByIpfsUrl(String ipfsUrl);
 }

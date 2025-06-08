@@ -1,20 +1,20 @@
 package com.example.blockchain.record.keeping.response;
 
-
-import com.example.blockchain.record.keeping.models.Permission;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-
-import java.util.List;
+import lombok.NoArgsConstructor;
 
 @Data
 @Builder
 @AllArgsConstructor
-public class UserReponse {
+@NoArgsConstructor
+public class UniversityResponse {
     private Long id;
     private String name;
     private String email;
-    private boolean isLocked;
-    private List<String> permissions;
+    private String address;
+    private String taxCode;
+    private String website;
+    private String logo;
 }

@@ -1,23 +1,15 @@
 package com.example.blockchain.record.keeping.controllers;
 
-import com.example.blockchain.record.keeping.enums.Status;
 import com.example.blockchain.record.keeping.models.*;
 import com.example.blockchain.record.keeping.response.*;
 import com.example.blockchain.record.keeping.services.*;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
-import org.apache.tomcat.util.http.parser.Authorization;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -45,8 +37,8 @@ public class UniversityController {
     ){
         try{
             List<User> userList = universityService.findAllUserUniversity(nameUniversity);
-            List<UniversityReponse> universityReponsesList = userList.stream()
-                    .map(u-> new UniversityReponse(
+            List<UniversityResponse> universityReponsesList = userList.stream()
+                    .map(u-> new UniversityResponse(
                             u.getId(),
                             u.getUniversity().getName(),
                             u.getUniversity().getEmail(),
@@ -71,8 +63,8 @@ public class UniversityController {
             if (start >= universityReponsesList.size()) {
                 return ApiResponseBuilder.notFound("Chưa có trường nào!");
             }
-            List<UniversityReponse> pagedResult = universityReponsesList.subList(start, end);
-            PaginatedData<UniversityReponse> data = new PaginatedData<>(pagedResult,
+            List<UniversityResponse> pagedResult = universityReponsesList.subList(start, end);
+            PaginatedData<UniversityResponse> data = new PaginatedData<>(pagedResult,
                     new PaginationMeta(
                             universityReponsesList.size(),
                             pagedResult.size(),

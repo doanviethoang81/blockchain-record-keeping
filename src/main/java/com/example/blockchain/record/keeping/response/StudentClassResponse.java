@@ -7,7 +7,7 @@ import lombok.Data;
 @Data
 @Builder
 @AllArgsConstructor
-public class StudentClassReponse {
+public class StudentClassResponse {
     private Long id;
     private String className;
 }

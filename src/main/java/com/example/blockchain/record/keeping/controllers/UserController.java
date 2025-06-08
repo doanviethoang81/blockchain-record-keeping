@@ -1,15 +1,11 @@
 package com.example.blockchain.record.keeping.controllers;
 
-import com.example.blockchain.record.keeping.dtos.StatisticsAdminDTO;
-import com.example.blockchain.record.keeping.dtos.StatisticsDepartmentDTO;
-import com.example.blockchain.record.keeping.dtos.StatisticsUniversityDTO;
 import com.example.blockchain.record.keeping.dtos.request.ChangePasswordRequest;
-import com.example.blockchain.record.keeping.models.Department;
 import com.example.blockchain.record.keeping.models.University;
 import com.example.blockchain.record.keeping.models.User;
 import com.example.blockchain.record.keeping.response.ApiResponseBuilder;
 import com.example.blockchain.record.keeping.response.DepartmentDetailResponse;
-import com.example.blockchain.record.keeping.response.UniversityReponse;
+import com.example.blockchain.record.keeping.response.UniversityResponse;
 import com.example.blockchain.record.keeping.services.BrevoApiEmailService;
 import com.example.blockchain.record.keeping.services.DepartmentService;
 import com.example.blockchain.record.keeping.services.UniversityService;
@@ -100,7 +96,7 @@ public class UserController {
             String username = authentication.getName();
             University university = universityService.getUniversityByEmail(username);
 
-            UniversityReponse universityDetailReponse= new UniversityReponse();
+            UniversityResponse universityDetailReponse= new UniversityResponse();
             universityDetailReponse.setId(university.getId());
             universityDetailReponse.setName(university.getName());
             universityDetailReponse.setEmail(university.getEmail());
@@ -173,7 +169,7 @@ public class UserController {
             String username = authentication.getName();
             User user = userService.findByUser(username);
 
-            UniversityReponse universityDetailReponse= new UniversityReponse();
+            UniversityResponse universityDetailReponse= new UniversityResponse();
             universityDetailReponse.setId(user.getUniversity().getId());
             universityDetailReponse.setName(user.getUniversity().getName());
             universityDetailReponse.setEmail(user.getUniversity().getEmail());
@@ -185,7 +181,7 @@ public class UserController {
 
             DepartmentDetailResponse departmentDetailResponse= new DepartmentDetailResponse();
             departmentDetailResponse.setNameDepartment(user.getDepartment().getName());
-            departmentDetailResponse.setUniversityReponse(universityDetailReponse);
+            departmentDetailResponse.setUniversityResponse(universityDetailReponse);
             return ApiResponseBuilder.success("Thông tin chi tiết của khoa", departmentDetailResponse);
         } catch (Exception e) {
             return ApiResponseBuilder.internalError("Đã xảy ra lỗi!");

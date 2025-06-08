@@ -7,7 +7,7 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class StudentOfUniversityReponse {
+public class StudentOfUniversityResponse {
     private Long id;
     private String name;
     private String className;

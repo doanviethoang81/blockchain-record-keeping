@@ -4,10 +4,7 @@ import com.example.blockchain.record.keeping.enums.Status;
 import com.example.blockchain.record.keeping.models.Department;
 import com.example.blockchain.record.keeping.models.StudentClass;
 import com.example.blockchain.record.keeping.repositorys.StudentClassRepository;
-import com.example.blockchain.record.keeping.response.ApiResponseBuilder;
-import com.example.blockchain.record.keeping.response.DepartmentWithClassReponse;
-import com.example.blockchain.record.keeping.response.StudentClassReponse;
-import lombok.AllArgsConstructor;
+import com.example.blockchain.record.keeping.response.StudentClassResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -81,31 +78,31 @@ public class StudentClassService implements IStudentClassService{
     }
 
 
-    public List<StudentClassReponse> getAllClassofUniversity(Long id,String name){
+    public List<StudentClassResponse> getAllClassofUniversity(Long id, String name){
         List<StudentClass> studentClassList = studentClassRepository.findAllClassOfUniversityByName(id, name);
-        List<StudentClassReponse> studentClassReponseList= new ArrayList<>();
+        List<StudentClassResponse> studentClassResponseList = new ArrayList<>();
         for (StudentClass studentClass : studentClassList){
-            StudentClassReponse studentClassReponse = new StudentClassReponse(
+            StudentClassResponse studentClassResponse = new StudentClassResponse(
                     studentClass.getId(),
                     studentClass.getName()
             );
-            studentClassReponseList.add(studentClassReponse);
+            studentClassResponseList.add(studentClassResponse);
         }
-        return  studentClassReponseList;
+        return studentClassResponseList;
     }
 
     // list class của 1 khoa theo id khoa
-    public List<StudentClassReponse> listClassOfDepartmentId(Long departmentId, String name){
+    public List<StudentClassResponse> listClassOfDepartmentId(Long departmentId, String name){
         List<StudentClass> studentClassList = studentClassRepository.findAllClassesByDepartmentId(departmentId, name);
 
-        List<StudentClassReponse> studentClassReponseList = new ArrayList<>();
+        List<StudentClassResponse> studentClassResponseList = new ArrayList<>();
         for (StudentClass studentClass : studentClassList){
-            StudentClassReponse studentClassReponse = new StudentClassReponse(
+            StudentClassResponse studentClassResponse = new StudentClassResponse(
                     studentClass.getId(),
                     studentClass.getName()
             );
-            studentClassReponseList.add(studentClassReponse);
+            studentClassResponseList.add(studentClassResponse);
         }
-        return studentClassReponseList;
+        return studentClassResponseList;
     }
 }

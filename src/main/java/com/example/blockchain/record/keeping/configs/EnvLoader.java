@@ -19,10 +19,6 @@ public class EnvLoader {
 
         setEnvIfMissing("REDIS_HOST", dotenv);
         setEnvIfMissing("REDIS_PASSWORD", dotenv);
-
-//        setEnvIfMissing("CLOUDINARY_NAME", dotenv);
-//        setEnvIfMissing("CLOUDINARY_KEY", dotenv);
-//        setEnvIfMissing("CLOUDINARY_SECRET", dotenv);
     }
 
     private static void setEnvIfMissing(String key, Dotenv dotenv) {
