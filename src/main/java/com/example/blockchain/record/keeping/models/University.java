@@ -41,6 +41,12 @@ public class University {
     @Column(name ="seal_image_url")
     private String sealImageUrl;
 
+    @Column(name ="public_key")
+    private String publicKey;
+
+    @Column(name ="private_key")
+    private String privateKey;
+
     @Column(name="created_at")
     private LocalDateTime createdAt;
 

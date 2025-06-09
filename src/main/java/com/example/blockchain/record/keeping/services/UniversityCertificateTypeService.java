@@ -1,5 +1,6 @@
 package com.example.blockchain.record.keeping.services;
 
+import com.example.blockchain.record.keeping.enums.Status;
 import com.example.blockchain.record.keeping.models.CertificateType;
 import com.example.blockchain.record.keeping.models.University;
 import com.example.blockchain.record.keeping.models.UniversityCertificateType;
@@ -39,7 +40,7 @@ public class UniversityCertificateTypeService implements IUniversityCertificateT
 
 
     public boolean existsByUniversityAndCertificateName(University university, String certificateName) {
-        return universityCertificateTypeRepository.existsByUniversityAndCertificateType_NameIgnoreCase(university, certificateName.trim());
+        return universityCertificateTypeRepository.existsByUniversityAndCertificateType_NameIgnoreCaseAndCertificateType_Status(university, certificateName.trim(), Status.ACTIVE);
     }
 
     public List<CertificateType> listUniversityCertificateTypes(Long universityId) {

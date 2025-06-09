@@ -22,6 +22,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.NoSuchAlgorithmException;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.*;
@@ -46,7 +47,7 @@ public class AuthenticationController {
     private final ImageUploadService imageUploadService;
     private final DepartmentService departmentService;
     private final TokenBlacklistService tokenBlacklistService;
-
+    private  final UniversityService universityService;
 
     @PostMapping("/api/auth/register")
     public ResponseEntity<?> register(@Valid @ModelAttribute RegisterRequest request, BindingResult bindingResult) {
@@ -204,7 +205,7 @@ public class AuthenticationController {
     }
 
     @PostMapping("/api/auth/verify-otp")
-    public ResponseEntity<?> verifyOtp(@RequestBody VerifyOtpRequest request) {
+    public ResponseEntity<?> verifyOtp(@RequestBody VerifyOtpRequest request) throws NoSuchAlgorithmException {
         String email = request.getEmail();
         String otp = request.getOtp();
 
@@ -220,6 +221,18 @@ public class AuthenticationController {
                 userPermission.setPermission(permission);
                 userPermissionService.save(userPermission);
             }
+
+            // tạo cặp khóa private key, public
+            ZonedDateTime vietnamTime = ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
+            RSAKeyPairGenerator keyGen = new RSAKeyPairGenerator();
+            String publicKey = Base64.getEncoder().encodeToString(keyGen.getPublicKey().getEncoded());
+            String privateKey = Base64.getEncoder().encodeToString(keyGen.getPrivateKey().getEncoded());
+            University university = universityService.findById(user.getUniversity().getId());
+            university.setPublicKey(publicKey);
+            university.setPrivateKey(privateKey);
+            university.setUpdatedAt(vietnamTime.toLocalDateTime());
+            universityRepository.save(university);
+
             return ApiResponseBuilder.success("OTP hợp lệ!", null);
         }
         else{

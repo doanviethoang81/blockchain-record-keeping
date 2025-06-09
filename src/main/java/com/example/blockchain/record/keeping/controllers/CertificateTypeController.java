@@ -158,12 +158,16 @@ public class CertificateTypeController {
             HttpServletRequest request)
     {
         try {
+            String username = SecurityContextHolder.getContext().getAuthentication().getName();
+            University university = universityService.getUniversityByEmail(username);
+
             String name = request.getParameter("name");
             if(!StringUtils.hasText(name)){
                 return ApiResponseBuilder.badRequest("Vui lòng nhập đầy đủ thông tin!");
             }
-            if(certificateTypeService.existsByNameAndStatus(name)){
-                return ApiResponseBuilder.badRequest("Tên chứng chỉ đã tồn tại!");
+            boolean exists = universityCertificateTypeService.existsByUniversityAndCertificateName(university, name);
+            if (exists) {
+                return ApiResponseBuilder.badRequest("Tên chứng chỉ đã tồn tại trong trường này!");
             }
             certificateTypeService.update(id, name);
             return ApiResponseBuilder.success("Sửa thông tin loại chứng chỉ thành công", null);
@@ -208,7 +212,6 @@ public class CertificateTypeController {
             if (CollectionUtils.isEmpty(result)) {
                 return ApiResponseBuilder.notFound("Không có chứng chỉ nào!");
             }
-
             return ApiResponseBuilder.success("Lấy danh sách loại chứng chỉ cho khoa thành công.", result);
         } catch (Exception e) {
             return ApiResponseBuilder.internalError("Lỗi: " + e.getMessage());

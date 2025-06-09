@@ -1,5 +1,6 @@
 package com.example.blockchain.record.keeping.repositorys;
 
+import com.example.blockchain.record.keeping.enums.Status;
 import com.example.blockchain.record.keeping.models.Certificate;
 import com.example.blockchain.record.keeping.models.CertificateType;
 import com.example.blockchain.record.keeping.models.University;
@@ -21,7 +22,7 @@ public interface UniversityCertificateTypeRepository extends JpaRepository<Unive
 
     List<UniversityCertificateType> findByUniversity(University university);
 
-    boolean existsByUniversityAndCertificateType_NameIgnoreCase(University university, String name);
+    boolean existsByUniversityAndCertificateType_NameIgnoreCaseAndCertificateType_Status(University university, String name, Status status);
 
     @Query(value = """
             SELECT ct.* from certificate_types ct

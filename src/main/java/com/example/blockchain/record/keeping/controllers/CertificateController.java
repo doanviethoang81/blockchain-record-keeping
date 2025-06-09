@@ -116,8 +116,8 @@ public class CertificateController {
     ) {
         try {
             Certificate certificate= certificateService.findById(id);
-            String ipfsUrl = Constants.IPFS_URL + certificate.getIpfsUrl();
-            CertificateDetailResponse certificateDetailResponse = new CertificateDetailResponse(
+            String ipfsUrl = certificate.getIpfsUrl() != null ? Constants.IPFS_URL + certificate.getIpfsUrl() : null;
+                    CertificateDetailResponse certificateDetailResponse = new CertificateDetailResponse(
                     certificate.getId(),
                     certificate.getStudent().getName(),
                     certificate.getStudent().getStudentClass().getName(),
@@ -317,8 +317,8 @@ public class CertificateController {
                     certificate.getGrantor(),
                     certificate.getSigner(),
                     convertStatusToDisplay(certificate.getStatus()),
+                    certificate.getImageUrl(),
                     Constants.IPFS_URL + ipfsUrl,
-                    certificate.getIpfsUrl(),
                     certificate.getQrCodeUrl(),
                     certificate.getBlockchainTxHash(),
                     certificate.getUpdatedAt()
