@@ -343,19 +343,36 @@ public class CertificateController {
     @PostMapping("/verify/decrypt")
     public ResponseEntity<?> decryptData(@RequestBody DecryptRequest request) {
         try {
-            // Chuyển public key từ Base64 thành PublicKey object
             PublicKey publicKey = RSAKeyPairGenerator.getPublicKeyFromBase64(request.getPublicKeyBase64());
-
-            // Giải mã từ base64 -> byte[]
-//            byte[] encryptedBytes = Base64.getDecoder().decode(request.getEncryptedData());
-//            String decrypted = rsaUtil.decryptWithPublicKey(encryptedBytes, publicKey);
-//            Object jsonObject = objectMapper.readValue(decrypted, Object.class);
-
-            return ApiResponseBuilder.success("Giải mã thành công", null);
+            String decrypted = rsaUtil.decryptWithPublicKeyFromHex(request.getEncryptedData(), publicKey);
+            Object jsonObject = objectMapper.readValue(decrypted, Object.class);
+            return ApiResponseBuilder.success("Giải mã thành công", jsonObject);
         } catch (Exception e) {
             return ApiResponseBuilder.internalError( "Giải mã thất bại!");
         }
     }
+
+//S
+//    @PostMapping("/verify/decrypt")
+//    public ResponseEntity<?> decryptData(@RequestBody DecryptRequest request) {
+//        try {
+//            String txHash = request.getEncryptedData();
+//            String schoolPublicKey = request.getPublicKeyBase64();
+//
+//            String encryptedHexData = blockchainService.getEncryptedHexData(txHash);
+//
+//            // Nếu muốn giải mã:
+//            // String decrypted = blockchainService.decrypt(encryptedHexData, schoolPublicKey);
+//
+//            Map<String, Object> result = new HashMap<>();
+//            result.put("encryptedHexData", encryptedHexData);
+//            // result.put("decryptedData", decrypted);
+//
+//            return ApiResponseBuilder.success("Lấy dữ liệu thành công", result);
+//        } catch (Exception e) {
+//            return ApiResponseBuilder.internalError("Giải mã thất bại: " + e.getMessage());
+//        }
+//    }
 
     //---------------------------- KHOA -------------------------------------------------------
     // all chunng chi cua 1 khoa

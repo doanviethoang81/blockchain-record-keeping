@@ -255,13 +255,9 @@ public class CertificateService implements ICertificateService{
 //            byte[] encrypted = rsaUtil.encryptWithPrivateKey(json, privateKey);
 //            String encryptedBase64 = rsaUtil.encryptToBase64WithPrivateKey(json, privateKey);
 
-
             String base64PrivateKey = certificate.getUniversityCertificateType().getUniversity().getPrivateKey();
             PrivateKey privateKey = RSAKeyPairGenerator.getPrivateKeyFromBase64(base64PrivateKey);
             String json = objectMapper.writeValueAsString(request);
-//            byte[] encryptedBytes = rsaUtil.encryptWithPrivateKey(json, privateKey);
-//
-//
             String encryptedHex = rsaUtil.encryptWithPrivateKeyToHex(json, privateKey);
 
             //giai
@@ -270,10 +266,10 @@ public class CertificateService implements ICertificateService{
             String decrypted = rsaUtil.decryptWithPublicKeyFromHex(encryptedHex, publicKey);
 
             //gửi blockchain và lấy txHash naof goij thi mo
-//            String txHash = issueCertificate(encryptedBytes);
+            String txHash = issueCertificate(encryptedHex);
 
 
-            String txHash = "123"; //sua
+//            String txHash = "123"; //sua
             certificate.setBlockchainTxHash(txHash);
 //            certificateRepository.save(certificate);
         } catch (Exception e) {
@@ -300,7 +296,7 @@ public class CertificateService implements ICertificateService{
 
     public String issueCertificate(String encryptedData) throws Exception {
         try {
-            TransactionReceipt receipt = contract.issueEncryptedCertificate(
+            TransactionReceipt receipt = contract.saveCertificate(
                     encryptedData
             ).send();
 

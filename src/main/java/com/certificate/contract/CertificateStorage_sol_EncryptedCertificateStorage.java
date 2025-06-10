@@ -13,7 +13,6 @@ import org.web3j.abi.datatypes.Event;
 import org.web3j.abi.datatypes.Function;
 import org.web3j.abi.datatypes.Type;
 import org.web3j.abi.datatypes.Utf8String;
-import org.web3j.abi.datatypes.generated.Uint256;
 import org.web3j.crypto.Credentials;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.DefaultBlockParameter;
@@ -38,22 +37,14 @@ import org.web3j.tx.gas.ContractGasProvider;
  */
 @SuppressWarnings("rawtypes")
 public class CertificateStorage_sol_EncryptedCertificateStorage extends Contract {
-    public static final String BINARY = "6080604052348015600e575f5ffd5b50335f5f6101000a81548173ffffffffffffffffffffffffffffffffffffffff021916908373ffffffffffffffffffffffffffffffffffffffff160217905550610a138061005b5f395ff3fe608060405234801561000f575f5ffd5b506004361061003f575f3560e01c80636356a15d146100435780638da5cb5b14610073578063ea7c10ae14610091575b5f5ffd5b61005d60048036038101906100589190610308565b6100ad565b60405161006a91906103a3565b60405180910390f35b61007b6101a0565b6040516100889190610402565b60405180910390f35b6100ab60048036038101906100a69190610547565b6101c4565b005b606060018054905082106100f6576040517f08c379a00000000000000000000000000000000000000000000000000000000081526004016100ed906105d8565b60405180910390fd5b6001828154811061010a576101096105f6565b5b905f5260205f2001805461011d90610650565b80601f016020809104026020016040519081016040528092919081815260200182805461014990610650565b80156101945780601f1061016b57610100808354040283529160200191610194565b820191905f5260205f20905b81548152906001019060200180831161017757829003601f168201915b50505050509050919050565b5f5f9054906101000a900473ffffffffffffffffffffffffffffffffffffffff1681565b5f5f9054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff163373ffffffffffffffffffffffffffffffffffffffff1614610252576040517f08c379a0000000000000000000000000000000000000000000000000000000008152600401610249906106f0565b60405180910390fd5b600181908060018154018082558091505060019003905f5260205f20015f90919091909150908161028391906108ae565b506001808054905061029591906109aa565b7f6b352e211b4d936da8b329b89379dc32df52c107a79a9544f3ecb5ccbe5ee2b760405160405180910390a250565b5f604051905090565b5f5ffd5b5f5ffd5b5f819050919050565b6102e7816102d5565b81146102f1575f5ffd5b50565b5f81359050610302816102de565b92915050565b5f6020828403121561031d5761031c6102cd565b5b5f61032a848285016102f4565b91505092915050565b5f81519050919050565b5f82825260208201905092915050565b8281835e5f83830152505050565b5f601f19601f8301169050919050565b5f61037582610333565b61037f818561033d565b935061038f81856020860161034d565b6103988161035b565b840191505092915050565b5f6020820190508181035f8301526103bb818461036b565b905092915050565b5f73ffffffffffffffffffffffffffffffffffffffff82169050919050565b5f6103ec826103c3565b9050919050565b6103fc816103e2565b82525050565b5f6020820190506104155f8301846103f3565b92915050565b5f5ffd5b5f5ffd5b7f4e487b71000000000000000000000000000000000000000000000000000000005f52604160045260245ffd5b6104598261035b565b810181811067ffffffffffffffff8211171561047857610477610423565b5b80604052505050565b5f61048a6102c4565b90506104968282610450565b919050565b5f67ffffffffffffffff8211156104b5576104b4610423565b5b6104be8261035b565b9050602081019050919050565b828183375f83830152505050565b5f6104eb6104e68461049b565b610481565b9050828152602081018484840111156105075761050661041f565b5b6105128482856104cb565b509392505050565b5f82601f83011261052e5761052d61041b565b5b813561053e8482602086016104d9565b91505092915050565b5f6020828403121561055c5761055b6102cd565b5b5f82013567ffffffffffffffff811115610579576105786102d1565b5b6105858482850161051a565b91505092915050565b7f496e76616c696420696e646578000000000000000000000000000000000000005f82015250565b5f6105c2600d8361033d565b91506105cd8261058e565b602082019050919050565b5f6020820190508181035f8301526105ef816105b6565b9050919050565b7f4e487b71000000000000000000000000000000000000000000000000000000005f52603260045260245ffd5b7f4e487b71000000000000000000000000000000000000000000000000000000005f52602260045260245ffd5b5f600282049050600182168061066757607f821691505b60208210810361067a57610679610623565b5b50919050565b7f4f6e6c79206f776e65722063616e20706572666f726d207468697320616374695f8201527f6f6e000000000000000000000000000000000000000000000000000000000000602082015250565b5f6106da60228361033d565b91506106e582610680565b604082019050919050565b5f6020820190508181035f830152610707816106ce565b9050919050565b5f819050815f5260205f209050919050565b5f6020601f8301049050919050565b5f82821b905092915050565b5f6008830261076a7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff8261072f565b610774868361072f565b95508019841693508086168417925050509392505050565b5f819050919050565b5f6107af6107aa6107a5846102d5565b61078c565b6102d5565b9050919050565b5f819050919050565b6107c883610795565b6107dc6107d4826107b6565b84845461073b565b825550505050565b5f5f905090565b6107f36107e4565b6107fe8184846107bf565b505050565b5b81811015610821576108165f826107eb565b600181019050610804565b5050565b601f821115610866576108378161070e565b61084084610720565b8101602085101561084f578190505b61086361085b85610720565b830182610803565b50505b505050565b5f82821c905092915050565b5f6108865f198460080261086b565b1980831691505092915050565b5f61089e8383610877565b9150826002028217905092915050565b6108b782610333565b67ffffffffffffffff8111156108d0576108cf610423565b5b6108da8254610650565b6108e5828285610825565b5f60209050601f831160018114610916575f8415610904578287015190505b61090e8582610893565b865550610975565b601f1984166109248661070e565b5f5b8281101561094b57848901518255600182019150602085019450602081019050610926565b868310156109685784890151610964601f891682610877565b8355505b6001600288020188555050505b505050505050565b7f4e487b71000000000000000000000000000000000000000000000000000000005f52601160045260245ffd5b5f6109b4826102d5565b91506109bf836102d5565b92508282039050818111156109d7576109d661097d565b5b9291505056fea26469706673582212208fa8a3a7cf3857bcb39daf56b34b8ae5835441a2a711442d003bf73514ff41f964736f6c634300081e0033";
+    public static final String BINARY = "6080604052348015600e575f5ffd5b506102e48061001c5f395ff3fe608060405234801561000f575f5ffd5b5060043610610029575f3560e01c80636e18da9c1461002d575b5f5ffd5b610047600480360381019061004291906101e7565b610049565b005b3373ffffffffffffffffffffffffffffffffffffffff167f6781cdfeb0818feca3bced73ef9831d9aeafaae661468caec13d851e4e98114d8260405161008f919061028e565b60405180910390a250565b5f604051905090565b5f5ffd5b5f5ffd5b5f5ffd5b5f5ffd5b5f601f19601f8301169050919050565b7f4e487b71000000000000000000000000000000000000000000000000000000005f52604160045260245ffd5b6100f9826100b3565b810181811067ffffffffffffffff82111715610118576101176100c3565b5b80604052505050565b5f61012a61009a565b905061013682826100f0565b919050565b5f67ffffffffffffffff821115610155576101546100c3565b5b61015e826100b3565b9050602081019050919050565b828183375f83830152505050565b5f61018b6101868461013b565b610121565b9050828152602081018484840111156101a7576101a66100af565b5b6101b284828561016b565b509392505050565b5f82601f8301126101ce576101cd6100ab565b5b81356101de848260208601610179565b91505092915050565b5f602082840312156101fc576101fb6100a3565b5b5f82013567ffffffffffffffff811115610219576102186100a7565b5b610225848285016101ba565b91505092915050565b5f81519050919050565b5f82825260208201905092915050565b8281835e5f83830152505050565b5f6102608261022e565b61026a8185610238565b935061027a818560208601610248565b610283816100b3565b840191505092915050565b5f6020820190508181035f8301526102a68184610256565b90509291505056fea2646970667358221220a6efb5aac0d27d9b1d00b6005ccb598a60a60889256dd90e496086d5274c302364736f6c634300081e0033";
 
     private static String librariesLinkedBinary;
 
-    public static final String FUNC_GETENCRYPTEDCERTIFICATE = "getEncryptedCertificate";
+    public static final String FUNC_SAVECERTIFICATE = "saveCertificate";
 
-    public static final String FUNC_ISSUEENCRYPTEDCERTIFICATE = "issueEncryptedCertificate";
-
-    public static final String FUNC_OWNER = "owner";
-
-    public static final Event CERTIFICATEISSUED_EVENT = new Event("CertificateIssued", 
-            Arrays.<TypeReference<?>>asList(new TypeReference<Uint256>(true) {}));
-    ;
-
-    public static final Event CERTIFICATEREVOKED_EVENT = new Event("CertificateRevoked", 
-            Arrays.<TypeReference<?>>asList(new TypeReference<Uint256>(true) {}));
+    public static final Event CERTIFICATESAVED_EVENT = new Event("CertificateSaved", 
+            Arrays.<TypeReference<?>>asList(new TypeReference<Address>(true) {}, new TypeReference<Utf8String>() {}));
     ;
 
     @Deprecated
@@ -80,92 +71,46 @@ public class CertificateStorage_sol_EncryptedCertificateStorage extends Contract
         super(BINARY, contractAddress, web3j, transactionManager, contractGasProvider);
     }
 
-//    public static List<CertificateIssuedEventResponse> getCertificateIssuedEvents(
+//    public static List<CertificateSavedEventResponse> getCertificateSavedEvents(
 //            TransactionReceipt transactionReceipt) {
-//        List<Contract.EventValuesWithLog> valueList = staticExtractEventParametersWithLog(CERTIFICATEISSUED_EVENT, transactionReceipt);
-//        ArrayList<CertificateIssuedEventResponse> responses = new ArrayList<CertificateIssuedEventResponse>(valueList.size());
+//        List<Contract.EventValuesWithLog> valueList = staticExtractEventParametersWithLog(CERTIFICATESAVED_EVENT, transactionReceipt);
+//        ArrayList<CertificateSavedEventResponse> responses = new ArrayList<CertificateSavedEventResponse>(valueList.size());
 //        for (Contract.EventValuesWithLog eventValues : valueList) {
-//            CertificateIssuedEventResponse typedResponse = new CertificateIssuedEventResponse();
+//            CertificateSavedEventResponse typedResponse = new CertificateSavedEventResponse();
 //            typedResponse.log = eventValues.getLog();
-//            typedResponse.index = (BigInteger) eventValues.getIndexedValues().get(0).getValue();
+//            typedResponse.sender = (String) eventValues.getIndexedValues().get(0).getValue();
+//            typedResponse.encryptedHexData = (String) eventValues.getNonIndexedValues().get(0).getValue();
 //            responses.add(typedResponse);
 //        }
 //        return responses;
 //    }
 
-    public static CertificateIssuedEventResponse getCertificateIssuedEventFromLog(Log log) {
-        Contract.EventValuesWithLog eventValues = staticExtractEventParametersWithLog(CERTIFICATEISSUED_EVENT, log);
-        CertificateIssuedEventResponse typedResponse = new CertificateIssuedEventResponse();
+    public static CertificateSavedEventResponse getCertificateSavedEventFromLog(Log log) {
+        Contract.EventValuesWithLog eventValues = staticExtractEventParametersWithLog(CERTIFICATESAVED_EVENT, log);
+        CertificateSavedEventResponse typedResponse = new CertificateSavedEventResponse();
         typedResponse.log = log;
-        typedResponse.index = (BigInteger) eventValues.getIndexedValues().get(0).getValue();
+        typedResponse.sender = (String) eventValues.getIndexedValues().get(0).getValue();
+        typedResponse.encryptedHexData = (String) eventValues.getNonIndexedValues().get(0).getValue();
         return typedResponse;
     }
 
-    public Flowable<CertificateIssuedEventResponse> certificateIssuedEventFlowable(
-            EthFilter filter) {
-        return web3j.ethLogFlowable(filter).map(log -> getCertificateIssuedEventFromLog(log));
+    public Flowable<CertificateSavedEventResponse> certificateSavedEventFlowable(EthFilter filter) {
+        return web3j.ethLogFlowable(filter).map(log -> getCertificateSavedEventFromLog(log));
     }
 
-    public Flowable<CertificateIssuedEventResponse> certificateIssuedEventFlowable(
+    public Flowable<CertificateSavedEventResponse> certificateSavedEventFlowable(
             DefaultBlockParameter startBlock, DefaultBlockParameter endBlock) {
         EthFilter filter = new EthFilter(startBlock, endBlock, getContractAddress());
-        filter.addSingleTopic(EventEncoder.encode(CERTIFICATEISSUED_EVENT));
-        return certificateIssuedEventFlowable(filter);
+        filter.addSingleTopic(EventEncoder.encode(CERTIFICATESAVED_EVENT));
+        return certificateSavedEventFlowable(filter);
     }
 
-//    public static List<CertificateRevokedEventResponse> getCertificateRevokedEvents(
-//            TransactionReceipt transactionReceipt) {
-//        List<Contract.EventValuesWithLog> valueList = staticExtractEventParametersWithLog(CERTIFICATEREVOKED_EVENT, transactionReceipt);
-//        ArrayList<CertificateRevokedEventResponse> responses = new ArrayList<CertificateRevokedEventResponse>(valueList.size());
-//        for (Contract.EventValuesWithLog eventValues : valueList) {
-//            CertificateRevokedEventResponse typedResponse = new CertificateRevokedEventResponse();
-//            typedResponse.log = eventValues.getLog();
-//            typedResponse.index = (BigInteger) eventValues.getIndexedValues().get(0).getValue();
-//            responses.add(typedResponse);
-//        }
-//        return responses;
-//    }
-
-    public static CertificateRevokedEventResponse getCertificateRevokedEventFromLog(Log log) {
-        Contract.EventValuesWithLog eventValues = staticExtractEventParametersWithLog(CERTIFICATEREVOKED_EVENT, log);
-        CertificateRevokedEventResponse typedResponse = new CertificateRevokedEventResponse();
-        typedResponse.log = log;
-        typedResponse.index = (BigInteger) eventValues.getIndexedValues().get(0).getValue();
-        return typedResponse;
-    }
-
-    public Flowable<CertificateRevokedEventResponse> certificateRevokedEventFlowable(
-            EthFilter filter) {
-        return web3j.ethLogFlowable(filter).map(log -> getCertificateRevokedEventFromLog(log));
-    }
-
-    public Flowable<CertificateRevokedEventResponse> certificateRevokedEventFlowable(
-            DefaultBlockParameter startBlock, DefaultBlockParameter endBlock) {
-        EthFilter filter = new EthFilter(startBlock, endBlock, getContractAddress());
-        filter.addSingleTopic(EventEncoder.encode(CERTIFICATEREVOKED_EVENT));
-        return certificateRevokedEventFlowable(filter);
-    }
-
-    public RemoteFunctionCall<String> getEncryptedCertificate(BigInteger index) {
-        final Function function = new Function(FUNC_GETENCRYPTEDCERTIFICATE, 
-                Arrays.<Type>asList(new org.web3j.abi.datatypes.generated.Uint256(index)), 
-                Arrays.<TypeReference<?>>asList(new TypeReference<Utf8String>() {}));
-        return executeRemoteCallSingleValueReturn(function, String.class);
-    }
-
-    public RemoteFunctionCall<TransactionReceipt> issueEncryptedCertificate(String encryptedData) {
+    public RemoteFunctionCall<TransactionReceipt> saveCertificate(String encryptedHexData) {
         final Function function = new Function(
-                FUNC_ISSUEENCRYPTEDCERTIFICATE, 
-                Arrays.<Type>asList(new org.web3j.abi.datatypes.Utf8String(encryptedData)), 
+                FUNC_SAVECERTIFICATE, 
+                Arrays.<Type>asList(new org.web3j.abi.datatypes.Utf8String(encryptedHexData)), 
                 Collections.<TypeReference<?>>emptyList());
         return executeRemoteCallTransaction(function);
-    }
-
-    public RemoteFunctionCall<String> owner() {
-        final Function function = new Function(FUNC_OWNER, 
-                Arrays.<Type>asList(), 
-                Arrays.<TypeReference<?>>asList(new TypeReference<Address>() {}));
-        return executeRemoteCallSingleValueReturn(function, String.class);
     }
 
     @Deprecated
@@ -197,15 +142,15 @@ public class CertificateStorage_sol_EncryptedCertificateStorage extends Contract
         return deployRemoteCall(CertificateStorage_sol_EncryptedCertificateStorage.class, web3j, credentials, contractGasProvider, getDeploymentBinary(), "");
     }
 
-    public static RemoteCall<CertificateStorage_sol_EncryptedCertificateStorage> deploy(Web3j web3j,
-            TransactionManager transactionManager, ContractGasProvider contractGasProvider) {
-        return deployRemoteCall(CertificateStorage_sol_EncryptedCertificateStorage.class, web3j, transactionManager, contractGasProvider, getDeploymentBinary(), "");
-    }
-
     @Deprecated
     public static RemoteCall<CertificateStorage_sol_EncryptedCertificateStorage> deploy(Web3j web3j,
             Credentials credentials, BigInteger gasPrice, BigInteger gasLimit) {
         return deployRemoteCall(CertificateStorage_sol_EncryptedCertificateStorage.class, web3j, credentials, gasPrice, gasLimit, getDeploymentBinary(), "");
+    }
+
+    public static RemoteCall<CertificateStorage_sol_EncryptedCertificateStorage> deploy(Web3j web3j,
+            TransactionManager transactionManager, ContractGasProvider contractGasProvider) {
+        return deployRemoteCall(CertificateStorage_sol_EncryptedCertificateStorage.class, web3j, transactionManager, contractGasProvider, getDeploymentBinary(), "");
     }
 
     @Deprecated
@@ -214,6 +159,9 @@ public class CertificateStorage_sol_EncryptedCertificateStorage extends Contract
         return deployRemoteCall(CertificateStorage_sol_EncryptedCertificateStorage.class, web3j, transactionManager, gasPrice, gasLimit, getDeploymentBinary(), "");
     }
 
+//    public static void linkLibraries(List<Contract.LinkReference> references) {
+//        librariesLinkedBinary = linkBinaryWithReferences(BINARY, references);
+//    }
 
     private static String getDeploymentBinary() {
         if (librariesLinkedBinary != null) {
@@ -223,11 +171,9 @@ public class CertificateStorage_sol_EncryptedCertificateStorage extends Contract
         }
     }
 
-    public static class CertificateIssuedEventResponse extends BaseEventResponse {
-        public BigInteger index;
-    }
+    public static class CertificateSavedEventResponse extends BaseEventResponse {
+        public String sender;
 
-    public static class CertificateRevokedEventResponse extends BaseEventResponse {
-        public BigInteger index;
+        public String encryptedHexData;
     }
 }

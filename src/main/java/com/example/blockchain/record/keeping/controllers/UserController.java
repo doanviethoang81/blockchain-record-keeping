@@ -5,6 +5,7 @@ import com.example.blockchain.record.keeping.models.University;
 import com.example.blockchain.record.keeping.models.User;
 import com.example.blockchain.record.keeping.response.ApiResponseBuilder;
 import com.example.blockchain.record.keeping.response.DepartmentDetailResponse;
+import com.example.blockchain.record.keeping.response.UniversityDetaillResponse;
 import com.example.blockchain.record.keeping.response.UniversityResponse;
 import com.example.blockchain.record.keeping.services.BrevoApiEmailService;
 import com.example.blockchain.record.keeping.services.DepartmentService;
@@ -96,14 +97,17 @@ public class UserController {
             String username = authentication.getName();
             University university = universityService.getUniversityByEmail(username);
 
-            UniversityResponse universityDetailReponse= new UniversityResponse();
-            universityDetailReponse.setId(university.getId());
-            universityDetailReponse.setName(university.getName());
-            universityDetailReponse.setEmail(university.getEmail());
-            universityDetailReponse.setAddress(university.getAddress());
-            universityDetailReponse.setTaxCode(university.getTaxCode());
-            universityDetailReponse.setWebsite(university.getWebsite());
-            universityDetailReponse.setLogo(university.getLogo());
+            UniversityDetaillResponse universityDetailReponse= new UniversityDetaillResponse(
+                    university.getName(),
+                    university.getEmail(),
+                    university.getAddress(),
+                    university.getTaxCode(),
+                    university.getWebsite(),
+                    university.getPublicKey(),
+                    university.getPrivateKey(),
+                    university.getWebsite(),
+                    university.getSealImageUrl()
+            );
             return ApiResponseBuilder.success("Thông tin chi tiết của trường đại học", universityDetailReponse);
         } catch (Exception e) {
             return ApiResponseBuilder.internalError("Đã xảy ra lỗi!");
@@ -181,6 +185,7 @@ public class UserController {
 
             DepartmentDetailResponse departmentDetailResponse= new DepartmentDetailResponse();
             departmentDetailResponse.setNameDepartment(user.getDepartment().getName());
+            departmentDetailResponse.setEmail(user.getEmail());
             departmentDetailResponse.setUniversityResponse(universityDetailReponse);
             return ApiResponseBuilder.success("Thông tin chi tiết của khoa", departmentDetailResponse);
         } catch (Exception e) {
