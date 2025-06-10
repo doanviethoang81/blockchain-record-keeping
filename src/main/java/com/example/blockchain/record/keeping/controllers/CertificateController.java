@@ -340,39 +340,38 @@ public class CertificateController {
     }
 
     // xác nhận public key
-    @PostMapping("/verify/decrypt")
-    public ResponseEntity<?> decryptData(@RequestBody DecryptRequest request) {
-        try {
-            PublicKey publicKey = RSAKeyPairGenerator.getPublicKeyFromBase64(request.getPublicKeyBase64());
-            String decrypted = rsaUtil.decryptWithPublicKeyFromHex(request.getEncryptedData(), publicKey);
-            Object jsonObject = objectMapper.readValue(decrypted, Object.class);
-            return ApiResponseBuilder.success("Giải mã thành công", jsonObject);
-        } catch (Exception e) {
-            return ApiResponseBuilder.internalError( "Giải mã thất bại!");
-        }
-    }
-
-//S
 //    @PostMapping("/verify/decrypt")
 //    public ResponseEntity<?> decryptData(@RequestBody DecryptRequest request) {
 //        try {
-//            String txHash = request.getEncryptedData();
-//            String schoolPublicKey = request.getPublicKeyBase64();
-//
-//            String encryptedHexData = blockchainService.getEncryptedHexData(txHash);
-//
-//            // Nếu muốn giải mã:
-//            // String decrypted = blockchainService.decrypt(encryptedHexData, schoolPublicKey);
-//
-//            Map<String, Object> result = new HashMap<>();
-//            result.put("encryptedHexData", encryptedHexData);
-//            // result.put("decryptedData", decrypted);
-//
-//            return ApiResponseBuilder.success("Lấy dữ liệu thành công", result);
+//            if (request == null || !StringUtils.hasText(request.getTransactionHash()) ||
+//                    !StringUtils.hasText(request.getPublicKeyBase64())) {
+//                return ApiResponseBuilder.badRequest("Vui lòng nhập đầy đủ thông tin!");
+//            }
+//            PublicKey publicKey = RSAKeyPairGenerator.getPublicKeyFromBase64(request.getPublicKeyBase64());
+//            String decrypted = rsaUtil.decryptWithPublicKeyFromHex(request.getTransactionHash(), publicKey);
+//            Object jsonObject = objectMapper.readValue(decrypted, Object.class);
+//            return ApiResponseBuilder.success("Giải mã thành công", jsonObject);
 //        } catch (Exception e) {
-//            return ApiResponseBuilder.internalError("Giải mã thất bại: " + e.getMessage());
+//            return ApiResponseBuilder.internalError( "Giải mã thất bại!");
 //        }
 //    }
+
+    @PostMapping("/verify/decrypt")
+    public ResponseEntity<?> decryptData(@RequestBody DecryptRequest request) {
+        try {
+            if (request == null || !StringUtils.hasText(request.getTransactionHash()) ||
+                    !StringUtils.hasText(request.getPublicKeyBase64())) {
+                return ApiResponseBuilder.badRequest("Vui lòng nhập đầy đủ thông tin!");
+            }
+            String encryptedData = certificateService.extractEncryptedData(request.getTransactionHash());
+            PublicKey publicKey = RSAKeyPairGenerator.getPublicKeyFromBase64(request.getPublicKeyBase64());
+            String decrypted = rsaUtil.decryptWithPublicKeyFromHex(encryptedData, publicKey);
+            Object jsonObject = objectMapper.readValue(decrypted, Object.class);
+            return ApiResponseBuilder.success("Giải mã thành công", jsonObject);
+        } catch (Exception e) {
+            return ApiResponseBuilder.internalError("Giải mã thất bại: " + e.getMessage());
+        }
+    }
 
     //---------------------------- KHOA -------------------------------------------------------
     // all chunng chi cua 1 khoa

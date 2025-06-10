@@ -19,9 +19,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.web3j.crypto.Credentials;
 import org.web3j.protocol.Web3j;
+import org.web3j.protocol.core.methods.response.EthTransaction;
+import org.web3j.protocol.core.methods.response.Transaction;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.tx.gas.ContractGasProvider;
+import org.web3j.utils.Numeric;
 
+import java.nio.charset.StandardCharsets;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.time.LocalDate;
@@ -249,25 +253,13 @@ public class CertificateService implements ICertificateService{
                     certificate.getDiplomaNumber(),
                     ipfsUrl
             );
-//            String base64PrivateKey  = certificate.getUniversityCertificateType().getUniversity().getPrivateKey();
-//            String json = objectMapper.writeValueAsString(request);
-//            PrivateKey privateKey  = RSAKeyPairGenerator.getPrivateKeyFromBase64(base64PrivateKey);
-//            byte[] encrypted = rsaUtil.encryptWithPrivateKey(json, privateKey);
-//            String encryptedBase64 = rsaUtil.encryptToBase64WithPrivateKey(json, privateKey);
-
             String base64PrivateKey = certificate.getUniversityCertificateType().getUniversity().getPrivateKey();
             PrivateKey privateKey = RSAKeyPairGenerator.getPrivateKeyFromBase64(base64PrivateKey);
             String json = objectMapper.writeValueAsString(request);
             String encryptedHex = rsaUtil.encryptWithPrivateKeyToHex(json, privateKey);
 
-            //giai
-            String base64PublicKey = certificate.getUniversityCertificateType().getUniversity().getPublicKey();
-            PublicKey publicKey = RSAKeyPairGenerator.getPublicKeyFromBase64(base64PublicKey);
-            String decrypted = rsaUtil.decryptWithPublicKeyFromHex(encryptedHex, publicKey);
-
             //gửi blockchain và lấy txHash naof goij thi mo
             String txHash = issueCertificate(encryptedHex);
-
 
 //            String txHash = "123"; //sua
             certificate.setBlockchainTxHash(txHash);
@@ -306,6 +298,27 @@ public class CertificateService implements ICertificateService{
         } catch (Exception e) {
             throw new Exception("Transaction failed: " + e.getMessage());
         }
+    }
+
+    public String extractEncryptedData(String transactionHash) throws Exception {
+        EthTransaction transactionResponse = web3j.ethGetTransactionByHash(transactionHash).send();
+        Optional<org.web3j.protocol.core.methods.response.Transaction> txOpt = transactionResponse.getTransaction();
+
+        if (txOpt.isEmpty()) {
+            throw new RuntimeException("Transaction không tồn tại.");
+        }
+        String input = txOpt.get().getInput();
+
+        if (input == null || input.length() <= 10) {
+            throw new RuntimeException("Không tìm thấy input data trong transaction.");
+        }
+
+        //bỏ function selector (4 byte đầu = 8 hex) + "0x"
+        String encodedHex = input.substring(10);
+        byte[] decodedBytes = Numeric.hexStringToByteArray(encodedHex);
+        String encryptedData = new String(decodedBytes, StandardCharsets.UTF_8);
+
+        return encryptedData.trim();
     }
 
 }
