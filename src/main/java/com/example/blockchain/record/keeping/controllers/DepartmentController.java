@@ -59,14 +59,14 @@ public class DepartmentController {
 
             if (name != null && !name.isEmpty()) {
                 if (userRepons.isEmpty()) {
-                    return ApiResponseBuilder.notFound("Không tìm thấy khoa!");
+                    return ApiResponseBuilder.success("Không tìm thấy khoa!",userRepons);
                 }
             }
 
             int start = (page-1) * size;
             int end = Math.min(start + size, userRepons.size());
             if (start >= userRepons.size()) {
-                return ApiResponseBuilder.notFound("Chưa có khoa nào!");
+                return ApiResponseBuilder.success("Chưa có khoa nào!",userRepons);
             }
 
             List<UserResponse> pagedResult = userRepons.subList(start, end);
@@ -277,14 +277,14 @@ public class DepartmentController {
 
             if (name != null && !name.isEmpty()) {
                 if (userRepons.isEmpty()) {
-                    return ApiResponseBuilder.notFound("Không tìm thấy khoa!");
+                    return ApiResponseBuilder.success("Không tìm thấy khoa!",userRepons);
                 }
             }
 
             int start = (page-1) * size;
             int end = Math.min(start + size, userRepons.size());
             if (start >= userRepons.size()) {
-                return ApiResponseBuilder.notFound("Chưa có khoa nào!");
+                return ApiResponseBuilder.success("Chưa có khoa nào!",userRepons);
             }
 
             List<UserResponse> pagedResult = userRepons.subList(start, end);

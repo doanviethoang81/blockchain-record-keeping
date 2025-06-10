@@ -1,35 +1,34 @@
 package com.example.blockchain.record.keeping.services;
-import com.certificate.contract.CertificateStorage_sol_CertificateStorage;
+import com.certificate.contract.CertificateStorage_sol_EncryptedCertificateStorage;
 import com.example.blockchain.record.keeping.configs.Constants;
+import com.example.blockchain.record.keeping.dtos.request.CertificateBlockchainRequest;
 import com.example.blockchain.record.keeping.dtos.request.CertificatePrintData;
 import com.example.blockchain.record.keeping.dtos.request.CertificateRequest;
 import com.example.blockchain.record.keeping.enums.Status;
-import com.example.blockchain.record.keeping.exceptions.NotFoundRequestException;
 import com.example.blockchain.record.keeping.models.*;
 import com.example.blockchain.record.keeping.repositorys.*;
-import com.example.blockchain.record.keeping.response.ApiResponseBuilder;
 import com.example.blockchain.record.keeping.utils.EnvUtil;
 import com.example.blockchain.record.keeping.utils.PinataUploader;
 import com.example.blockchain.record.keeping.utils.QrCodeUtil;
+import com.example.blockchain.record.keeping.utils.RSAUtil;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.web3j.crypto.Credentials;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.tx.gas.ContractGasProvider;
 
-import java.io.IOException;
-import java.math.BigInteger;
+import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
+import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
 
@@ -45,10 +44,16 @@ public class CertificateService implements ICertificateService{
     private final QrCodeUtil qrCodeUtil;
     private final Credentials credentials;
     private final ContractGasProvider gasProvider;
-    private final CertificateStorage_sol_CertificateStorage contract;
+    private final CertificateStorage_sol_EncryptedCertificateStorage contract;
 
     @Autowired
     private Web3j web3j;
+
+    @Autowired
+    private ObjectMapper objectMapper;
+
+    @Autowired
+    private RSAUtil rsaUtil;
 
     @Override
     public List<Certificate> listCertificateOfStudent(Student student) {
@@ -237,23 +242,40 @@ public class CertificateService implements ICertificateService{
                     certificate.getStudent().getStudentClass().getDepartment().getUniversity().getName(),
                     certificateUrl);
 
-            String ipfsCertificateUrl = Constants.IPFS_URL + ipfsUrl;
+            CertificateBlockchainRequest request = new CertificateBlockchainRequest(
+                    certificate.getStudent().getName(),
+                    certificate.getUniversityCertificateType().getUniversity().getName(),
+                    certificate.getIssueDate().format(formatter),
+                    certificate.getDiplomaNumber(),
+                    ipfsUrl
+            );
+//            String base64PrivateKey  = certificate.getUniversityCertificateType().getUniversity().getPrivateKey();
+//            String json = objectMapper.writeValueAsString(request);
+//            PrivateKey privateKey  = RSAKeyPairGenerator.getPrivateKeyFromBase64(base64PrivateKey);
+//            byte[] encrypted = rsaUtil.encryptWithPrivateKey(json, privateKey);
+//            String encryptedBase64 = rsaUtil.encryptToBase64WithPrivateKey(json, privateKey);
+
+
+            String base64PrivateKey = certificate.getUniversityCertificateType().getUniversity().getPrivateKey();
+            PrivateKey privateKey = RSAKeyPairGenerator.getPrivateKeyFromBase64(base64PrivateKey);
+            String json = objectMapper.writeValueAsString(request);
+//            byte[] encryptedBytes = rsaUtil.encryptWithPrivateKey(json, privateKey);
+//
+//
+            String encryptedHex = rsaUtil.encryptWithPrivateKeyToHex(json, privateKey);
+
+            //giai
+            String base64PublicKey = certificate.getUniversityCertificateType().getUniversity().getPublicKey();
+            PublicKey publicKey = RSAKeyPairGenerator.getPublicKeyFromBase64(base64PublicKey);
+            String decrypted = rsaUtil.decryptWithPublicKeyFromHex(encryptedHex, publicKey);
 
             //gửi blockchain và lấy txHash naof goij thi mo
-//            String txHash = issueCertificate(
-//                    certificate.getStudent().getStudentCode(),
-//                    certificate.getStudent().getName(),
-//                    certificate.getStudent().getBirthDate().format(formatter),
-//                    certificate.getStudent().getCourse(),
-//                    certificate.getUniversityCertificateType().getUniversity().getName(),
-//                    certificate.getIssueDate().format(formatter),
-//                    certificate.getDiplomaNumber(),
-//                    ipfsCertificateUrl
-//            );
+//            String txHash = issueCertificate(encryptedBytes);
+
 
             String txHash = "123"; //sua
             certificate.setBlockchainTxHash(txHash);
-            certificateRepository.save(certificate);
+//            certificateRepository.save(certificate);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -273,29 +295,13 @@ public class CertificateService implements ICertificateService{
 
         // Địa chỉ của smart contract sau khi deploy
         String contractAddress = EnvUtil.get("SMART_CONTRACT_CERTIFICATE_ADDRESS");
-        this.contract = CertificateStorage_sol_CertificateStorage.load(contractAddress, web3j, credentials, gasProvider);
+        this.contract = CertificateStorage_sol_EncryptedCertificateStorage.load(contractAddress, web3j, credentials, gasProvider);
     }
 
-    public String issueCertificate(
-            String studentCode,
-            String studentName,
-            String birthDate,
-            String course,
-            String university,
-            String createdAt,
-            String diplomaNumber,
-            String certificateImageHash
-    ) throws Exception {
+    public String issueCertificate(String encryptedData) throws Exception {
         try {
-            TransactionReceipt receipt = contract.issueCertificate(
-                    studentCode,
-                    studentName,
-                    birthDate,
-                    course,
-                    university,
-                    createdAt,
-                    diplomaNumber,
-                    certificateImageHash
+            TransactionReceipt receipt = contract.issueEncryptedCertificate(
+                    encryptedData
             ).send();
 
             String txHash = receipt.getTransactionHash();

@@ -4,14 +4,17 @@ import com.alibaba.excel.EasyExcel;
 import com.example.blockchain.record.keeping.configs.Constants;
 import com.example.blockchain.record.keeping.dtos.CertificateExcelRowDTO;
 import com.example.blockchain.record.keeping.dtos.request.CertificateRequest;
+import com.example.blockchain.record.keeping.dtos.request.DecryptRequest;
 import com.example.blockchain.record.keeping.enums.Status;
 import com.example.blockchain.record.keeping.models.*;
 import com.example.blockchain.record.keeping.response.*;
 import com.example.blockchain.record.keeping.services.*;
+import com.example.blockchain.record.keeping.utils.RSAUtil;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -21,11 +24,14 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -44,6 +50,8 @@ public class CertificateController {
     private final UniversityCertificateTypeService universityCertificateTypeService;
     private final GraphicsTextWriter graphicsTextWriter;
     private final BrevoApiEmailService brevoApiEmailService;
+    private final ObjectMapper objectMapper;
+    private final RSAUtil rsaUtil;
 
     //---------------------------- ADMIN -------------------------------------------------------
     // xem all chứng chỉ
@@ -73,7 +81,7 @@ public class CertificateController {
                     ||studentName != null && !studentName.isEmpty()
             ) {
                 if (certificateList.isEmpty()) {
-                    return ApiResponseBuilder.notFound("Không tìm thấy chứng chỉ ");
+                    return ApiResponseBuilder.success("Không tìm thấy chứng chỉ ",certificateList);
                 }
             }
             List<CertificateResponse> certificateResponseList = certificateList.stream()
@@ -92,7 +100,7 @@ public class CertificateController {
             int start = (page - 1) * size;
             int end = Math.min(start + size, certificateResponseList.size());
             if (start >= certificateResponseList.size()) {
-                return ApiResponseBuilder.notFound("Chưa có chứng chỉ nào!");
+                return ApiResponseBuilder.success("Chưa có chứng chỉ nào!",certificateList);
             }
 
             List<CertificateResponse> pagedResult = certificateResponseList.subList(start, end);
@@ -176,7 +184,7 @@ public class CertificateController {
                     ||studentName != null && !studentName.isEmpty()
             ) {
                 if (certificateList.isEmpty()) {
-                    return ApiResponseBuilder.notFound("Không tìm thấy chứng chỉ!");
+                    return ApiResponseBuilder.success("Không tìm thấy chứng chỉ!",certificateList);
                 }
             }
             List<CertificateResponse> certificateResponseList = certificateList.stream()
@@ -195,7 +203,7 @@ public class CertificateController {
             int start = (page - 1) * size;
             int end = Math.min(start + size, certificateResponseList.size());
             if (start >= certificateResponseList.size()) {
-                return ApiResponseBuilder.notFound("Không có chứng chỉ nào!");
+                return ApiResponseBuilder.success("Không có chứng chỉ nào!",certificateList);
             }
 
             List<CertificateResponse> pagedResult = certificateResponseList.subList(start, end);
@@ -239,7 +247,7 @@ public class CertificateController {
                     ||studentName != null && !studentName.isEmpty()
             ) {
                 if (certificateList.isEmpty()) {
-                    return ApiResponseBuilder.notFound("Không tìm thấy chứng chỉ!");
+                    return ApiResponseBuilder.success("Không tìm thấy chứng chỉ!",certificateList);
                 }
             }
             List<CertificateResponse> certificateResponseList = certificateList.stream()
@@ -258,7 +266,7 @@ public class CertificateController {
             int start = (page - 1) * size;
             int end = Math.min(start + size, certificateResponseList.size());
             if (start >= certificateResponseList.size()) {
-                return ApiResponseBuilder.notFound("Chưa có chứng chỉ nào!");
+                return ApiResponseBuilder.success("Chưa có chứng chỉ nào!",certificateList);
             }
 
             List<CertificateResponse> pagedResult = certificateResponseList.subList(start, end);
@@ -299,7 +307,7 @@ public class CertificateController {
             }
             Certificate certificate = certificateService.findByIpfsUrl(ipfsUrl);
             if(certificate == null){
-                return ApiResponseBuilder.notFound("Không tìm thấy chứng chỉ!");
+                return ApiResponseBuilder.success("Không tìm thấy chứng chỉ!",certificate);
             }
             CertificateDetailResponse certificateDetailResponse = new CertificateDetailResponse(
                     certificate.getId(),
@@ -331,6 +339,24 @@ public class CertificateController {
         }
     }
 
+    // xác nhận public key
+    @PostMapping("/verify/decrypt")
+    public ResponseEntity<?> decryptData(@RequestBody DecryptRequest request) {
+        try {
+            // Chuyển public key từ Base64 thành PublicKey object
+            PublicKey publicKey = RSAKeyPairGenerator.getPublicKeyFromBase64(request.getPublicKeyBase64());
+
+            // Giải mã từ base64 -> byte[]
+//            byte[] encryptedBytes = Base64.getDecoder().decode(request.getEncryptedData());
+//            String decrypted = rsaUtil.decryptWithPublicKey(encryptedBytes, publicKey);
+//            Object jsonObject = objectMapper.readValue(decrypted, Object.class);
+
+            return ApiResponseBuilder.success("Giải mã thành công", null);
+        } catch (Exception e) {
+            return ApiResponseBuilder.internalError( "Giải mã thất bại!");
+        }
+    }
+
     //---------------------------- KHOA -------------------------------------------------------
     // all chunng chi cua 1 khoa
     @PreAuthorize("hasAuthority('READ')")
@@ -357,7 +383,7 @@ public class CertificateController {
                     ||studentName != null && !studentName.isEmpty()
             ) {
                 if (certificateList.isEmpty()) {
-                    return ApiResponseBuilder.notFound("Không tìm thấy chứng chỉ ");
+                    return ApiResponseBuilder.success("Không tìm thấy chứng chỉ ",certificateList);
                 }
             }
             List<CertificateResponse> certificateResponseList = certificateList.stream()
@@ -376,7 +402,7 @@ public class CertificateController {
             int start = (page - 1) * size;
             int end = Math.min(start + size, certificateResponseList.size());
             if (start >= certificateResponseList.size()) {
-                return ApiResponseBuilder.notFound("Chưa có chứng chỉ nào!");
+                return ApiResponseBuilder.success("Chưa có chứng chỉ nào!",certificateList);
             }
 
             List<CertificateResponse> pagedResult = certificateResponseList.subList(start, end);
@@ -417,7 +443,7 @@ public class CertificateController {
                     ||studentName != null && !studentName.isEmpty()
             ) {
                 if (certificateList.isEmpty()) {
-                    return ApiResponseBuilder.notFound("Không tìm thấy chứng chỉ ");
+                    return ApiResponseBuilder.success("Không tìm thấy chứng chỉ ",certificateList);
                 }
             }
             List<CertificateResponse> certificateResponseList = certificateList.stream()
@@ -436,7 +462,7 @@ public class CertificateController {
             int start = (page - 1) * size;
             int end = Math.min(start + size, certificateResponseList.size());
             if (start >= certificateResponseList.size()) {
-                return ApiResponseBuilder.notFound("Chưa có chứng chỉ nào!");
+                return ApiResponseBuilder.success("Chưa có chứng chỉ nào!",certificateList);
             }
 
             List<CertificateResponse> pagedResult = certificateResponseList.subList(start, end);
@@ -476,7 +502,7 @@ public class CertificateController {
                     .collect(Collectors.toList());
 
             if(studentList.isEmpty()){
-                return ApiResponseBuilder.notFound("Không tìm thấy sinh viên");
+                return ApiResponseBuilder.success("Không tìm thấy sinh viên",studentList);
             }
             return ApiResponseBuilder.success("Tìm kiếm thành công", studentResponseList);
         } catch (Exception e) {

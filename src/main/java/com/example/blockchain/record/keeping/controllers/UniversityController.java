@@ -51,7 +51,7 @@ public class UniversityController {
 
             if ((nameUniversity != null && !nameUniversity.isEmpty())){
                 if(universityReponsesList.isEmpty()){
-                    return ApiResponseBuilder.notFound("Không tìm thấy!");
+                    return ApiResponseBuilder.success("Không tìm thấy!",universityReponsesList);
                 }
             }
 
@@ -61,7 +61,7 @@ public class UniversityController {
             int start = (page - 1)* size;
             int end = Math.min(start + size, universityReponsesList.size());
             if (start >= universityReponsesList.size()) {
-                return ApiResponseBuilder.notFound("Chưa có trường nào!");
+                return ApiResponseBuilder.success("Chưa có trường nào!",universityReponsesList);
             }
             List<UniversityResponse> pagedResult = universityReponsesList.subList(start, end);
             PaginatedData<UniversityResponse> data = new PaginatedData<>(pagedResult,

@@ -63,7 +63,7 @@ public class StudentController {
                     || (className != null && !className.isEmpty())
                     || (studentName != null && !studentName.isEmpty())) {
                 if(studentList.isEmpty()){
-                    return ApiResponseBuilder.notFound("Không tìm thấy sinh viên!");
+                    return ApiResponseBuilder.success("Không tìm thấy sinh viên!",studentList);
                 }
             }
 
@@ -85,7 +85,7 @@ public class StudentController {
             int start = (page -1) * size;
             int end = Math.min(start + size, studentResponseList.size());
             if (start >= studentResponseList.size()) {
-                return ApiResponseBuilder.notFound("Không có sinh viên nào!");
+                return ApiResponseBuilder.success("Không có sinh viên nào!",studentResponseList);
             }
 
             List<StudentOfUniversityResponse> pagedResult = studentResponseList.subList(start, end);
@@ -132,7 +132,7 @@ public class StudentController {
                     ))
                     .collect(Collectors.toList());
             if(studentClassResponseList.isEmpty()){
-                return ApiResponseBuilder.notFound("Khoa này chưa có lớp nào!");
+                return ApiResponseBuilder.success("Khoa này chưa có lớp nào!",studentClassResponseList);
             }
             return ApiResponseBuilder.success("Các lớp của khoa", studentClassResponseList);
 
@@ -306,11 +306,11 @@ public class StudentController {
                     || (className != null && !className.isEmpty())
                     || (studentName != null && !studentName.isEmpty())) {
                 if(studentList.isEmpty()){
-                    return ApiResponseBuilder.notFound("Không tìm thấy sinh viên!");
+                    return ApiResponseBuilder.success("Không tìm thấy sinh viên!",studentList);
                 }
             }
             if (start >= studentResponseList.size()) {
-                return ApiResponseBuilder.notFound("Khoa chưa có sinh viên nào!");
+                return ApiResponseBuilder.success("Khoa chưa có sinh viên nào!",studentList);
             }
 
             List<StudentResponse> pagedResult = studentResponseList.subList(start, end);

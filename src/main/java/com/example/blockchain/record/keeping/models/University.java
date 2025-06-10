@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.time.LocalDateTime;
 
 @Data

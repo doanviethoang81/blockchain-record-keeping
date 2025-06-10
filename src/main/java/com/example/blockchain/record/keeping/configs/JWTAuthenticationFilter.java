@@ -41,7 +41,7 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter {
             String path = request.getRequestURI();
             //bỏ qua các URL không cần kiểm tra token
             if (path.startsWith("/api/auth/")
-                    || path.startsWith("/api/v1/verify")
+                    || path.startsWith("/api/v1/verify/")
                     || path.startsWith("/v3/api-docs")
                     || path.startsWith("/swagger-ui")
                     || path.equals("/swagger-ui.html")) {

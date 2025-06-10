@@ -3,10 +3,7 @@ package com.example.blockchain.record.keeping.controllers;
 import com.example.blockchain.record.keeping.dtos.CertificateTypeDTO;
 import com.example.blockchain.record.keeping.dtos.request.CertificateTypeRequest;
 import com.example.blockchain.record.keeping.enums.Status;
-import com.example.blockchain.record.keeping.models.CertificateType;
-import com.example.blockchain.record.keeping.models.University;
-import com.example.blockchain.record.keeping.models.UniversityCertificateType;
-import com.example.blockchain.record.keeping.models.User;
+import com.example.blockchain.record.keeping.models.*;
 import com.example.blockchain.record.keeping.response.ApiResponseBuilder;
 import com.example.blockchain.record.keeping.response.PaginationMeta;
 import com.example.blockchain.record.keeping.response.PaginatedData;
@@ -56,13 +53,12 @@ public class CertificateTypeController {
         try {
             if (page < 1) page = 1;
             if (size < 1) size = 10;
-            String message ="";
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             String username = authentication.getName();
-            University university = universityService.getUniversityByEmail(username);
+            User user = userService.findByUser(username);
             List<CertificateTypeDTO> certificateTypeDTOS = new ArrayList<>();
 
-            List<CertificateType> result = certificateTypeService.searchByUniversityAndName(university.getId(), name);
+            List<CertificateType> result = certificateTypeService.searchByUniversityAndName(user.getUniversity().getId(), name);
 
             for(CertificateType certificateType : result){
                 CertificateTypeDTO certificateTypeDTO = new CertificateTypeDTO(
@@ -72,29 +68,21 @@ public class CertificateTypeController {
                 certificateTypeDTOS.add(certificateTypeDTO);
             }
             if (name != null && !name.isEmpty()) {// tìm theo tên
-                if (CollectionUtils.isEmpty(result)) {
-                    return ApiResponseBuilder.notFound("Không tìm thấy!");
-                }
-                else {
-                    message = certificateTypeDTOS.isEmpty() ? "Không tìm thấy loại chứng chỉ này!" : "Tìm thành công";
+                if (result.isEmpty()) {
+                    return ApiResponseBuilder.success("Không tìm thấy!",result);
                 }
             }
-            if (CollectionUtils.isEmpty(certificateTypeDTOS)) {
-                return ApiResponseBuilder.notFound("Không có loại chứng chỉ nào!");
-            }
+
             int start = (page-1) * size;
             int end = Math.min(start + size, certificateTypeDTOS.size());
-            if (start > end) {
-                PaginatedData<CertificateTypeDTO> emptyData = new PaginatedData<>(List.of(),
-                        new PaginationMeta(certificateTypeDTOS.size(), 0, size, page,
-                                (int) Math.ceil((double) certificateTypeDTOS.size() / size)));
-                return ApiResponseBuilder.success("Không có dữ liệu!", emptyData);
+            if (start >= result.size()) {
+                return ApiResponseBuilder.success("Không có loại chứng chỉ nào!",result);
             }
             List<CertificateTypeDTO> pagedResult = certificateTypeDTOS.subList(start, end);
             PaginatedData<CertificateTypeDTO> data = new PaginatedData<>(pagedResult,
                     new PaginationMeta(certificateTypeDTOS.size(), pagedResult.size(), size, page ,
                             (int) Math.ceil((double) certificateTypeDTOS.size() / size)));
-            return ApiResponseBuilder.success(message, data);
+            return ApiResponseBuilder.success("Danh sách loại chứng chỉ", data);
         } catch (Exception e) {
             return ApiResponseBuilder.internalError("Lỗi: " + e.getMessage());
         }
@@ -193,30 +181,85 @@ public class CertificateTypeController {
 
     //---------------------------- KHOA -------------------------------------------------------
     // danh sách chứng chỉ cho khoa
+//    @PreAuthorize("hasAuthority('READ')")
+//    @GetMapping("/khoa/certificate-type")
+//    public ResponseEntity<?> getCertificateTypeKhoa(
+//            @RequestParam(defaultValue = "1") int page,
+//            @RequestParam(defaultValue = "10") int size,
+//            @RequestParam(required = false) String name
+//    ) {
+//        try {
+//            if (page < 1) page = 1;
+//            if (size < 1) size = 1000;
+//            String username = SecurityContextHolder.getContext().getAuthentication().getName();
+//            User user = userService.findByUser(username);
+//
+//            List<CertificateTypeDTO> result = universityCertificateTypeService
+//                    .listUniversityCertificateType(user.getUniversity())
+//                    .stream()
+//                    .map(u -> new CertificateTypeDTO(
+//                            u.getCertificateType().getId(),
+//                            u.getCertificateType().getName()
+//                    ))
+//                    .collect(Collectors.toList());
+//
+//            if (CollectionUtils.isEmpty(result)) {
+//                return ApiResponseBuilder.success("Không có chứng chỉ nào!");
+//            }
+//            List<CertificateTypeDTO> pagedResult = result.subList(start, end);
+//            PaginatedData<CertificateTypeDTO> data = new PaginatedData<>(pagedResult,
+//                    new PaginationMeta(certificateTypeDTOS.size(), pagedResult.size(), size, page ,
+//                            (int) Math.ceil((double) certificateTypeDTOS.size() / size)));
+//            return ApiResponseBuilder.success(message, data);
+//            return ApiResponseBuilder.success("Lấy danh sách loại chứng chỉ cho khoa thành công.", result);
+//        } catch (Exception e) {
+//            return ApiResponseBuilder.internalError("Lỗi: " + e.getMessage());
+//        }
+//    }
+
     @PreAuthorize("hasAuthority('READ')")
     @GetMapping("/khoa/certificate-type")
-    public ResponseEntity<?> getCertificateTypeKhoa() {
+    public ResponseEntity<?> getCertificateTypeDepartment(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String name
+    ) {
         try {
-            String username = SecurityContextHolder.getContext().getAuthentication().getName();
+            if (page < 1) page = 1;
+            if (size < 1) size = 1000;
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String username = authentication.getName();
             User user = userService.findByUser(username);
+            List<CertificateTypeDTO> certificateTypeDTOS = new ArrayList<>();
 
-            List<CertificateTypeDTO> result = universityCertificateTypeService
-                    .listUniversityCertificateType(user.getUniversity())
-                    .stream()
-                    .map(u -> new CertificateTypeDTO(
-                            u.getCertificateType().getId(),
-                            u.getCertificateType().getName()
-                    ))
-                    .collect(Collectors.toList());
+            List<CertificateType> result = certificateTypeService.searchByUniversityAndName(user.getUniversity().getId(), name);
 
-            if (CollectionUtils.isEmpty(result)) {
-                return ApiResponseBuilder.notFound("Không có chứng chỉ nào!");
+            for(CertificateType certificateType : result){
+                CertificateTypeDTO certificateTypeDTO = new CertificateTypeDTO(
+                        certificateType.getId(),
+                        certificateType.getName()
+                );
+                certificateTypeDTOS.add(certificateTypeDTO);
             }
-            return ApiResponseBuilder.success("Lấy danh sách loại chứng chỉ cho khoa thành công.", result);
+            if (name != null && !name.isEmpty()) {// tìm theo tên
+                if (result.isEmpty()) {
+                    return ApiResponseBuilder.success("Không tìm thấy!",result);
+                }
+            }
+
+            int start = (page-1) * size;
+            int end = Math.min(start + size, certificateTypeDTOS.size());
+            if (start >= result.size()) {
+                return ApiResponseBuilder.success("Không có loại chứng chỉ nào!",result);
+            }
+            List<CertificateTypeDTO> pagedResult = certificateTypeDTOS.subList(start, end);
+            PaginatedData<CertificateTypeDTO> data = new PaginatedData<>(pagedResult,
+                    new PaginationMeta(certificateTypeDTOS.size(), pagedResult.size(), size, page ,
+                            (int) Math.ceil((double) certificateTypeDTOS.size() / size)));
+            return ApiResponseBuilder.success("Danh sách loại chứng chỉ", data);
         } catch (Exception e) {
             return ApiResponseBuilder.internalError("Lỗi: " + e.getMessage());
         }
     }
-
 
 }
