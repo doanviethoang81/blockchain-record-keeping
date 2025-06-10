@@ -7,20 +7,6 @@ import java.util.Base64;
 
 public class RSAKeyPairGenerator {
 
-//    public static KeyPair generateKeyPair() throws Exception {
-//        KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
-//        generator.initialize(2048);
-//        return generator.generateKeyPair();
-//    }
-//
-//    public static String toBase64PublicKey(PublicKey publicKey) {
-//        return Base64.getEncoder().encodeToString(publicKey.getEncoded());
-//    }
-//
-//    public static String toBase64PrivateKey(PrivateKey privateKey) {
-//        return Base64.getEncoder().encodeToString(privateKey.getEncoded());
-//    }
-
     private PublicKey publicKey;
     private PrivateKey privateKey;
 

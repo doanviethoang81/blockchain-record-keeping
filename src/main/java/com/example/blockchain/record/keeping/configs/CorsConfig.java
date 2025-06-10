@@ -18,12 +18,12 @@ public class CorsConfig {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/**")
-                        .allowedOrigins("https://www.certx.space")
+                        .allowedOrigins("https://www.certx.space", "http://localhost:3000")
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                         .allowedHeaders("*")
                         .allowCredentials(true)
                         .exposedHeaders("Location", "Access-Control-Allow-Origin")
-                        .maxAge(3600); // Cache preflight request
+                        .maxAge(3600);
             }
         };
     }

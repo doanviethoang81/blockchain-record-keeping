@@ -307,7 +307,7 @@ public class CertificateController {
             }
             Certificate certificate = certificateService.findByIpfsUrl(ipfsUrl);
             if(certificate == null){
-                return ApiResponseBuilder.success("Không tìm thấy chứng chỉ!",certificate);
+                return ApiResponseBuilder.badRequest("Không tìm thấy chứng chỉ!");
             }
             CertificateDetailResponse certificateDetailResponse = new CertificateDetailResponse(
                     certificate.getId(),
