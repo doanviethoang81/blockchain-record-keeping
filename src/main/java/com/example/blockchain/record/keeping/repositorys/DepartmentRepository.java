@@ -18,15 +18,10 @@ public interface DepartmentRepository extends JpaRepository<Department,Long> {
     boolean existsByNameIgnoreCaseAndUniversityIdAndStatus(String name, Long universityId, Status status);
 
     // kiểm tra bỏ id đó
-    boolean existsByNameIgnoreCaseAndUniversityIdAndStatusAndIdNot(
-            String name,
-            Long universityId,
-            Status status,
-            Long id
-    );
+    boolean existsByNameIgnoreCaseAndUniversityIdAndStatusAndIdNot(String name,Long universityId,Status status,Long id);
 
-    List<Department> findByUniversity(University university);
-
+    //danh sách khoa của 1 trường
+    List<Department> findByUniversityAndStatus(University university, Status status);
 
     // tìm tên khoa trong 1 tr
     @Query(value = """

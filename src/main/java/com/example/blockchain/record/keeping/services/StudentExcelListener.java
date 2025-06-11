@@ -23,10 +23,7 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @RequiredArgsConstructor
 public class StudentExcelListener extends AnalysisEventListener<StudentExcelRowRequest> {
@@ -62,65 +59,70 @@ public class StudentExcelListener extends AnalysisEventListener<StudentExcelRowR
 
         List<String> errors = new ArrayList<>();
 
+        if (rows.size() > 1000) {
+            throw new BadRequestException("Chỉ cho phép tối đa 1000 sinh viên/lần import");
+        }
+
         Set<String> duplicateStudentCodes = new HashSet<>();
         Set<String> duplicateEmails = new HashSet<>();
+
+        // Cache departments và student classes
+        Map<String, Department> departmentCache = new HashMap<>();
+        Map<String, StudentClass> classCache = new HashMap<>();
+
+        List<Department> departments = departmentService.listDepartmentOfUniversity(university);
+        for (Department dept : departments) {
+            departmentCache.put(dept.getName(), dept);
+
+            List<StudentClass> classes = studentClassService.findAllClassesByDepartmentId(dept.getId(), null);
+            for (StudentClass cls : classes) {
+                classCache.put(cls.getName() + "_" + dept.getId(), cls);
+            }
+        }
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
         for (int i = 0; i < rows.size(); i++) {
             StudentExcelRowRequest row = rows.get(i);
             int rowIndex = i + 1;
 
-            if (rows.size() > 1000) {
-                throw new BadRequestException("Chỉ cho phép tối đa 1000 sinh viên/lần import");
-            }
-
             if (!duplicateStudentCodes.add(row.getStudentCode())) {
                 errors.add("Dòng " + rowIndex + ": Trùng mã sinh viên trong file");
-                continue;
             }
 
             if (!duplicateEmails.add(row.getEmail())) {
                 errors.add("Dòng " + rowIndex + ": Trùng email trong file");
-                continue;
             }
 
             if (row.getName() == null || row.getName().isBlank()) {
                 errors.add("Dòng " + rowIndex + ": Tên sinh viên không được để trống");
-                continue;
-            }
-            if (!row.getName().matches("^[\\p{L}\\s]+$")) {
+            } else if (!row.getName().matches("^[\\p{L}\\s]+$")) {
                 errors.add("Dòng " + rowIndex + ": Tên sinh viên không được chứa số/ký tự đặc biệt");
             }
 
             if (row.getStudentCode() == null || row.getStudentCode().isBlank()) {
                 errors.add("Dòng " + rowIndex + ": Mã số sinh viên không được để trống");
-                continue;
             }
 
             if (row.getEmail() == null || !row.getEmail().matches("^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$")) {
                 errors.add("Dòng " + rowIndex + ": Email không đúng định dạng");
-                continue;
             }
 
             if (row.getDateOfBirth() == null) {
                 errors.add("Dòng " + rowIndex + ": Ngày sinh không được để trống");
-                continue;
-            }
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-
-            try {
-                LocalDate dateOfBirth = LocalDate.parse(row.getDateOfBirth(), formatter);
-                if (dateOfBirth.isAfter(LocalDate.now().minusYears(18))) {
-                    errors.add("Dòng " + rowIndex + ": Ngày sinh dưới 18 tuổi");
-                    continue;
+            } else {
+                try {
+                    LocalDate dateOfBirth = LocalDate.parse(row.getDateOfBirth(), formatter);
+                    if (dateOfBirth.isAfter(LocalDate.now().minusYears(18))) {
+                        errors.add("Dòng " + rowIndex + ": Ngày sinh dưới 18 tuổi");
+                    }
+                } catch (DateTimeParseException e) {
+                    errors.add("Dòng " + rowIndex + ": Ngày sinh không đúng định dạng dd/MM/yyyy");
                 }
-            } catch (DateTimeParseException e) {
-                errors.add("Dòng " + rowIndex + ": Ngày sinh không đúng định dạng dd/MM/yyyy");
-                continue;
             }
 
             if (row.getCourse() == null || row.getCourse().isBlank()) {
                 errors.add("Dòng " + rowIndex + ": Khóa học không được để trống");
-                continue;
             }
 
             if (row.getDepartmentName() == null || row.getDepartmentName().isBlank()) {
@@ -133,21 +135,24 @@ public class StudentExcelListener extends AnalysisEventListener<StudentExcelRowR
                 continue;
             }
 
-            if (studentService.findByStudentCodeOfUniversity(row.getStudentCode(), university.getId()) != null) {
-                errors.add("Dòng " + rowIndex + ": Mã sinh viên đã tồn tại trong hệ thống");
-                continue;
-            }
-
-            Department department = departmentService.findByDepartmentNameOfUniversity(university.getId(), row.getDepartmentName())
-                    .orElse(null);
+            Department department = departmentCache.get(row.getDepartmentName());
             if (department == null) {
                 errors.add("Dòng " + rowIndex + ": Không tìm thấy khoa '" + row.getDepartmentName() + "'");
                 continue;
             }
 
+            StudentClass studentClass = classCache.get(row.getClassName() + "_" + department.getId());
+            if (studentClass == null) {
+                errors.add("Dòng " + rowIndex + ": Lớp '" + row.getClassName() + "' không thuộc khoa '" + row.getDepartmentName() + "'");
+                continue;
+            }
+
+            if (studentService.findByStudentCodeOfUniversity(row.getStudentCode(), university.getId()) != null) {
+                errors.add("Dòng " + rowIndex + ": Mã sinh viên đã tồn tại trong hệ thống");
+            }
+
             if (studentService.findByEmailStudentCodeOfDepartment(row.getEmail(), department.getId()) != null) {
                 errors.add("Dòng " + rowIndex + ": Email sinh viên đã tồn tại trong khoa");
-                continue;
             }
         }
 
@@ -156,17 +161,11 @@ public class StudentExcelListener extends AnalysisEventListener<StudentExcelRowR
         }
 
         for (StudentExcelRowRequest row : rows) {
-            Department department = departmentService.findByDepartmentNameOfUniversity(university.getId(), row.getDepartmentName())
-                    .orElseThrow(() -> new BadRequestException("Không tìm thấy khoa: " + row.getDepartmentName()));
+            Department department = departmentCache.get(row.getDepartmentName());
+            StudentClass studentClass = classCache.get(row.getClassName() + "_" + department.getId());
 
-            StudentClass studentClass = studentClassService.findByClassNameAndDepartmentId(department.getId(), row.getClassName())
-                    .orElseThrow(() -> new BadRequestException("Lớp '" + row.getClassName() + "' không thuộc khoa '" + row.getDepartmentName() + "'"));
-
-            ZonedDateTime now = ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
-
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
             LocalDate dateOfBirth = LocalDate.parse(row.getDateOfBirth(), formatter);
-
+            ZonedDateTime now = ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
             Student student = new Student();
             student.setName(row.getName());
             student.setStudentCode(row.getStudentCode());
@@ -177,7 +176,6 @@ public class StudentExcelListener extends AnalysisEventListener<StudentExcelRowR
             student.setStudentClass(studentClass);
             student.setCreatedAt(now.toLocalDateTime());
             student.setUpdatedAt(now.toLocalDateTime());
-
             studentRepository.save(student);
         }
     }

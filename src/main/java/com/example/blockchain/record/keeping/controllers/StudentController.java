@@ -180,8 +180,7 @@ public class StudentController {
     @PreAuthorize("hasAuthority('WRITE')")
     @PostMapping("/pdt/create-student-excel")
     public ResponseEntity<?> createStudentExcel(
-            @RequestParam("file") MultipartFile file) throws IOException
-    {
+            @RequestParam("file") MultipartFile file) throws IOException {
         if(file.isEmpty()){
             return ApiResponseBuilder.badRequest("Vui lòng chọn file excel để thêm sinh viên!");
         }
@@ -208,7 +207,6 @@ public class StudentController {
         return ApiResponseBuilder.success("Thêm sinh viên thành công", null);
     }
 
-
     //sửa
     @PreAuthorize("hasAuthority('READ')")
     @PutMapping("/pdt/update-student/{id}")
@@ -224,7 +222,6 @@ public class StudentController {
             return ApiResponseBuilder.listBadRequest("Dữ liệu không hợp lệ", errors);
         }
         try {
-            //lấy id của khoa
             User user = userService.finbById(studentRequest.getDepartmentId());
 
             if(!studentClassService.existsByIdAndDepartmentId(studentRequest.getClassId(),user.getDepartment().getId())){

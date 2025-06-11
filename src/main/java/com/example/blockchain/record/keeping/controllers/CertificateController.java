@@ -290,7 +290,11 @@ public class CertificateController {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             String username = authentication.getName();
             University university = universityService.getUniversityByEmail(username);
+            Certificate certificate = certificateService.findByIdAndStatus(id, Status.APPROVED);
 
+            if(certificate != null){
+                return ApiResponseBuilder.badRequest("Chứng chỉ này đã được xác thực rồi!");
+            }
             certificateService.certificateValidation(university,id);
             return ApiResponseBuilder.success("Xác nhận thành công ", null);
         } catch (Exception e) {

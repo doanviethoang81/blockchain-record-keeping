@@ -22,4 +22,6 @@ public interface IDepartmentService {
     Department findById(Long id);
 
     Optional<Department> findByDepartmentNameOfUniversity(Long universityId, String name);
+
+
 }

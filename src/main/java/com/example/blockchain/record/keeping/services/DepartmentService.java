@@ -38,7 +38,7 @@ public class DepartmentService  implements IDepartmentService{
 
     @Override
     public List<Department> listDepartmentOfUniversity(University university) {
-        return departmentRepository.findByUniversity(university);
+        return departmentRepository.findByUniversityAndStatus(university, Status.ACTIVE);
     }
 
     @Override
