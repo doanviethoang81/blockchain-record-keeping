@@ -66,6 +66,45 @@ public class GraphicsTextWriter {
         }
     }
 
+    //tạo văn bằng
+    public String drawDegreeText(CertificatePrintData printData) {
+        try {
+            BufferedImage template = ImageIO.read(new File("templateImg/ddegree_temp.png"));
+            int imageWidth = template.getWidth();
+
+            String universityName = TextFormatter.capitalizeEachWord(printData.getUniversityName());
+            String name = printData.getCertificateTitle();
+            String nameStudent = TextFormatter.capitalizeEachWord(printData.getStudentName());
+            String departmentName = TextFormatter.capitalizeFirst(printData.getDepartmentName());
+            String certificateName = TextFormatter.capitalizeFirst(printData.getCertificateName());
+            String diplomaNumber = printData.getDiplomaNumber();
+            String date = printData.getIssueDate();
+            String grantor = printData.getGrantor();
+            String signer = TextFormatter.capitalizeFirst(printData.getSigner());
+
+            Graphics2D g2d = template.createGraphics();
+            g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+            drawCenteredText(g2d, universityName, fontProvider.FONT_PLAIN, Color.BLACK, imageWidth, 220);
+            drawCenteredText(g2d, name, fontProvider.FONT_RED_BOLD, Color.decode("#d72b10"), imageWidth, 300);
+            drawCenteredText(g2d, nameStudent, fontProvider.FONT_GREAT_VIBES, Color.BLACK, imageWidth, 395);
+            drawCenteredText(g2d, departmentName, fontProvider.FONT_PLAIN, Color.BLACK, imageWidth, 470);
+            drawCenteredText(g2d, certificateName, fontProvider.FONT_PLAIN, Color.BLACK, imageWidth, 530);
+
+            drawText(g2d, diplomaNumber, fontProvider.FONT_SMALL, Color.BLACK, 190, 780);
+            drawText(g2d, date, fontProvider.FONT_SMALL, Color.BLACK, 857, 600);
+            drawCenteredText(g2d, grantor, fontProvider.FONT_PLAIN, Color.BLACK, 462, 640, 817);
+            drawCenteredText(g2d, signer, fontProvider.FONT_PLAIN, Color.BLACK, 462, 780, 817);
+
+            g2d.dispose();
+
+            return imageUploadService.uploadImage(template, "png");
+
+        } catch (IOException e) {
+            throw new BadRequestException("Lỗi khi tạo ảnh!");
+        }
+    }
+
 //    // xác thực in mộc
     public String certificateValidation(String imageCertificateUrl, String sealImageUrl) {
         try {
@@ -87,6 +126,8 @@ public class GraphicsTextWriter {
             return null;
         }
     }
+
+
 
     public static int getCenteredX(Graphics2D g2d, String text, int regionStart, int regionWidth) {
         FontMetrics metrics = g2d.getFontMetrics(g2d.getFont());

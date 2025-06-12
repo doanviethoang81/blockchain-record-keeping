@@ -11,6 +11,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Repository
 public interface CertificateRepository extends JpaRepository<Certificate,Long> {
@@ -143,4 +144,16 @@ public interface CertificateRepository extends JpaRepository<Certificate,Long> {
                                                   @Param("studentName") String studentName);
 
     Certificate findByIpfsUrl(String ipfsUrl);
+
+    //Lấy danh sách sinh viên có chứng chỉ với id này (cho excel thêm ch ch)
+    @Query(value = """
+        SELECT s.student_code
+        FROM certificates c
+        JOIN students s ON c.student_id = s.id
+        JOIN university_certificate_types uct ON c.university_certificate_type_id = uct.id
+        WHERE s.id IN :studentIds AND uct.certificate_type_id = :certificateTypeId
+    """, nativeQuery = true)
+    List<String> findStudentCodesWithCertificateNative(@Param("studentIds") Set<Long> studentIds,
+                                                       @Param("certificateTypeId") Long certificateTypeId);
+
 }

@@ -4,9 +4,12 @@ import com.example.blockchain.record.keeping.dtos.request.CertificateRequest;
 import com.example.blockchain.record.keeping.enums.Status;
 import com.example.blockchain.record.keeping.models.Certificate;
 import com.example.blockchain.record.keeping.models.Student;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 public interface ICertificateService {
 
@@ -40,4 +43,6 @@ public interface ICertificateService {
     List<Certificate> listCertificateOfDepartmentPending(Long departmentId, String className, String studentCode, String studentName);
 
     Certificate findByIpfsUrl(String ipfsUrl);
+
+    Map<String, Boolean> findCertificatesOfStudentsByType(Set<Long> studentIds, Long certificateTypeId);
 }

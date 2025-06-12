@@ -11,6 +11,7 @@ public class FontProvider {
     public final Font FONT_SMALL;
     public final Font FONT_RED_BOLD;
     public final Font FONT_GREAT_VIBES;
+    public final Font FONT_CRIMSONTEXT_BOLD_ITALIC;
 
     public FontProvider() {
         try {
@@ -19,8 +20,11 @@ public class FontProvider {
             FONT_RED_BOLD = new Font("SansSerif", Font.BOLD, 38);
             InputStream is = getClass().getResourceAsStream("/fonts/GreatVibes-Regular.ttf");
             FONT_GREAT_VIBES = Font.createFont(Font.TRUETYPE_FONT, is).deriveFont(54f);
+            InputStream iss = getClass().getResourceAsStream("/fonts/CrimsonText-BoldItalic.ttf");
+            FONT_CRIMSONTEXT_BOLD_ITALIC = Font.createFont(Font.TRUETYPE_FONT, iss).deriveFont(54f);
         } catch (Exception e) {
             throw new RuntimeException("Failed to load fonts", e);
         }
     }
 }
+

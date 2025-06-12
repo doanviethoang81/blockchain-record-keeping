@@ -13,6 +13,7 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -107,6 +108,11 @@ public class StudentService implements IStudentService{
     @Override
     public Optional<Student> findByOneStudentOfDepartment(Long departmentId, String studentCode) {
         return studentRepository.findByOneStudentOfDepartment(departmentId,studentCode);
+    }
+
+    @Override
+    public List<Student> findByStudentCodesOfDepartment(Long departmentId, Set<String> allStudentCodes) {
+        return studentRepository.findByStudentCodesOfDepartment(departmentId,allStudentCodes);
     }
 
     public Student findById(Long id){

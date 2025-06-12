@@ -10,6 +10,7 @@ import jnr.ffi.Struct;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 public interface IStudentService {
     Student findByStudentCodeOfUniversity(String studentCode,Long universityId);
@@ -31,4 +32,6 @@ public interface IStudentService {
     List<Student> findByStudentOfDepartment(Long departmentId, String studentCode);
 
     Optional<Student> findByOneStudentOfDepartment(Long departmentId, String studentCode);
+
+    List<Student> findByStudentCodesOfDepartment(Long departmentId, Set<String> allStudentCodes);
 }

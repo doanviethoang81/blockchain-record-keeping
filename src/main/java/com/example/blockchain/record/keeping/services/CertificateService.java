@@ -32,9 +32,7 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Base64;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -46,9 +44,8 @@ public class CertificateService implements ICertificateService{
     private final GraphicsTextWriter graphicsTextWriter;
     private final BrevoApiEmailService brevoApiEmailService;
     private final QrCodeUtil qrCodeUtil;
-    private final Credentials credentials;
-    private final ContractGasProvider gasProvider;
     private final CertificateStorage_sol_EncryptedCertificateStorage contract;
+    private final StudentRepository studentRepository;
 
     @Autowired
     private Web3j web3j;
@@ -121,6 +118,18 @@ public class CertificateService implements ICertificateService{
     @Override
     public Certificate findByIpfsUrl(String ipfsUrl) {
         return certificateRepository.findByIpfsUrl(ipfsUrl);
+    }
+
+    @Override
+    public Map<String, Boolean> findCertificatesOfStudentsByType(Set<Long> studentIds, Long certificateTypeId) {
+        List<String> studentCodesWithCert = certificateRepository.findStudentCodesWithCertificateNative(studentIds, certificateTypeId);
+        Map<String, Boolean> result = new HashMap<>();
+
+        for (Long id : studentIds) {
+            String studentCode = studentRepository.findByStudentCode(id);
+            result.put(studentCode, studentCodesWithCert.contains(studentCode));
+        }
+        return result;
     }
 
     @Override
@@ -270,7 +279,7 @@ public class CertificateService implements ICertificateService{
     }
 
     @Autowired
-    public CertificateService(CertificateRepository certificateRepository, UniversityCertificateTypeService universityCertificateTypeService, CertificateTypeService certificateTypeService, GraphicsTextWriter graphicsTextWriter, BrevoApiEmailService brevoApiEmailService, QrCodeUtil qrCodeUtil, Web3j web3j, Credentials credentials, ContractGasProvider gasProvider) {
+    public CertificateService(CertificateRepository certificateRepository, UniversityCertificateTypeService universityCertificateTypeService, CertificateTypeService certificateTypeService, GraphicsTextWriter graphicsTextWriter, BrevoApiEmailService brevoApiEmailService, QrCodeUtil qrCodeUtil, Web3j web3j, Credentials credentials, ContractGasProvider gasProvider, StudentRepository studentRepository) {
         this.certificateRepository = certificateRepository;
         this.universityCertificateTypeService = universityCertificateTypeService;
         this.certificateTypeService = certificateTypeService;
@@ -278,8 +287,7 @@ public class CertificateService implements ICertificateService{
         this.brevoApiEmailService = brevoApiEmailService;
         this.qrCodeUtil = qrCodeUtil;
         this.web3j = web3j;
-        this.credentials = credentials;
-        this.gasProvider = gasProvider;
+        this.studentRepository = studentRepository;
 
         // Địa chỉ của smart contract sau khi deploy
         String contractAddress = EnvUtil.get("SMART_CONTRACT_CERTIFICATE_ADDRESS");

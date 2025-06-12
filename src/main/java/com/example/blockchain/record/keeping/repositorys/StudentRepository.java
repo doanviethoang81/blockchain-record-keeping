@@ -13,6 +13,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Repository
 public interface StudentRepository extends JpaRepository<Student,Long> {
@@ -151,4 +152,19 @@ public interface StudentRepository extends JpaRepository<Student,Long> {
             @Param("departmentId") Long departmentId,
             @Param("studentCode") String studentCode
     );
+
+    // tìm tất cả sinh viên theo mssv trong file excel (excel add student)
+    @Query(value = """
+        SELECT s.* FROM students s
+        JOIN student_class sc on s.student_class_id = sc.id
+        WHERE s.student_code IN :studentCodes
+          AND sc.department_id = :departmentId
+    """, nativeQuery = true)
+    List<Student> findByStudentCodesOfDepartment(@Param("departmentId") Long departmentId,
+                                                 @Param("studentCodes") Set<String> studentCodes);
+
+    @Query(value = """
+          SELECT s.student_code FROM students s WHERE s.id = :id
+    """, nativeQuery = true)
+    String findByStudentCode(@Param("id") Long id);
 }
