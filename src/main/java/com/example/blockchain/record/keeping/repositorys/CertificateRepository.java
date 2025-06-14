@@ -3,12 +3,14 @@ package com.example.blockchain.record.keeping.repositorys;
 import com.example.blockchain.record.keeping.dtos.CertificateDTO;
 import com.example.blockchain.record.keeping.enums.Status;
 import com.example.blockchain.record.keeping.models.Certificate;
+import com.example.blockchain.record.keeping.models.Degree;
 import com.example.blockchain.record.keeping.models.Student;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -155,5 +157,12 @@ public interface CertificateRepository extends JpaRepository<Certificate,Long> {
     """, nativeQuery = true)
     List<String> findStudentCodesWithCertificateNative(@Param("studentIds") Set<Long> studentIds,
                                                        @Param("certificateTypeId") Long certificateTypeId);
+
+    @Query(value = """
+            SELECT c.diploma_number
+            FROM certificates c
+            WHERE c.diploma_number IN :diplomaNumbers
+            """,nativeQuery = true)
+    List<String> findExistingDiplomaNumbers(@Param("diplomaNumbers") Collection<String> diplomaNumbers);
 
 }

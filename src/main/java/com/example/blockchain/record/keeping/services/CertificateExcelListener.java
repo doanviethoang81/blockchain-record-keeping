@@ -1,24 +1,17 @@
 package com.example.blockchain.record.keeping.services;
 
-import com.alibaba.excel.annotation.ExcelProperty;
 import com.alibaba.excel.context.AnalysisContext;
 import com.alibaba.excel.event.AnalysisEventListener;
-import com.alibaba.excel.exception.ExcelDataConvertException;
 import com.alibaba.excel.metadata.CellExtra;
 import com.example.blockchain.record.keeping.dtos.CertificateExcelRowDTO;
 import com.example.blockchain.record.keeping.dtos.request.CertificatePrintData;
-import com.example.blockchain.record.keeping.dtos.request.StudentExcelRowRequest;
+import com.example.blockchain.record.keeping.dtos.request.DegreeExcelRowRequest;
 import com.example.blockchain.record.keeping.enums.Status;
 import com.example.blockchain.record.keeping.exceptions.BadRequestException;
 import com.example.blockchain.record.keeping.exceptions.ListBadRequestException;
 import com.example.blockchain.record.keeping.models.*;
-import com.example.blockchain.record.keeping.repositorys.CertificateRepository;
-import com.example.blockchain.record.keeping.repositorys.StudentRepository;
-import com.example.blockchain.record.keeping.response.ApiResponseBuilder;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -35,7 +28,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class CertificateExcelListener extends AnalysisEventListener<CertificateExcelRowDTO> {
 
-    private final UniversityService universityService;
     private final StudentService studentService;
     private Long departmentId = 0L;
     private final UniversityCertificateType universityCertificateType;
@@ -43,12 +35,10 @@ public class CertificateExcelListener extends AnalysisEventListener<CertificateE
     private final GraphicsTextWriter graphicsTextWriter;
 
     public CertificateExcelListener(
-            UniversityService universityService,
             StudentService studentService,
             Long departmentId,
             UniversityCertificateType universityCertificateType,
             CertificateService certificateService, GraphicsTextWriter graphicsTextWriter) {
-        this.universityService = universityService;
         this.studentService = studentService;
         this.departmentId = departmentId;
         this.universityCertificateType = universityCertificateType;
@@ -105,6 +95,13 @@ public class CertificateExcelListener extends AnalysisEventListener<CertificateE
                         studentMap.values().stream().map(Student::getId).collect(Collectors.toSet()),
                         universityCertificateType.getCertificateType().getId()
                 );
+
+        Set<String> allDiplomaNumbers = rows.stream()
+                .map(CertificateExcelRowDTO::getDiplomaNumber)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+
+        Set<String> existingDiplomaNumbers = certificateService.findAllDiplomaNumbers(allDiplomaNumbers);
 
         List<Certificate> certificatesToSave = new ArrayList<>();
         List<CertificatePrintData> printDataList = new ArrayList<>();
@@ -174,6 +171,11 @@ public class CertificateExcelListener extends AnalysisEventListener<CertificateE
             Boolean hasCertificate = existingCertificates.get(studentCode);
             if (Boolean.TRUE.equals(hasCertificate)) {
                 errors.add("Dòng " + rowIndex + ": Sinh viên đã có loại chứng chỉ này");
+                continue;
+            }
+
+            if (existingDiplomaNumbers.contains(row.getDiplomaNumber())) {
+                errors.add("Dòng " + rowIndex + ": Số hiệu bằng đã tồn tại!");
                 continue;
             }
 

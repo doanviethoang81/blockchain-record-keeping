@@ -45,4 +45,5 @@ public interface ICertificateService {
     Certificate findByIpfsUrl(String ipfsUrl);
 
     Map<String, Boolean> findCertificatesOfStudentsByType(Set<Long> studentIds, Long certificateTypeId);
+
 }

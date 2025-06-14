@@ -1,5 +1,6 @@
 package com.example.blockchain.record.keeping.models;
 
+import com.example.blockchain.record.keeping.enums.Status;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import lombok.*;
@@ -62,8 +63,15 @@ public class Degree {
     @Column(name = "image_url")
     private String imageUrl;
 
+    @Column(name = "ipfs_url")
+    private String ipfsUrl;
+
+    @Column(name = "qr_code")
+    private String qrCode;
+
+    @Enumerated(EnumType.STRING)
     @Column(name = "status")
-    private String status;
+    private Status status;
 
     @Column(name="created_at")
     private LocalDateTime createdAt;

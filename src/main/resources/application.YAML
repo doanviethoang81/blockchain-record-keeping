@@ -67,5 +67,13 @@ pinata:
   api-key: ${PINATA_API_KEY}
   secret-api-key: ${PINATA_SECRET_API_KEY}
 
+metamask:
+  private-key: {PINATA_SECRET_API_KEY}
+
+smart-contract:
+  address: {SMART_CONTRACT_CERTIFICATE_ADDRESS}
+
+microsoft-translator:
+  api-key: {MICROSOFT_TRANSLATOR_API_KEY}
 
 

@@ -343,23 +343,7 @@ public class CertificateController {
         }
     }
 
-    // xác nhận public key
-//    @PostMapping("/verify/decrypt")
-//    public ResponseEntity<?> decryptData(@RequestBody DecryptRequest request) {
-//        try {
-//            if (request == null || !StringUtils.hasText(request.getTransactionHash()) ||
-//                    !StringUtils.hasText(request.getPublicKeyBase64())) {
-//                return ApiResponseBuilder.badRequest("Vui lòng nhập đầy đủ thông tin!");
-//            }
-//            PublicKey publicKey = RSAKeyPairGenerator.getPublicKeyFromBase64(request.getPublicKeyBase64());
-//            String decrypted = rsaUtil.decryptWithPublicKeyFromHex(request.getTransactionHash(), publicKey);
-//            Object jsonObject = objectMapper.readValue(decrypted, Object.class);
-//            return ApiResponseBuilder.success("Giải mã thành công", jsonObject);
-//        } catch (Exception e) {
-//            return ApiResponseBuilder.internalError( "Giải mã thất bại!");
-//        }
-//    }
-
+    // xac nhan chung chi
     @PostMapping("/verify/decrypt")
     public ResponseEntity<?> decryptData(@RequestBody DecryptRequest request) {
         try {
@@ -574,7 +558,7 @@ public class CertificateController {
         }
     }
 
-    //xét ngày cấp
+    //excel
     @PreAuthorize("hasAuthority('WRITE')")
     @PostMapping("/khoa/certificate/create-excel")
     public ResponseEntity<?> uploadExcel(
@@ -604,7 +588,6 @@ public class CertificateController {
                 file.getInputStream(),
                 CertificateExcelRowDTO.class,
                 new CertificateExcelListener(
-                        universityService,
                         studentService,
                         user.getDepartment().getId(),
                         universityCertificateType,

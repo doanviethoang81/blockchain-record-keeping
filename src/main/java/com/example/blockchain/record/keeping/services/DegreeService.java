@@ -1,5 +1,8 @@
 package com.example.blockchain.record.keeping.services;
 
+import com.example.blockchain.record.keeping.dtos.request.DegreePrintData;
+import com.example.blockchain.record.keeping.dtos.request.DegreeRequest;
+import com.example.blockchain.record.keeping.enums.Status;
 import com.example.blockchain.record.keeping.models.*;
 import com.example.blockchain.record.keeping.repositorys.CertificateRepository;
 import com.example.blockchain.record.keeping.repositorys.DegreeRepository;
@@ -16,112 +19,73 @@ import org.springframework.web.multipart.MultipartFile;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.util.List;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
 public class DegreeService implements IDegreeService{
 
-    private final CertificateRepository certificateRepository;
-    private final StudentRepository studentRepository;
-    private final BrevoApiEmailService brevoApiEmailService;
-    private final UniversityCertificateTypeService universityCertificateTypeService;
-    private final UserService userService;
-    private final CertificateTypeService certificateTypeService;
     private final DegreeRepository degreeRepository;
     private final EducationModelSevice educationModelSevice;
     private final DegreeTitleSevice degreeTitleSevice;
     private final RatingService ratingService;
-    private final StudentClassService studentClassService;
-
-
+    private final StudentService studentService;
+    private final GraphicsTextWriter graphicsTextWriter;
 
     @Transactional
-    public void createDegree(JsonNode jsonNode,Long idClass, MultipartFile image) {
+    public void createDegree(DegreeRequest request) {
         ZonedDateTime vietnamTime = ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+        Student student = studentService.findById(request.getStudentId());
 
-        JsonNode studentNode = jsonNode.get("student");
-        JsonNode degreeNode = jsonNode.get("degree");
+        Rating rating = ratingService.findById(request.getRatingId());
+        EducationMode educationMode = educationModelSevice.findById(request.getEducationModeId());
+        DegreeTitle degreeTitle = degreeTitleSevice.findById(request.getDegreeTitleId());
 
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String username = authentication.getName();
-
-        User user= userService.findByUser(username);
-        Department department=user.getDepartment();
-
-//        Long idKhoa =
-        String studentCode = studentNode.get("student_code").asText();
-
-        //kiem tra trung mssv
-        Student student = studentRepository.findByStudentCode(studentCode)
-                .orElseGet(() -> {
-                    Student newStudent = new Student();
-                    StudentClass studentClass = studentClassService.findById(idClass);
-                    newStudent.setStudentClass(studentClass);//này đổi
-                    newStudent.setName(studentNode.get("name").asText());
-                    newStudent.setStudentCode(studentCode);
-                    newStudent.setEmail(studentNode.get("email").asText());
-                    newStudent.setBirthDate(LocalDate.parse(studentNode.get("birth_date").asText()));
-                    newStudent.setCourse(studentNode.get("course").asText());
-                    newStudent.setCreatedAt(vietnamTime.toLocalDateTime());
-                    newStudent.setUpdatedAt(vietnamTime.toLocalDateTime());
-                    return studentRepository.save(newStudent); // lưu nếu chưa có
-                });
+        LocalDate issueDate = LocalDate.parse(request.getIssueDate(), formatter);
 
         Degree degree = new Degree();
         degree.setStudent(student);
-
-        //lấy thong tin loai chung chi
-        Long id = Long.valueOf(degreeNode.get("name_certificate_type").asText());
-        CertificateType certificateType= certificateTypeService.findById(id);
-        UniversityCertificateType universityCertificateType = universityCertificateTypeService.findByCartificateType(certificateType);
-        Rating rating = ratingService.findByName(degreeNode.get("rating").asText());
         degree.setRating(rating);
-        EducationMode educationMode = educationModelSevice.findByName(degreeNode.get("education_mode").asText());
-        degree.setEducationMode(educationMode);
-        DegreeTitle degreeTitle = degreeTitleSevice.findByName(degreeNode.get("degree_title").asText());
         degree.setDegreeTitle(degreeTitle);
-        
-        degree.setIssueDate(LocalDate.parse(degreeNode.get("issue_date").asText()));
-        degree.setGraduationYear(degreeNode.get("graduation_year").asText());
-        degree.setTrainingLocation(degreeNode.get("training_location").asText());
-        degree.setSigner(degreeNode.get("signer").asText());
-        degree.setDiplomaNumber(degreeNode.get("diploma_number").asText());
-        degree.setLotteryNumber(degreeNode.get("lottery_number").asText());
-
-        //sửa lại nếu có id block
-        degree.setBlockchainTxHash("631273817");
-
-        degree.setStatus("1");
+        degree.setEducationMode(educationMode);
+        degree.setGraduationYear(request.getGraduationYear());
+        degree.setIssueDate(issueDate);
+        degree.setTrainingLocation(request.getTrainingLocation());
+        degree.setSigner(request.getSigner());
+        degree.setDiplomaNumber(request.getDiplomaNumber());
+        degree.setLotteryNumber(request.getLotteryNumber());
+        degree.setBlockchainTxHash(null);
+        degree.setIpfsUrl(null);
+        degree.setQrCode(null);
+        degree.setStatus(Status.PENDING);
         degree.setCreatedAt(vietnamTime.toLocalDateTime());
+        degree.setUpdatedAt(vietnamTime.toLocalDateTime());
 
-        // Lưu dữ liệu lên blockchain
-//            String contractAddress = "0x3D9433e04432406335CBEf89cB39784fC1Fd7d7B"; // Thay bằng địa chỉ hợp đồng của bạn
-//            String privateKey = "2177b99edb64e06030c7ef418d69e95f397b7cb4640b2108539057ab2fd4e599"; // Thay bằng private key từ MetaMask
-//            Credentials credentials = Credentials.create(privateKey);
-//
-//            CertificateStorage contract = new CertificateStorage(contractAddress, web3j, credentials);
-//            TransactionReceipt receipt = contract.storeCertificate(
-//                    studentCode,
-//                    certificate.getDiplomaNumber(),
-//                    certificate.getDegreeTitle()
-//            );
-//            certificate.setBlockchainTxHash(receipt.getTransactionHash());
-//
-//            // Lưu transaction hash vào certificate
-//            certificate.setBlockchainTxHash(receipt.getTransactionHash());
+        // tạo ảnh
+        DegreePrintData degreePrintData = new DegreePrintData();
+        degreePrintData.setUniversityName(student.getStudentClass().getDepartment().getUniversity().getName());
+        degreePrintData.setDegreeTitle("Bằng " +rating.getName());
+        degreePrintData.setDepartmentName(student.getStudentClass().getDepartment().getName());
+        degreePrintData.setName(student.getName());
+        degreePrintData.setBirthDate(student.getBirthDate().format(formatter));
+        degreePrintData.setGraduationYear(request.getGraduationYear());
+        degreePrintData.setRating(rating.getName());
+        degreePrintData.setEducationMode(educationMode.getName());
+        degreePrintData.setDay(String.valueOf(issueDate.getDayOfMonth()));
+        degreePrintData.setMonth(String.valueOf(issueDate.getMonthValue()));
+        degreePrintData.setYear(String.valueOf(issueDate.getYear()));
+        degreePrintData.setTrainingLocation(request.getTrainingLocation());
+        degreePrintData.setSigner(request.getSigner());
+        degreePrintData.setDiplomaNumber(request.getDiplomaNumber());
+        degreePrintData.setLotteryNumber(request.getLotteryNumber());
 
-        // Lưu certificate
+        String image_url = graphicsTextWriter.drawDegreeText(degreePrintData);
+
+
+        degree.setImageUrl(image_url);
         degreeRepository.save(degree);
-
-        //sửa lại đường dẫn chứng chỉ
-        String certificateUrl = "https://yourdomain.com/certificates/" + student.getStudentCode();
-        try {
-//            brevoApiEmailService.sendEmail(student.getEmail(), student.getName(), certificateUrl);
-        } catch (Exception e) {
-            System.err.println("Lỗi khi gửi email cho sinh viên: " + student.getEmail());
-            e.printStackTrace(); // Hoặc ghi log nếu bạn có hệ thống logging
-        }
     }
 
 
@@ -131,8 +95,106 @@ public class DegreeService implements IDegreeService{
     }
 
     @Override
-    public List<Degree> listDegreeOfStudent(Student student) {
-        return degreeRepository.findByStudent(student);
+    public boolean existsByStudent(Student student) {
+        return degreeRepository.existsByStudentAndStatusNot(student, Status.REJECTED);
     }
+
+    @Override
+    public Degree findById(Long id) {
+        return degreeRepository.findById(id).orElse(null);
+    }
+
+    @Override
+    public boolean existsByIdAndStatus(Long id) {
+        return degreeRepository.existsByIdAndStatus(id, Status.APPROVED);
+    }
+
+    @Override
+    public Degree updateDegree(Long id, DegreeRequest request) {
+
+        ZonedDateTime vietnamTime = ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+
+        Rating rating = ratingService.findById(request.getRatingId());
+        EducationMode educationMode = educationModelSevice.findById(request.getEducationModeId());
+        DegreeTitle degreeTitle = degreeTitleSevice.findById(request.getDegreeTitleId());
+
+        LocalDate issueDate = LocalDate.parse(request.getIssueDate(), formatter);
+
+        Degree degree = findById(id);
+        degree.setRating(rating);
+        degree.setDegreeTitle(degreeTitle);
+        degree.setEducationMode(educationMode);
+        degree.setGraduationYear(request.getGraduationYear());
+        degree.setIssueDate(issueDate);
+        degree.setTrainingLocation(request.getTrainingLocation());
+        degree.setSigner(request.getSigner());
+        degree.setDiplomaNumber(request.getDiplomaNumber());
+        degree.setLotteryNumber(request.getLotteryNumber());
+        degree.setUpdatedAt(vietnamTime.toLocalDateTime());
+
+        // tạo ảnh
+        DegreePrintData degreePrintData = new DegreePrintData();
+        degreePrintData.setUniversityName(degree.getStudent().getStudentClass().getDepartment().getUniversity().getName());
+        degreePrintData.setDegreeTitle("Bằng " +rating.getName());
+        degreePrintData.setDepartmentName(degree.getStudent().getStudentClass().getDepartment().getName());
+        degreePrintData.setName(degree.getStudent().getName());
+        degreePrintData.setBirthDate(degree.getStudent().getBirthDate().format(formatter));
+        degreePrintData.setGraduationYear(request.getGraduationYear());
+        degreePrintData.setRating(rating.getName());
+        degreePrintData.setEducationMode(educationMode.getName());
+        degreePrintData.setDay(String.valueOf(issueDate.getDayOfMonth()));
+        degreePrintData.setMonth(String.valueOf(issueDate.getMonthValue()));
+        degreePrintData.setYear(String.valueOf(issueDate.getYear()));
+        degreePrintData.setTrainingLocation(request.getTrainingLocation());
+        degreePrintData.setSigner(request.getSigner());
+        degreePrintData.setDiplomaNumber(request.getDiplomaNumber());
+        degreePrintData.setLotteryNumber(request.getLotteryNumber());
+
+        String image_url = graphicsTextWriter.drawDegreeText(degreePrintData);
+
+        degree.setImageUrl(image_url);
+        return degreeRepository.save(degree);
+    }
+
+    @Override
+    public List<Degree> findAll() {
+        return degreeRepository.findAll();
+    }
+
+    @Override
+    public List<Degree> saveAll(List<Degree> degreeList) {
+        return degreeRepository.saveAll(degreeList);
+    }
+
+    @Override
+    public Degree findbyDiplomaNumber(String diplomaNumber) {
+        return degreeRepository.findByDiplomaNumber(diplomaNumber).orElse(null);
+    }
+
+    @Override
+    public Degree findByLotteryNumber(String lotteryNumber) {
+        return degreeRepository.findByLotteryNumber(lotteryNumber).orElse(null);
+    }
+
+    public Map<String, Boolean> checkStudentsGrantedDegree(Set<String> studentCodes) {
+        List<String> existingCodes = degreeRepository.findStudentCodesWithDegree(studentCodes);
+        Map<String, Boolean> result = new HashMap<>();
+        for (String code : studentCodes) {
+            result.put(code, existingCodes.contains(code));
+        }
+        return result;
+    }
+
+    public Set<String> findAllDiplomaNumbers(Collection<String> diplomaNumbers) {
+        return new HashSet<>(degreeRepository.findExistingDiplomaNumbers(diplomaNumbers));
+    }
+
+    public Set<String> findAllLotteryNumbers(Collection<String> lotteryNumbers) {
+        return new HashSet<>(degreeRepository.findExistingLotteryNumbers(lotteryNumbers));
+    }
+
+
+
 }
 

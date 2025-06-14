@@ -1,48 +1,27 @@
 package com.example.blockchain.record.keeping.dtos.request;
 
 import com.alibaba.excel.annotation.ExcelProperty;
-import com.example.blockchain.record.keeping.excels.LocalDateConverter;
 import lombok.Data;
-
-import java.time.LocalDate;
 
 @Data
 public class DegreeExcelRowRequest {
-    @ExcelProperty("Lớp")
-    private String studenClass;
-
-    @ExcelProperty("Tên sinh viên")
-    private String name;
-
     @ExcelProperty("Mã số sinh viên")
     private String studentCode;
 
-    @ExcelProperty("Email")
-    private String email;
-
-    @ExcelProperty("Lớp")
-    private String className;
-
-    @ExcelProperty(value = "Ngày sinh", converter = LocalDateConverter.class)
-    private LocalDate dateOfBirth;
-
-    @ExcelProperty("Khóa học")
-    private String course;
+    @ExcelProperty("Xếp loại")
+    private String ratingName;
 
     @ExcelProperty("Danh hiệu")
-    private String degreeTitle;
+    private String degreeTitleName;
+
+    @ExcelProperty("Hình thức đào tạo")
+    private String educationModeName;
 
     @ExcelProperty("Năm tốt nghiệp")
     private String graduationYear;
 
-    @ExcelProperty("Xếp loại")
-    private String rating;
-
-    @ExcelProperty(value= "Ngày cấp", converter = LocalDateConverter.class)
-    private LocalDate issueDate;
-
-    @ExcelProperty("Hình thức đào tạo")
-    private String educationMode;
+    @ExcelProperty("Ngày cấp")
+    private String issueDate;
 
     @ExcelProperty("Địa điểm đào tạo")
     private String trainingLocation;
@@ -53,6 +32,6 @@ public class DegreeExcelRowRequest {
     @ExcelProperty("Số hiệu bằng")
     private String diplomaNumber;
 
-    @ExcelProperty("Số vào xổ cấp bằng")
+    @ExcelProperty("Số vào sổ")
     private String lotteryNumber;
 }

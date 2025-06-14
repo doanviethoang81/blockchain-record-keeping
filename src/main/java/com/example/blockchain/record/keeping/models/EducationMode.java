@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Entity
 @Builder
-@Table(name ="degrees")
+@Table(name ="education_modes")
 public class EducationMode {
 
     @Id

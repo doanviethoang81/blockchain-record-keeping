@@ -1,102 +1,66 @@
 package com.example.blockchain.record.keeping.services;
 
-import com.alibaba.excel.annotation.ExcelProperty;
 import com.alibaba.excel.context.AnalysisContext;
 import com.alibaba.excel.event.AnalysisEventListener;
-import com.alibaba.excel.exception.ExcelDataConvertException;
 import com.alibaba.excel.metadata.CellExtra;
-import com.example.blockchain.record.keeping.dtos.CertificateExcelRowDTO;
 import com.example.blockchain.record.keeping.dtos.request.DegreeExcelRowRequest;
+import com.example.blockchain.record.keeping.dtos.request.DegreePrintData;
+import com.example.blockchain.record.keeping.enums.Status;
+import com.example.blockchain.record.keeping.exceptions.BadRequestException;
+import com.example.blockchain.record.keeping.exceptions.ListBadRequestException;
 import com.example.blockchain.record.keeping.models.*;
-import com.example.blockchain.record.keeping.repositorys.CertificateRepository;
-import com.example.blockchain.record.keeping.repositorys.StudentRepository;
-import jakarta.transaction.Transactional;
-import lombok.Data;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.multipart.MultipartFile;
+import lombok.RequiredArgsConstructor;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.lang.reflect.Field;
+import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.util.*;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.stream.Collectors;
 
 public class DegreeExcelListener extends AnalysisEventListener<DegreeExcelRowRequest> {
-    private final List<DegreeExcelRowRequest> dataList = new ArrayList<>();
-    private final List<String> errorMessages = new ArrayList<>();
-    private final StudentRepository studentRepository;
-    private final UniversityService universityService;
-    private final UserService userService;
-    private final MultipartFile imageFile;
+
     private final RatingService ratingService;
     private final EducationModelSevice educationModelSevice;
     private final DegreeTitleSevice degreeTitleSevice;
     private final DegreeService degreeService;
-    private final StudentClassService studentClassService;
+    private final StudentService studentService;
+    private Long departmentId = 0L;
+    private final GraphicsTextWriter graphicsTextWriter;
 
-
-
-    public DegreeExcelListener(StudentRepository studentRepository, UniversityService universityService, UserService userService, MultipartFile imageFile, RatingService ratingService, EducationModelSevice educationModelSevice, DegreeTitleSevice degreeTitleSevice, DegreeService degreeService, StudentClassService studentClassService) {
-        this.studentRepository = studentRepository;
-        this.universityService = universityService;
-        this.userService = userService;
-        this.imageFile = imageFile;
+    public DegreeExcelListener(RatingService ratingService,
+                               EducationModelSevice educationModelSevice,
+                               DegreeTitleSevice degreeTitleSevice,
+                               DegreeService degreeService,
+                               StudentService studentService,
+                               GraphicsTextWriter graphicsTextWriter,
+                               Long departmentId
+    ) {
         this.ratingService = ratingService;
         this.educationModelSevice = educationModelSevice;
         this.degreeTitleSevice = degreeTitleSevice;
         this.degreeService = degreeService;
-        this.studentClassService = studentClassService;
+        this.studentService = studentService;
+        this.graphicsTextWriter = graphicsTextWriter;
+        this.departmentId = departmentId;
     }
 
     @Override
-    public void onException(Exception exception, AnalysisContext context) {
-        int rowIndex = context.readRowHolder().getRowIndex();
-
-        if (exception instanceof ExcelDataConvertException convertEx) {
-            int colIndex = convertEx.getColumnIndex();
-            String cellValue = String.valueOf(convertEx.getCellData().getStringValue());
-            errorMessages.add("Dòng " + rowIndex + ": Sai định dạng ngày \"" + cellValue + "\". Định dạng yêu cầu: dd/MM/yyyy");
-        } else {
-            errorMessages.add("Dòng " + rowIndex + ": " + exception.getMessage());
-        }
+    public void onException(Exception exception, AnalysisContext context) throws Exception {
+        super.onException(exception, context);
     }
 
+    private final List<DegreeExcelRowRequest> rows = new ArrayList<>();
+
     @Override
-    public void invoke(DegreeExcelRowRequest row, AnalysisContext context) {
-        int rowIndex = context.readRowHolder().getRowIndex();
-
-        try {
-            Field[] fields = CertificateExcelRowDTO.class.getDeclaredFields();
-
-            for (Field field : fields) {
-                field.setAccessible(true);
-
-                try {
-                    Object value = field.get(row);
-                    ExcelProperty property = field.getAnnotation(ExcelProperty.class);
-                    String fieldName = property != null ? property.value()[0] : field.getName();
-
-                    if (value == null || (value instanceof String && ((String) value).isBlank())) {
-                        errorMessages.add("Dòng "+ rowIndex + ": Đang thiếu dữ liệu!");
-                        return;
-                    }
-                    // Kiểm tra định dạng email
-                    if (fieldName.equalsIgnoreCase("Email") && value instanceof String emailValue) {
-                        String regex = "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$";
-                        if (!emailValue.matches(regex)) {
-                            errorMessages.add("Dòng "+ rowIndex + ": Email sai định dạng. Giá trị: " + emailValue);
-                        }
-                    }
-                } catch (IllegalAccessException e) {
-                    errorMessages.add("Không thể đọc trường: " + field.getName());
-                }
-            }
-            // Nếu không có lỗi thì thêm vào danh sách hợp lệ
-            dataList.add(row);
-        } catch (Exception e) {
-            errorMessages.add("Dòng " + rowIndex + ": Lỗi không xác định - " + e.getMessage());
-        }
+    public void invoke(DegreeExcelRowRequest data, AnalysisContext analysisContext) {
+        rows.add(data);
     }
 
     @Override
@@ -104,88 +68,227 @@ public class DegreeExcelListener extends AnalysisEventListener<DegreeExcelRowReq
         super.extra(extra, context);
     }
 
-
     @Override
     @Transactional
-    public void doAfterAllAnalysed(AnalysisContext context) {
-        ZonedDateTime vietnamTime = ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
+    public void doAfterAllAnalysed(AnalysisContext analysisContext) {
+        ZonedDateTime now = ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
+        List<String> errors = new ArrayList<>();
+        Set<String> duplicateStudentCodes = new HashSet<>();
+        Set<String> duplicateDiplomaNumber = new HashSet<>();
+        Set<String> duplicateLotteryNumber = new HashSet<>();
 
-        System.out.println("Loại chứng chỉ được chọn: " + imageFile);
+        if (rows.size() > 1000) {
+            throw new BadRequestException("Chỉ cho phép tối đa cấp 1000 chứng chỉ/lần import");
+        }
 
-//        // ✅ Lưu file ảnh (imageFile) nếu cần
-//        if (imageFile != null && !imageFile.isEmpty()) {
-//            try {
-//                String uploadDir = "uploads/images/"; // bạn có thể đổi đường dẫn này
-//                String filePath = uploadDir + nameCertificateType + "_" + imageFile.getOriginalFilename();
-//                File dest = new File(filePath);
-//                dest.getParentFile().mkdirs(); // tạo thư mục nếu chưa có
-//                imageFile.transferTo(dest);    // lưu file ảnh
-//                System.out.println("Đã lưu ảnh tại: " + filePath);
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
-//        }
+        //thu thập tất cả mã sinh viên
+        Set<String> allStudentCodes = rows.stream()
+                .map(DegreeExcelRowRequest::getStudentCode)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
 
-        for (DegreeExcelRowRequest dto : dataList) {
+        //tìm tất cả sinh viên 1 lần
+        Map<String, Student> studentMap = studentService
+                .findByStudentCodesOfDepartment(departmentId, allStudentCodes)
+                .stream()
+                .collect(Collectors.toMap(Student::getStudentCode, s -> s));
 
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            String username = authentication.getName();
-            University university = universityService.getUniversityByEmail(username);
-//            UniversityCertificateType universityCertificateType = universityCertificateTypeService.findByUniversityId(university.getId());
+        Map<String, Boolean> grantedDegrees = degreeService.checkStudentsGrantedDegree(allStudentCodes);
 
-            User user= userService.findByUser(username);
-            Department department=user.getDepartment();
-            // 1. Tìm hoặc tạo student
-            Student student = studentRepository.findByStudentCode(dto.getStudentCode())
-                    .orElseGet(() -> {
-                        Student newStudent = new Student();
-                        StudentClass studentClass = studentClassService.findByName(dto.getStudenClass());
-                        newStudent.setStudentClass(studentClass);//này đổi
-                        newStudent.setName(dto.getName());
-                        newStudent.setStudentCode(dto.getStudentCode());
-                        newStudent.setEmail(dto.getEmail());
-                        newStudent.setBirthDate(dto.getDateOfBirth());
-                        newStudent.setCourse(dto.getCourse());
-                        newStudent.setCreatedAt(vietnamTime.toLocalDateTime());
-                        newStudent.setUpdatedAt(vietnamTime.toLocalDateTime());
-                        return studentRepository.save(newStudent);
-                    });
+        Set<String> allDiplomaNumbers = rows.stream()
+                .map(DegreeExcelRowRequest::getDiplomaNumber)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
 
-            //Tạo certificate
+        Set<String> allLotteryNumbers = rows.stream()
+                .map(DegreeExcelRowRequest::getLotteryNumber)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+
+        Set<String> existingDiplomaNumbers = degreeService.findAllDiplomaNumbers(allDiplomaNumbers);
+        Set<String> existingLotteryNumbers = degreeService.findAllLotteryNumbers(allLotteryNumbers);
+
+        List<Degree> degreeList = new ArrayList<>();
+        List<DegreePrintData> printDataList = new ArrayList<>();
+
+        for (int i = 0; i < rows.size(); i++) {
+            DegreeExcelRowRequest row = rows.get(i);
+            int rowIndex = i + 1;
+
+            if (!duplicateStudentCodes.add(row.getStudentCode())) {
+                errors.add("Dòng " + rowIndex + ": Trùng mã sinh viên trong file");
+                continue;
+            }
+
+            if (!duplicateDiplomaNumber.add(row.getDiplomaNumber())) {
+                errors.add("Dòng " + rowIndex + ": Trùng số hiệu bằng trong file");
+                continue;
+            }
+
+            if (!duplicateLotteryNumber.add(row.getLotteryNumber())) {
+                errors.add("Dòng " + rowIndex + ": Trùng số vào sổ trong file");
+                continue;
+            }
+
+            if (row.getStudentCode() == null || row.getStudentCode().isBlank()) {
+                errors.add("Dòng " + rowIndex + ": Mã số sinh viên không được để trống");
+                continue;
+            }
+
+            if (row.getRatingName() == null || row.getRatingName().isBlank()) {
+                errors.add("Dòng " + rowIndex + ": Xếp loại không được để trống");
+                continue;
+            }
+
+            if (row.getDegreeTitleName() == null || row.getDegreeTitleName().isBlank()) {
+                errors.add("Dòng " + rowIndex + ": Danh hiệu không được để trống");
+                continue;
+            }
+
+            if (row.getEducationModeName() == null || row.getEducationModeName().isBlank()) {
+                errors.add("Dòng " + rowIndex + ": Hình thức đào tạo không được để trống");
+                continue;
+            }
+
+            if (row.getGraduationYear() == null || row.getGraduationYear().isBlank()) {
+                errors.add("Dòng " + rowIndex + ": Năm tốt nghiệp không được để trống");
+                continue;
+            }
+
+            if (row.getTrainingLocation() == null || row.getTrainingLocation().isBlank()) {
+                errors.add("Dòng " + rowIndex + ": Địa điểm đào tạo không được để trống");
+                continue;
+            }
+
+            if (row.getSigner() == null || row.getSigner().isBlank()) {
+                errors.add("Dòng " + rowIndex + ": Người ký không được để trống");
+                continue;
+            }
+            if (row.getDiplomaNumber() == null || row.getDiplomaNumber().isBlank()) {
+                errors.add("Dòng " + rowIndex + ": Số hiệu bằng không được để trống");
+                continue;
+            }
+            if (row.getLotteryNumber() == null || row.getLotteryNumber().isBlank()) {
+                errors.add("Dòng " + rowIndex + ": Số vào xổ không được để trống");
+                continue;
+            }
+
+            if (row.getIssueDate() == null) {
+                errors.add("Dòng " + rowIndex + ": Ngày cấp không được để trống");
+                continue;
+            }
+
+            ZonedDateTime issueDate;
+            try {
+                LocalDate localDate = LocalDate.parse(row.getIssueDate(), formatter);
+                issueDate = localDate.atStartOfDay(ZoneId.of("Asia/Ho_Chi_Minh"));
+                ZonedDateTime oneYearAgo = now.minusYears(1);
+                ZonedDateTime oneYearLater = now.plusYears(1);
+
+                if (issueDate.isBefore(oneYearAgo) || issueDate.isAfter(oneYearLater)) {
+                    errors.add("Dòng " + rowIndex + ": Ngày cấp văn bằng phải trong vòng 1 năm trước và 1 năm sau kể từ hôm nay");
+                    continue;
+                }
+            } catch (DateTimeParseException e) {
+                errors.add("Dòng " + rowIndex + ": Ngày cấp chứng chỉ không đúng định dạng dd/MM/yyyy");
+                continue;
+            }
+
+            Student student = studentMap.get(row.getStudentCode());
+            if (student == null) {
+                errors.add("Dòng " + rowIndex + ": Mã sinh viên không tồn tại trong khoa");
+                continue;
+            }
+            if (Boolean.TRUE.equals(grantedDegrees.get(row.getStudentCode()))) {
+                errors.add("Dòng " + rowIndex + ": Mã sinh viên này đã được cấp văn bằng");
+                continue;
+            }
+
+            if (existingDiplomaNumbers.contains(row.getDiplomaNumber())) {
+                errors.add("Dòng " + rowIndex + ": Số hiệu bằng đã tồn tại!");
+                continue;
+            }
+            if (existingLotteryNumbers.contains(row.getLotteryNumber())) {
+                errors.add("Dòng " + rowIndex + ": Số vào sổ đã tồn tại!");
+                continue;
+            }
+
+            Rating rating =ratingService.findByName(row.getRatingName());
+            DegreeTitle degreeTitle = degreeTitleSevice.findByName(row.getDegreeTitleName());
+            EducationMode educationMode = educationModelSevice.findByName(row.getEducationModeName());
+
             Degree degree = new Degree();
             degree.setStudent(student);
-            DegreeTitle degreeTitle = degreeTitleSevice.findByName(dto.getDegreeTitle());
-            degree.setDegreeTitle(degreeTitle);
-            degree.setGraduationYear(dto.getGraduationYear());
-            Rating rating = ratingService.findByName(dto.getDegreeTitle());
             degree.setRating(rating);
-            degree.setIssueDate(dto.getIssueDate());
-            EducationMode educationMode = educationModelSevice.findByName(dto.getDegreeTitle());
+            degree.setDegreeTitle(degreeTitle);
             degree.setEducationMode(educationMode);
-            degree.setTrainingLocation(dto.getTrainingLocation());
-            degree.setSigner(dto.getSigner());
-            degree.setDiplomaNumber(dto.getDiplomaNumber());
-            degree.setLotteryNumber(dto.getLotteryNumber());
-            degree.setBlockchainTxHash("76123"); // sua lai sau
-            degree.setStatus("1");// sua lai
-            degree.setCreatedAt(vietnamTime.toLocalDateTime());
+            degree.setGraduationYear(row.getGraduationYear());
+            degree.setIssueDate(issueDate.toLocalDate());
+            degree.setTrainingLocation(row.getTrainingLocation());
+            degree.setSigner(row.getSigner());
+            degree.setDiplomaNumber(row.getDiplomaNumber());
+            degree.setLotteryNumber(row.getLotteryNumber());
+            degree.setBlockchainTxHash(null);
+            degree.setIpfsUrl(null);
+            degree.setQrCode(null);
+            degree.setStatus(Status.PENDING);
+            degree.setCreatedAt(now.toLocalDateTime());
+            degree.setUpdatedAt(now.toLocalDateTime());
 
-            degreeService.save(degree);
+            degreeList.add(degree);
+
+            // tạo ảnh
+            DegreePrintData degreePrintData = new DegreePrintData();
+            degreePrintData.setUniversityName(student.getStudentClass().getDepartment().getUniversity().getName());
+            degreePrintData.setDegreeTitle("Bằng " + rating.getName());
+            degreePrintData.setDepartmentName(student.getStudentClass().getDepartment().getName());
+            degreePrintData.setName(student.getName());
+            degreePrintData.setBirthDate(student.getBirthDate().format(formatter));
+            degreePrintData.setGraduationYear(row.getGraduationYear());
+            degreePrintData.setRating(rating.getName());
+            degreePrintData.setEducationMode(educationMode.getName());
+            degreePrintData.setDay(String.valueOf(issueDate.getDayOfMonth()));
+            degreePrintData.setMonth(String.valueOf(issueDate.getMonthValue()));
+            degreePrintData.setYear(String.valueOf(issueDate.getYear()));
+            degreePrintData.setTrainingLocation(row.getTrainingLocation());
+            degreePrintData.setSigner(row.getSigner());
+            degreePrintData.setDiplomaNumber(row.getDiplomaNumber());
+            degreePrintData.setLotteryNumber(row.getLotteryNumber());
+
+            String image_url = graphicsTextWriter.drawDegreeText(degreePrintData);
+
+
+            degree.setImageUrl(image_url);
+
+            printDataList.add(degreePrintData);
         }
-        System.out.println("Đã lưu xong " + dataList.size() + " dòng");
+
+        if (!errors.isEmpty()) {
+            throw new ListBadRequestException("Dữ liệu không hợp lệ", errors);
+        }
+
+        //tạo ảnh song song
+        ExecutorService executor = Executors.newFixedThreadPool(5);
+        List<Future<String>> imageFutures = printDataList.stream()
+                .map(printData -> executor.submit(() -> graphicsTextWriter.drawDegreeText(printData)))
+                .collect(Collectors.toList());
+
+        for (int i = 0; i < degreeList.size(); i++) {
+            try {
+                degreeList.get(i).setImageUrl(imageFutures.get(i).get());
+            } catch (InterruptedException | ExecutionException e) {
+                throw new RuntimeException("Lỗi tạo ảnh cho văn bằng", e);
+            }
+        }
+
+        executor.shutdown();
+        degreeService.saveAll(degreeList);
     }
 
     @Override
     public boolean hasNext(AnalysisContext context) {
         return super.hasNext(context);
-    }
-
-    public List<DegreeExcelRowRequest> getDataList() {
-        return dataList;
-    }
-
-    public List<String> getErrorMessages() {
-        return errorMessages;
     }
 }

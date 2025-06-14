@@ -329,4 +329,7 @@ public class CertificateService implements ICertificateService{
         return encryptedData.trim();
     }
 
+    public Set<String> findAllDiplomaNumbers(Collection<String> diplomaNumbers) {
+        return new HashSet<>(certificateRepository.findExistingDiplomaNumbers(diplomaNumbers));
+    }
 }
