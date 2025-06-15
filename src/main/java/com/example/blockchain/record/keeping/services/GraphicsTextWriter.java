@@ -149,7 +149,7 @@ public class GraphicsTextWriter {
         }
     }
 
-//    // xác thực in mộc
+//    // xác thực in mộc ch ch
     public String certificateValidation(String imageCertificateUrl, String sealImageUrl) {
         try {
             BufferedImage certificateImage = ImageIO.read(new URL(imageCertificateUrl));
@@ -171,6 +171,27 @@ public class GraphicsTextWriter {
         }
     }
 
+    //    // xác thực in mộc văn bằng
+    public String degreeValidation(String imageDegreeUrl, String sealImageUrl) {
+        try {
+            BufferedImage degreeImage = ImageIO.read(new URL(imageDegreeUrl));
+
+            BufferedImage sealImage = ImageIO.read(new URL(sealImageUrl));
+
+            Image scaledSeal = sealImage.getScaledInstance(220, 220, Image.SCALE_SMOOTH);
+
+            Graphics2D g2d = degreeImage.createGraphics();
+            int x = 1127;
+            int y = 820;
+            g2d.drawImage(scaledSeal, x, y, null);
+            g2d.dispose();
+
+            return imageUploadService.uploadImage(degreeImage, "png");
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
 
 
     public static int getCenteredX(Graphics2D g2d, String text, int regionStart, int regionWidth) {

@@ -1,6 +1,7 @@
 package com.example.blockchain.record.keeping.repositorys;
 
 import com.example.blockchain.record.keeping.enums.Status;
+import com.example.blockchain.record.keeping.models.Certificate;
 import com.example.blockchain.record.keeping.models.Degree;
 import com.example.blockchain.record.keeping.models.Student;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -163,5 +164,8 @@ public interface DegreeRepository extends JpaRepository<Degree,Long> {
                                            @Param("studentCode") String studentCode,
                                            @Param("studentName") String studentName,
                                            @Param("graduationYear") String graduationYear);
+
+    //kiem tra xem chung chi da duoc xac thuc chua
+    Degree findByIdAndStatus(Long id, Status status);
 
 }

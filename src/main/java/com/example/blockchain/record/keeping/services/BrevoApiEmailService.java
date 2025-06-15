@@ -46,13 +46,14 @@ public class BrevoApiEmailService {
     private final ExecutorService executorService = Executors.newFixedThreadPool(THREAD_POOL_SIZE);
 
     @Async
-    public void sendEmail(String toEmail, String name, String universityName, String certificateUrl) {
+    public void sendEmail(String toEmail, String name, String universityName, String certificateUrl, String paperName) {
         String url = "https://api.brevo.com/v3/smtp/email";
 
         Context context = new Context();
         context.setVariable("studentName", name);
         context.setVariable("universityName", universityName);
         context.setVariable("certificateUrl", certificateUrl);
+        context.setVariable("paperName", paperName);
         String contentHtml = templateEngine.process("email-template", context);
 
         // 2. Gửi email qua Brevo API
@@ -75,27 +76,10 @@ public class BrevoApiEmailService {
     }
 
 
-    // gửi gmail cho sinh viên nhớ viết lại
-    public void sendEmailsToStudentsExcel(String email ,String name,String universityName,String certificateUrl) {
-        sendEmail(email, name,universityName,certificateUrl);
+    // gửi gmail cho sinh viên
+    public void sendEmailsToStudentsExcel(String email ,String name,String universityName,String certificateUrl,String paperName) {
+        sendEmail(email, name,universityName,certificateUrl,paperName);
     }
-
-    //gửi thông báo cấp văn bằng cho sv
-//    public void sendEmailNotificationOfDiplomaIssuanceExcel(List<DegreeExcelRowRequest> students) {
-//        List<CompletableFuture<Void>> futures = new ArrayList<>();
-//        for (DegreeExcelRowRequest student : students) {
-//            String email = student.getEmail();
-//            String name = student.getName();
-//            String certificateUrl = "https://yourdomain.com/certificates/" + student.getStudentCode();
-//
-//            // Gọi phương thức sendEmail bất đồng bộ và thêm vào list futures
-//            //Trong vòng lặp, sendEmail được gọi thông qua CompletableFuture.runAsync(). Điều này có nghĩa là mỗi email sẽ được gửi trong một luồng riêng biệt mà không làm chậm quá trình gửi email cho các sinh viên khác.
-//            futures.add(CompletableFuture.runAsync(() -> sendEmail(email, name, certificateUrl), executorService));
-//        }
-//
-//        // Đợi tất cả các tác vụ bất đồng bộ hoàn thành
-//        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
-//    }
 
     //gửi OTP
     @Async

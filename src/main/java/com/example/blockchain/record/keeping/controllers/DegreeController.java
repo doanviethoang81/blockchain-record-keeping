@@ -513,6 +513,25 @@ public class DegreeController {
         }
     }
 
+    //xác nhận 1 văn bằng
+    @PreAuthorize("hasAuthority('READ')")
+    @PostMapping("/pdt/degree-validation/{id}")
+    public ResponseEntity<?> validationDegree(@PathVariable("id") Long id){
+        try{
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String username = authentication.getName();
+            University university = universityService.getUniversityByEmail(username);
+            Degree degree = degreeService.findByIdAndStatus(id);
+            if(degree != null){
+                return ApiResponseBuilder.badRequest("Văn bằng này đã được xác thực rồi!");
+            }
+            degreeService.degreeValidation(university,id);
+            return ApiResponseBuilder.success("Xác nhận thành công ", null);
+        } catch (Exception e) {
+            return ApiResponseBuilder.internalError("Lỗi " + e.getMessage());
+        }
+    }
+
     private String convertStatusToDisplay(Status status) {
         return switch (status) {
             case PENDING -> "Chưa duyệt";

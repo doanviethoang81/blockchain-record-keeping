@@ -44,8 +44,8 @@ public class CertificateService implements ICertificateService{
     private final GraphicsTextWriter graphicsTextWriter;
     private final BrevoApiEmailService brevoApiEmailService;
     private final QrCodeUtil qrCodeUtil;
-    private final CertificateStorage_sol_EncryptedCertificateStorage contract;
     private final StudentRepository studentRepository;
+    private final BlockChainService blockChainService;
 
     @Autowired
     private Web3j web3j;
@@ -224,7 +224,7 @@ public class CertificateService implements ICertificateService{
         certificateRepository.save(certificate);
     }
 
-    // them dau moc
+    // them dau moc ch ch
     @Transactional
     public void certificateValidation (University university,Long idCertificate) throws Exception {
         try {
@@ -252,23 +252,24 @@ public class CertificateService implements ICertificateService{
             brevoApiEmailService.sendEmailsToStudentsExcel(
                     certificate.getStudent().getEmail(),
                     certificate.getStudent().getName(),
-                    certificate.getStudent().getStudentClass().getDepartment().getUniversity().getName(),
-                    certificateUrl);
+                    university.getName(),
+                    certificateUrl,
+                    "Chứng chỉ");
 
             CertificateBlockchainRequest request = new CertificateBlockchainRequest(
                     certificate.getStudent().getName(),
-                    certificate.getUniversityCertificateType().getUniversity().getName(),
+                    university.getName(),
                     certificate.getIssueDate().format(formatter),
                     certificate.getDiplomaNumber(),
                     ipfsUrl
             );
-            String base64PrivateKey = certificate.getUniversityCertificateType().getUniversity().getPrivateKey();
+            String base64PrivateKey = university.getPrivateKey();
             PrivateKey privateKey = RSAKeyPairGenerator.getPrivateKeyFromBase64(base64PrivateKey);
             String json = objectMapper.writeValueAsString(request);
             String encryptedHex = rsaUtil.encryptWithPrivateKeyToHex(json, privateKey);
 
             //gửi blockchain và lấy txHash naof goij thi mo
-            String txHash = issueCertificate(encryptedHex);
+            String txHash = blockChainService.issue(encryptedHex);
 
 //            String txHash = "123"; //sua
             certificate.setBlockchainTxHash(txHash);
@@ -276,57 +277,6 @@ public class CertificateService implements ICertificateService{
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-    }
-
-    @Autowired
-    public CertificateService(CertificateRepository certificateRepository, UniversityCertificateTypeService universityCertificateTypeService, CertificateTypeService certificateTypeService, GraphicsTextWriter graphicsTextWriter, BrevoApiEmailService brevoApiEmailService, QrCodeUtil qrCodeUtil, Web3j web3j, Credentials credentials, ContractGasProvider gasProvider, StudentRepository studentRepository) {
-        this.certificateRepository = certificateRepository;
-        this.universityCertificateTypeService = universityCertificateTypeService;
-        this.certificateTypeService = certificateTypeService;
-        this.graphicsTextWriter = graphicsTextWriter;
-        this.brevoApiEmailService = brevoApiEmailService;
-        this.qrCodeUtil = qrCodeUtil;
-        this.web3j = web3j;
-        this.studentRepository = studentRepository;
-
-        // Địa chỉ của smart contract sau khi deploy
-        String contractAddress = EnvUtil.get("SMART_CONTRACT_CERTIFICATE_ADDRESS");
-        this.contract = CertificateStorage_sol_EncryptedCertificateStorage.load(contractAddress, web3j, credentials, gasProvider);
-    }
-
-    public String issueCertificate(String encryptedData) throws Exception {
-        try {
-            TransactionReceipt receipt = contract.saveCertificate(
-                    encryptedData
-            ).send();
-
-            String txHash = receipt.getTransactionHash();
-            String status = receipt.getStatus();
-            return txHash;
-        } catch (Exception e) {
-            throw new Exception("Transaction failed: " + e.getMessage());
-        }
-    }
-
-    public String extractEncryptedData(String transactionHash) throws Exception {
-        EthTransaction transactionResponse = web3j.ethGetTransactionByHash(transactionHash).send();
-        Optional<org.web3j.protocol.core.methods.response.Transaction> txOpt = transactionResponse.getTransaction();
-
-        if (txOpt.isEmpty()) {
-            throw new RuntimeException("Transaction không tồn tại.");
-        }
-        String input = txOpt.get().getInput();
-
-        if (input == null || input.length() <= 10) {
-            throw new RuntimeException("Không tìm thấy input data trong transaction.");
-        }
-
-        //bỏ function selector (4 byte đầu = 8 hex) + "0x"
-        String encodedHex = input.substring(10);
-        byte[] decodedBytes = Numeric.hexStringToByteArray(encodedHex);
-        String encryptedData = new String(decodedBytes, StandardCharsets.UTF_8);
-
-        return encryptedData.trim();
     }
 
     public Set<String> findAllDiplomaNumbers(Collection<String> diplomaNumbers) {

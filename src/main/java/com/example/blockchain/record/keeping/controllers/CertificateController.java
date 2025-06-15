@@ -49,9 +49,9 @@ public class CertificateController {
     private final CertificateTypeService certificateTypeService;
     private final UniversityCertificateTypeService universityCertificateTypeService;
     private final GraphicsTextWriter graphicsTextWriter;
-    private final BrevoApiEmailService brevoApiEmailService;
     private final ObjectMapper objectMapper;
     private final RSAUtil rsaUtil;
+    private final BlockChainService blockChainService;
 
     //---------------------------- ADMIN -------------------------------------------------------
     // xem all chứng chỉ
@@ -351,7 +351,7 @@ public class CertificateController {
                     !StringUtils.hasText(request.getPublicKeyBase64())) {
                 return ApiResponseBuilder.badRequest("Vui lòng nhập đầy đủ thông tin!");
             }
-            String encryptedData = certificateService.extractEncryptedData(request.getTransactionHash());
+            String encryptedData = blockChainService.extractEncryptedData(request.getTransactionHash());
             PublicKey publicKey = RSAKeyPairGenerator.getPublicKeyFromBase64(request.getPublicKeyBase64());
             String decrypted = rsaUtil.decryptWithPublicKeyFromHex(encryptedData, publicKey);
             Object jsonObject = objectMapper.readValue(decrypted, Object.class);

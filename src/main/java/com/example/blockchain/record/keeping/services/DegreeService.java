@@ -1,5 +1,8 @@
 package com.example.blockchain.record.keeping.services;
 
+import com.example.blockchain.record.keeping.configs.Constants;
+import com.example.blockchain.record.keeping.dtos.request.CertificateBlockchainRequest;
+import com.example.blockchain.record.keeping.dtos.request.DegreeBlockchainRequest;
 import com.example.blockchain.record.keeping.dtos.request.DegreePrintData;
 import com.example.blockchain.record.keeping.dtos.request.DegreeRequest;
 import com.example.blockchain.record.keeping.enums.Status;
@@ -8,14 +11,21 @@ import com.example.blockchain.record.keeping.repositorys.CertificateRepository;
 import com.example.blockchain.record.keeping.repositorys.DegreeRepository;
 import com.example.blockchain.record.keeping.repositorys.DegreeTitleRepository;
 import com.example.blockchain.record.keeping.repositorys.StudentRepository;
+import com.example.blockchain.record.keeping.utils.PinataUploader;
+import com.example.blockchain.record.keeping.utils.QrCodeUtil;
+import com.example.blockchain.record.keeping.utils.RSAUtil;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import org.web3j.protocol.Web3j;
 
+import java.security.PrivateKey;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -32,6 +42,15 @@ public class DegreeService implements IDegreeService{
     private final RatingService ratingService;
     private final StudentService studentService;
     private final GraphicsTextWriter graphicsTextWriter;
+    private final QrCodeUtil qrCodeUtil;
+    private final BlockChainService blockChainService;
+    private final BrevoApiEmailService brevoApiEmailService;
+
+    @Autowired
+    private ObjectMapper objectMapper;
+
+    @Autowired
+    private RSAUtil rsaUtil;
 
     @Transactional
     public void createDegree(DegreeRequest request) {
@@ -202,6 +221,11 @@ public class DegreeService implements IDegreeService{
         return degreeRepository.listAllDegree(universityName, departmentName,className,studentCode,studentName, graduationYear);
     }
 
+    @Override
+    public Degree findByIdAndStatus(Long id) {
+        return degreeRepository.findByIdAndStatus(id, Status.APPROVED);
+    }
+
     public Map<String, Boolean> checkStudentsGrantedDegree(Set<String> studentCodes) {
         List<String> existingCodes = degreeRepository.findStudentCodesWithDegree(studentCodes);
         Map<String, Boolean> result = new HashMap<>();
@@ -219,7 +243,63 @@ public class DegreeService implements IDegreeService{
         return new HashSet<>(degreeRepository.findExistingLotteryNumbers(lotteryNumbers));
     }
 
+    // them dau moc van bang
+    @Transactional
+    public void degreeValidation (University university,Long degreeId) throws Exception {
+        try {
+            ZonedDateTime vietnamTime = ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
 
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+
+            Degree degree = degreeRepository.findById(degreeId)
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy văn bằng có id " + degreeId));
+
+            String imageUrl = graphicsTextWriter.degreeValidation(degree.getImageUrl(), university.getSealImageUrl());
+            degree.setImageUrl(imageUrl);
+
+            String ipfsUrl = PinataUploader.uploadFromUrlToPinata(imageUrl);
+            degree.setIpfsUrl(ipfsUrl);
+
+            //đường dẫn chứng chỉ IPFS
+            String certificateUrl = Constants.VERIFY_URL + ipfsUrl;
+
+            String qrBase64 = qrCodeUtil.generateQRCodeBase64(certificateUrl, 250, 250);
+            degree.setQrCode(qrBase64);
+
+            degree.setStatus(Status.APPROVED);
+            degree.setUpdatedAt(vietnamTime.toLocalDateTime());
+            // gửi emial
+            brevoApiEmailService.sendEmailsToStudentsExcel(
+                    degree.getStudent().getEmail(),
+                    degree.getStudent().getName(),
+                    university.getName(),
+                    certificateUrl,
+                    "Văn bằng");
+
+            // lấy thông tin vb lưu block
+            DegreeBlockchainRequest request = new DegreeBlockchainRequest(
+                    degree.getStudent().getName(),
+                    university.getName(),
+                    degree.getIssueDate().format(formatter),
+                    degree.getDiplomaNumber(),
+                    degree.getLotteryNumber(),
+                    ipfsUrl
+            );
+            String base64PrivateKey = university.getPrivateKey();
+            PrivateKey privateKey = RSAKeyPairGenerator.getPrivateKeyFromBase64(base64PrivateKey);
+            String json = objectMapper.writeValueAsString(request);
+            String encryptedHex = rsaUtil.encryptWithPrivateKeyToHex(json, privateKey);
+
+            //gửi blockchain và lấy txHash naof goij thi mo
+            String txHash = blockChainService.issue(encryptedHex);
+
+//            String txHash = "123"; //sua
+            degree.setBlockchainTxHash(txHash);
+//            certificateRepository.save(certificate);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 
 }
 

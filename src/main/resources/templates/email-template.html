@@ -47,10 +47,14 @@
     </p>
     <p>
         Trường đại học <span th:text="${universityName}"></span>,
-        Chúng tôi vui mừng thông báo rằng bạn đã được cấp chứng chỉ.
+        Chúng tôi vui mừng thông báo rằng bạn đã được cấp
+        <span th:text="${paperName}">Chứng chỉ</span>.
     </p>
     <p>
-        Chứng chỉ của bạn đã được cấp và lưu trữ trên blockchain. Bạn có thể xem và kiểm tra thông tin chứng chỉ của mình bằng cách nhấp vào liên kết dưới đây.
+        <span th:text="${paperName}">Chứng chỉ</span>
+         của bạn đã được cấp và lưu trữ trên blockchain. Bạn có thể xem và kiểm tra thông tin
+        <span th:text="${paperName}">Chứng chỉ</span>
+        của mình bằng cách nhấp vào liên kết dưới đây.
     </p>
     <p>
         <a th:href="${certificateUrl}" class="button">Xem Chứng Chỉ</a>
