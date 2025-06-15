@@ -18,6 +18,7 @@ public interface DegreeRepository extends JpaRepository<Degree,Long> {
     boolean existsByStudentAndStatusNot(Student student, Status status);
     boolean existsByIdAndStatus(Long id, Status status);
 
+    // list mssv thêm van bang excel
     @Query(value = """
     SELECT s.student_code
     FROM degrees d
@@ -42,4 +43,125 @@ public interface DegreeRepository extends JpaRepository<Degree,Long> {
             WHERE d.lottery_number IN :lotteryNumbers
             """,nativeQuery = true)
     List<String> findExistingLotteryNumbers(@Param("lotteryNumbers") Collection<String> lotteryNumbers);
+
+    // list văn bằng của 1 trường
+    @Query(value = """
+            SELECT d.*
+            FROM degrees d
+            JOIN students s on d.student_id=s.id
+            JOIN student_class sc on s.student_class_id = sc.id
+            join departments dp on sc.department_id = dp.id
+            WHERE dp.university_id = :universityId
+            and s.status ='ACTIVE'
+            and sc.status ='ACTIVE'
+            and dp.status ='ACTIVE'          
+            AND (:departmentName IS NULL OR dp.name LIKE CONCAT('%', :departmentName, '%'))
+            AND (:className IS NULL OR sc.name LIKE CONCAT('%', :className, '%'))
+            AND (:studentCode IS NULL OR s.student_code LIKE CONCAT('%', :studentCode, '%'))
+            AND (:studentName IS NULL OR s.name LIKE CONCAT('%', :studentName, '%'))
+            AND (:graduationYear IS NULL OR d.graduation_year LIKE CONCAT('%', :graduationYear, '%'))            
+            ORDER BY d.updated_at DESC 
+            """,nativeQuery = true)
+    List<Degree> listAllDegreeOfUniversity(@Param("universityId") Long universityId,
+                                            @Param("departmentName") String departmentName,
+                                           @Param("className") String className,
+                                           @Param("studentCode") String studentCode,
+                                           @Param("studentName") String studentName,
+                                           @Param("graduationYear") String graduationYear);
+
+    // list văn bằng chưa đc xác nhận của 1 trường
+    @Query(value = """
+            SELECT d.*
+            FROM degrees d
+            JOIN students s on d.student_id=s.id
+            JOIN student_class sc on s.student_class_id = sc.id
+            join departments dp on sc.department_id = dp.id
+            WHERE dp.university_id = :universityId
+            and s.status ='ACTIVE'
+            and sc.status ='ACTIVE'
+            and dp.status ='ACTIVE'          
+            and d.status = 'PENDING'
+            AND (:departmentName IS NULL OR dp.name LIKE CONCAT('%', :departmentName, '%'))
+            AND (:className IS NULL OR sc.name LIKE CONCAT('%', :className, '%'))
+            AND (:studentCode IS NULL OR s.student_code LIKE CONCAT('%', :studentCode, '%'))
+            AND (:studentName IS NULL OR s.name LIKE CONCAT('%', :studentName, '%'))
+            AND (:graduationYear IS NULL OR d.graduation_year LIKE CONCAT('%', :graduationYear, '%'))                        
+            ORDER BY d.updated_at DESC 
+            """,nativeQuery = true)
+    List<Degree> listDegreeOfUniversityPending(@Param("universityId") Long universityId,
+                                               @Param("departmentName") String departmentName,
+                                               @Param("className") String className,
+                                               @Param("studentCode") String studentCode,
+                                               @Param("studentName") String studentName,
+                                               @Param("graduationYear") String graduationYear);
+    // list văn bằng của 1 khoa
+    @Query(value = """
+            SELECT d.*
+            FROM degrees d
+            JOIN students s on d.student_id=s.id
+            JOIN student_class sc on s.student_class_id = sc.id
+            join departments dp on sc.department_id = dp.id
+            WHERE dp.id = :departmentId
+            and s.status ='ACTIVE'
+            and sc.status ='ACTIVE'
+            AND (:className IS NULL OR sc.name LIKE CONCAT('%', :className, '%'))
+            AND (:studentCode IS NULL OR s.student_code LIKE CONCAT('%', :studentCode, '%'))
+            AND (:studentName IS NULL OR s.name LIKE CONCAT('%', :studentName, '%'))
+            AND (:graduationYear IS NULL OR d.graduation_year LIKE CONCAT('%', :graduationYear, '%'))                        
+            ORDER BY d.updated_at DESC 
+            """,nativeQuery = true)
+    List<Degree> listAllDegreeOfDepartment(@Param("departmentId") Long departmentId,
+                                           @Param("className") String className,
+                                           @Param("studentCode") String studentCode,
+                                           @Param("studentName") String studentName,
+                                           @Param("graduationYear") String graduationYear);
+    // list văn bằng chưa đc xác nhận của 1 khoa
+    @Query(value = """
+            SELECT d.*
+            FROM degrees d
+            JOIN students s on d.student_id=s.id
+            JOIN student_class sc on s.student_class_id = sc.id
+            join departments dp on sc.department_id = dp.id
+            WHERE dp.id = :departmentId
+            and d.status = 'PENDING'            
+            and s.status ='ACTIVE'
+            and sc.status ='ACTIVE'
+            AND (:className IS NULL OR sc.name LIKE CONCAT('%', :className, '%'))
+            AND (:studentCode IS NULL OR s.student_code LIKE CONCAT('%', :studentCode, '%'))
+            AND (:studentName IS NULL OR s.name LIKE CONCAT('%', :studentName, '%'))
+            AND (:graduationYear IS NULL OR d.graduation_year LIKE CONCAT('%', :graduationYear, '%'))            
+            ORDER BY d.updated_at DESC 
+            """,nativeQuery = true)
+    List<Degree> listAllDegreeOfDepartmentPending(@Param("departmentId") Long departmentId,
+                                                  @Param("className") String className,
+                                                  @Param("studentCode") String studentCode,
+                                                  @Param("studentName") String studentName,
+                                                  @Param("graduationYear") String graduationYear);
+
+    // list văn bằng all admin
+    @Query(value = """
+            SELECT d.*
+            FROM degrees d
+            JOIN students s on d.student_id=s.id
+            JOIN student_class sc on s.student_class_id = sc.id
+            join departments dp on sc.department_id = dp.id
+            join universitys u on dp.university_id = u.id
+            WHERE s.status ='ACTIVE'
+            and sc.status ='ACTIVE'
+            and dp.status ='ACTIVE'         
+            AND (:universityName IS NULL OR u.name LIKE CONCAT('%', :universityName, '%'))
+            AND (:departmentName IS NULL OR dp.name LIKE CONCAT('%', :departmentName, '%'))
+            AND (:className IS NULL OR sc.name LIKE CONCAT('%', :className, '%'))
+            AND (:studentCode IS NULL OR s.student_code LIKE CONCAT('%', :studentCode, '%'))
+            AND (:studentName IS NULL OR s.name LIKE CONCAT('%', :studentName, '%'))
+            AND (:graduationYear IS NULL OR d.graduation_year LIKE CONCAT('%', :graduationYear, '%'))          
+            ORDER BY d.updated_at DESC
+            """,nativeQuery = true)
+    List<Degree> listAllDegree(@Param("universityName") String universityName,
+                                           @Param("departmentName") String departmentName,
+                                           @Param("className") String className,
+                                           @Param("studentCode") String studentCode,
+                                           @Param("studentName") String studentName,
+                                           @Param("graduationYear") String graduationYear);
+
 }

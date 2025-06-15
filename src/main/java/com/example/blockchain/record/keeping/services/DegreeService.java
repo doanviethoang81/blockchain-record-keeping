@@ -177,6 +177,31 @@ public class DegreeService implements IDegreeService{
         return degreeRepository.findByLotteryNumber(lotteryNumber).orElse(null);
     }
 
+    @Override
+    public List<Degree> listAllDegreeOfUniversity(Long universittyId, String departmentName, String className, String studentCode, String studentName,String graduationYear) {
+        return degreeRepository.listAllDegreeOfUniversity(universittyId,departmentName,className,studentCode,studentName, graduationYear);
+    }
+
+    @Override
+    public List<Degree> listAllDegreeOfUniversityPending(Long universittyId, String departmentName, String className, String studentCode, String studentName,String graduationYear) {
+        return degreeRepository.listDegreeOfUniversityPending(universittyId,departmentName,className,studentCode,studentName, graduationYear);
+    }
+
+    @Override
+    public List<Degree> listAllDegreeOfDepartment(Long departmentId, String className, String studentCode, String studentName,String graduationYear) {
+        return degreeRepository.listAllDegreeOfDepartment(departmentId,className,studentCode,studentName, graduationYear);
+    }
+
+    @Override
+    public List<Degree> listAllDegreeOfDepartmentPending( Long departmentId, String className, String studentCode, String studentName,String graduationYear) {
+        return degreeRepository.listAllDegreeOfDepartmentPending(departmentId,className,studentCode,studentName, graduationYear);
+    }
+
+    @Override
+    public List<Degree> listAllDegree(String universityName, String departmentName, String className, String studentCode, String studentName, String graduationYear) {
+        return degreeRepository.listAllDegree(universityName, departmentName,className,studentCode,studentName, graduationYear);
+    }
+
     public Map<String, Boolean> checkStudentsGrantedDegree(Set<String> studentCodes) {
         List<String> existingCodes = degreeRepository.findStudentCodesWithDegree(studentCodes);
         Map<String, Boolean> result = new HashMap<>();

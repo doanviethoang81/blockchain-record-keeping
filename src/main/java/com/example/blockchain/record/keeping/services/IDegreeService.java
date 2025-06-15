@@ -24,5 +24,16 @@ public interface IDegreeService {
     List<Degree> saveAll(List<Degree> degreeList);
 
     Degree findbyDiplomaNumber(String diplomaNumber);
+
     Degree findByLotteryNumber(String lotteryNumber);
+
+    List<Degree> listAllDegreeOfUniversity(Long universittyId, String departmentName, String className, String studentCode, String studentName,String graduationYear);
+
+    List<Degree> listAllDegreeOfUniversityPending(Long universittyId, String departmentName, String className, String studentCode, String studentName,String graduationYear);
+
+    List<Degree> listAllDegreeOfDepartment(Long departmentId, String className, String studentCode, String studentName,String graduationYear);
+
+    List<Degree> listAllDegreeOfDepartmentPending(Long departmentId, String className, String studentCode, String studentName,String graduationYear);
+
+    List<Degree> listAllDegree(String universityName, String departmentName, String className, String studentCode, String studentName,String graduationYear);
 }
