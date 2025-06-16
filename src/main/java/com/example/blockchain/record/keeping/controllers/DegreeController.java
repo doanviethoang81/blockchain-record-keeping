@@ -1,8 +1,8 @@
 package com.example.blockchain.record.keeping.controllers;
 
 import com.alibaba.excel.EasyExcel;
-import com.example.blockchain.record.keeping.dtos.CertificateExcelRowDTO;
 import com.example.blockchain.record.keeping.dtos.request.DegreeExcelRowRequest;
+import com.example.blockchain.record.keeping.dtos.request.ListValidationRequest;
 import com.example.blockchain.record.keeping.dtos.request.DegreeRequest;
 import com.example.blockchain.record.keeping.enums.Status;
 import com.example.blockchain.record.keeping.models.*;
@@ -25,6 +25,7 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -33,21 +34,16 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @SecurityRequirement(name = "bearerAuth")
 public class DegreeController {
-    private final StudentRepository studentRepository;
     private final UniversityService universityService;
     private final UserService userService;
     private final DegreeService degreeService;
     private final RatingService ratingService;
     private final EducationModelSevice educationModelSevice;
     private final DegreeTitleSevice degreeTitleSevice;
-    private final StudentClassService studentClassService;
     private final StudentService studentService;
-    private final DepartmentService departmentService;
     private final GraphicsTextWriter graphicsTextWriter;
 
     //---------------------------- ADMIN -------------------------------------------------------
-
-
 
 
     //---------------------------- KHOA -------------------------------------------------------
@@ -375,7 +371,7 @@ public class DegreeController {
                     new PaginationMeta(degreeResponseList.size(), pagedResult.size(), size, page ,
                             (int) Math.ceil((double) degreeResponseList.size() / size)));
 
-            return ApiResponseBuilder.success("Danh sách văn bằng chưa được xác thực của trường",data);
+            return ApiResponseBuilder.success("Danh sách văn bằng chưa được xác nhận của trường",data);
         } catch (IllegalArgumentException e) {
             return ApiResponseBuilder.badRequest(e.getMessage());
         } catch (Exception e) {
@@ -505,7 +501,7 @@ public class DegreeController {
                     new PaginationMeta(degreeResponseList.size(), pagedResult.size(), size, page ,
                             (int) Math.ceil((double) degreeResponseList.size() / size)));
 
-            return ApiResponseBuilder.success("Danh sách văn bằng chưa được xác thực của khoa",data);
+            return ApiResponseBuilder.success("Danh sách văn bằng chưa được xác nhận của khoa",data);
         } catch (IllegalArgumentException e) {
             return ApiResponseBuilder.badRequest(e.getMessage());
         } catch (Exception e) {
@@ -516,19 +512,58 @@ public class DegreeController {
     //xác nhận 1 văn bằng
     @PreAuthorize("hasAuthority('READ')")
     @PostMapping("/pdt/degree-validation/{id}")
-    public ResponseEntity<?> validationDegree(@PathVariable("id") Long id){
+    public ResponseEntity<?> degreeValidation(@PathVariable("id") Long id){
         try{
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             String username = authentication.getName();
             University university = universityService.getUniversityByEmail(username);
             Degree degree = degreeService.findByIdAndStatus(id);
             if(degree != null){
-                return ApiResponseBuilder.badRequest("Văn bằng này đã được xác thực rồi!");
+                return ApiResponseBuilder.badRequest("Văn bằng này đã được xác nhận rồi!");
             }
             degreeService.degreeValidation(university,id);
             return ApiResponseBuilder.success("Xác nhận thành công ", null);
         } catch (Exception e) {
             return ApiResponseBuilder.internalError("Lỗi " + e.getMessage());
+        }
+    }
+
+    //xác nhận 1 list văn bằng
+    @PreAuthorize("hasAuthority('READ')")
+    @PostMapping("/pdt/confirm-degree-list")
+    public ResponseEntity<?> confirmDegreeList(@RequestBody ListValidationRequest request) {
+        try {
+            if (request == null || request.getIds() == null || request.getIds().isEmpty()) {
+                return ApiResponseBuilder.badRequest("Vui lòng chọn văn bằng cần xác nhận!");
+            }
+
+            List<Long> ids = request.getIds();
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String username = authentication.getName();
+            University university = universityService.getUniversityByEmail(username);
+
+            List<String> alreadyValidated = new ArrayList<>();
+
+            for (Long id : ids) {
+                Degree degree = degreeService.findByIdAndStatus(id);
+                if (degree != null) {
+                    alreadyValidated.add("Văn bằng ID " + id + " đã được xác nhận!");
+                }
+            }
+
+            if (!alreadyValidated.isEmpty()) {
+                return ApiResponseBuilder.listBadRequest(
+                        "Không thể xác nhận vì có văn bằng đã được xác nhận.",
+                        alreadyValidated
+                );
+            }
+
+            for (Long id : ids) {
+                degreeService.degreeValidation(university, id);
+            }
+            return ApiResponseBuilder.success("Xác nhận tất cả văn bằng thành công", null);
+        } catch (Exception e) {
+            return ApiResponseBuilder.internalError("Lỗi: " + e.getMessage());
         }
     }
 

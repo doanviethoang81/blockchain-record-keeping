@@ -5,6 +5,7 @@ import com.example.blockchain.record.keeping.configs.Constants;
 import com.example.blockchain.record.keeping.dtos.CertificateExcelRowDTO;
 import com.example.blockchain.record.keeping.dtos.request.CertificateRequest;
 import com.example.blockchain.record.keeping.dtos.request.DecryptRequest;
+import com.example.blockchain.record.keeping.dtos.request.ListValidationRequest;
 import com.example.blockchain.record.keeping.enums.Status;
 import com.example.blockchain.record.keeping.models.*;
 import com.example.blockchain.record.keeping.response.*;
@@ -14,7 +15,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -24,14 +24,13 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
-import java.util.Base64;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -219,7 +218,7 @@ public class CertificateController {
         }
     }
 
-    // danh sách chứng chỉ chưa xác thực
+    // danh sách chứng chỉ chưa xác nhận
     @PreAuthorize("hasAuthority('READ')")
     @GetMapping("/pdt/list-certificates-pending")
     public ResponseEntity<?> getCertificateOfUniversityPending(
@@ -274,7 +273,7 @@ public class CertificateController {
                     new PaginationMeta(certificateResponseList.size(), pagedResult.size(), size, page ,
                             (int) Math.ceil((double) certificateResponseList.size() / size)));
 
-            return ApiResponseBuilder.success("Danh sách chứng chỉ chưa xác thực của một trường",data);
+            return ApiResponseBuilder.success("Danh sách chứng chỉ chưa xác nhận của một trường",data);
         } catch (IllegalArgumentException e) {
             return ApiResponseBuilder.badRequest(e.getMessage());
         } catch (Exception e) {
@@ -285,7 +284,7 @@ public class CertificateController {
     //xác nhận 1 chứng chỉ
     @PreAuthorize("hasAuthority('READ')")
     @PostMapping("/pdt/certificate-validation/{id}")
-    public ResponseEntity<?> validationCertificate(@PathVariable("id") Long id){
+    public ResponseEntity<?> certificateValidation(@PathVariable("id") Long id){
         try{
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             String username = authentication.getName();
@@ -293,12 +292,51 @@ public class CertificateController {
             Certificate certificate = certificateService.findByIdAndStatus(id, Status.APPROVED);
 
             if(certificate != null){
-                return ApiResponseBuilder.badRequest("Chứng chỉ này đã được xác thực rồi!");
+                return ApiResponseBuilder.badRequest("Chứng chỉ này đã được xác nhận rồi!");
             }
             certificateService.certificateValidation(university,id);
             return ApiResponseBuilder.success("Xác nhận thành công ", null);
         } catch (Exception e) {
             return ApiResponseBuilder.internalError("Lỗi " + e.getMessage());
+        }
+    }
+
+    //xác nhận 1 list chứng chỉ
+    @PreAuthorize("hasAuthority('READ')")
+    @PostMapping("/pdt/confirm-certificate-list")
+    public ResponseEntity<?> confirmCertificateList(@RequestBody ListValidationRequest request) {
+        try {
+            if (request == null || request.getIds() == null || request.getIds().isEmpty()) {
+                return ApiResponseBuilder.badRequest("Vui lòng chọn chứng chỉ cần xác nhận!");
+            }
+
+            List<Long> ids = request.getIds();
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String username = authentication.getName();
+            University university = universityService.getUniversityByEmail(username);
+
+            List<String> alreadyValidated = new ArrayList<>();
+
+            for (Long id : ids) {
+                Certificate certificate = certificateService.findByIdAndStatus(id,Status.APPROVED);
+                if (certificate != null) {
+                    alreadyValidated.add("Chứng chỉ ID " + id + " đã được xác nhận!");
+                }
+            }
+
+            if (!alreadyValidated.isEmpty()) {
+                return ApiResponseBuilder.listBadRequest(
+                        "Không thể xác nhận vì có chứng chỉ đã được xác nhận.",
+                        alreadyValidated
+                );
+            }
+
+            for (Long id : ids) {
+                certificateService.certificateValidation(university, id);
+            }
+            return ApiResponseBuilder.success("Xác nhận tất cả chứng chỉ thành công", null);
+        } catch (Exception e) {
+            return ApiResponseBuilder.internalError("Lỗi: " + e.getMessage());
         }
     }
 
@@ -422,7 +460,7 @@ public class CertificateController {
         }
     }
 
-    //chunng chi chưa xác thực cua 1 khoa
+    //chunng chi chưa xác nhận cua 1 khoa
     @PreAuthorize("hasAuthority('READ')")
     @GetMapping("/khoa/list-certificates-pending")
     public ResponseEntity<?> getCertificateOfDepartmentPending(
@@ -474,7 +512,7 @@ public class CertificateController {
                     new PaginationMeta(certificateResponseList.size(), pagedResult.size(), size, page ,
                             (int) Math.ceil((double) certificateResponseList.size() / size)));
 
-            return ApiResponseBuilder.success("Danh sách chứng chỉ chưa xác thực của một khoa",data);
+            return ApiResponseBuilder.success("Danh sách chứng chỉ chưa xác nhận của một khoa",data);
         } catch (IllegalArgumentException e) {
             return ApiResponseBuilder.badRequest(e.getMessage());
         } catch (Exception e) {
