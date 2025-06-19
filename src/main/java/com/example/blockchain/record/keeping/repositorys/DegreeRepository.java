@@ -1,5 +1,6 @@
 package com.example.blockchain.record.keeping.repositorys;
 
+import com.example.blockchain.record.keeping.dtos.request.FacultyDegreeStatisticRequest;
 import com.example.blockchain.record.keeping.enums.Status;
 import com.example.blockchain.record.keeping.models.Certificate;
 import com.example.blockchain.record.keeping.models.Degree;
@@ -167,5 +168,22 @@ public interface DegreeRepository extends JpaRepository<Degree,Long> {
 
     //kiem tra xem chung chi da duoc xac thuc chua
     Degree findByIdAndStatus(Long id, Status status);
+
+
+    // thống kee sô luong hvan bang theo các khoa cua 1 truong
+    @Query(value = """
+    SELECT dp.name AS faculty_name,
+           COUNT(CASE WHEN d.status = 'APPROVED' THEN 1 END) AS validated_count,
+           COUNT(CASE WHEN d.status = 'PENDING' THEN 1 END) AS not_validated_count
+    FROM departments dp
+    JOIN universitys u ON dp.university_id = u.id
+    LEFT JOIN student_class sc ON sc.department_id = dp.id
+    LEFT JOIN students s ON s.student_class_id = sc.id
+    LEFT JOIN degrees d ON d.student_id = s.id
+    WHERE u.id = :universityId
+    GROUP BY dp.id, dp.name
+    """, nativeQuery = true)
+    List<FacultyDegreeStatisticRequest> getFacultyDegreeStatistics(@Param("universityId") Long universityId);
+
 
 }

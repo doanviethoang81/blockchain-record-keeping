@@ -1,16 +1,14 @@
 package com.example.blockchain.record.keeping.services;
 
 import com.example.blockchain.record.keeping.configs.Constants;
-import com.example.blockchain.record.keeping.dtos.request.CertificateBlockchainRequest;
-import com.example.blockchain.record.keeping.dtos.request.DegreeBlockchainRequest;
-import com.example.blockchain.record.keeping.dtos.request.DegreePrintData;
-import com.example.blockchain.record.keeping.dtos.request.DegreeRequest;
+import com.example.blockchain.record.keeping.dtos.request.*;
 import com.example.blockchain.record.keeping.enums.Status;
 import com.example.blockchain.record.keeping.models.*;
 import com.example.blockchain.record.keeping.repositorys.CertificateRepository;
 import com.example.blockchain.record.keeping.repositorys.DegreeRepository;
 import com.example.blockchain.record.keeping.repositorys.DegreeTitleRepository;
 import com.example.blockchain.record.keeping.repositorys.StudentRepository;
+import com.example.blockchain.record.keeping.response.FacultyDegreeStatisticResponse;
 import com.example.blockchain.record.keeping.utils.PinataUploader;
 import com.example.blockchain.record.keeping.utils.QrCodeUtil;
 import com.example.blockchain.record.keeping.utils.RSAUtil;
@@ -85,7 +83,7 @@ public class DegreeService implements IDegreeService{
         // tạo ảnh
         DegreePrintData degreePrintData = new DegreePrintData();
         degreePrintData.setUniversityName(student.getStudentClass().getDepartment().getUniversity().getName());
-        degreePrintData.setDegreeTitle("Bằng " +rating.getName());
+        degreePrintData.setDegreeTitle("Bằng " +degreeTitle.getName());
         degreePrintData.setDepartmentName(student.getStudentClass().getDepartment().getName());
         degreePrintData.setName(student.getName());
         degreePrintData.setBirthDate(student.getBirthDate().format(formatter));
@@ -300,6 +298,36 @@ public class DegreeService implements IDegreeService{
             throw new RuntimeException(e);
         }
     }
+
+//    public List<FacultyDegreeStatisticResponse> getFacultyStatisticsByUniversity(University university) {
+//        List<Faculty> faculties = facultyRepository.findByUniversityId(university.getId());
+//
+//        List<FacultyDegreeStatisticResponse> result = new ArrayList<>();
+//        for (Faculty faculty : faculties) {
+//            Long validated = degreeRepository.countByFacultyIdAndStatus(faculty.getId(), "VALIDATED");
+//            Long notValidated = degreeRepository.countByFacultyIdAndStatus(faculty.getId(), "PENDING");
+//            result.add(new FacultyDegreeStatisticResponse(faculty.getName(), validated, notValidated));
+//        }
+//        return result;
+//    }
+
+    public List<FacultyDegreeStatisticResponse> getFacultyDegreeStatistics(Long universityId) {
+        List<FacultyDegreeStatisticRequest> results = degreeRepository.getFacultyDegreeStatistics(universityId);
+
+        List<FacultyDegreeStatisticResponse> response = new ArrayList<>();
+        for (FacultyDegreeStatisticRequest row : results) {
+            FacultyDegreeStatisticResponse a = new FacultyDegreeStatisticResponse(
+                    row.getDepartmentName(),
+                    row.getValidatedCount(),
+                    row.getNotValidatedCount()
+            );
+            response.add(a);
+        }
+
+        return response;
+    }
+
+
 
 }
 

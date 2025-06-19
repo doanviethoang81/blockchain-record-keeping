@@ -1,6 +1,7 @@
 package com.example.blockchain.record.keeping.controllers;
 
 import com.alibaba.excel.EasyExcel;
+import com.example.blockchain.record.keeping.configs.Constants;
 import com.example.blockchain.record.keeping.dtos.request.DegreeExcelRowRequest;
 import com.example.blockchain.record.keeping.dtos.request.ListValidationRequest;
 import com.example.blockchain.record.keeping.dtos.request.DegreeRequest;
@@ -565,6 +566,41 @@ public class DegreeController {
         } catch (Exception e) {
             return ApiResponseBuilder.internalError("Lỗi: " + e.getMessage());
         }
+    }
+
+    // chi tiết 1 văn bằng
+    @PreAuthorize("(hasAnyRole('ADMIN', 'PDT', 'KHOA')) and hasAuthority('READ')")
+    @GetMapping("/degree-detail/{id}")
+    public ResponseEntity<?> degreeDetail(@PathVariable Long id){
+        Degree degree = degreeService.findById(id);
+        if(degree == null){
+            return ApiResponseBuilder.badRequest("Không tìm thấy văn bằng có id ="+ id);
+        }
+        DegreeDetailResponse degreeDetailResponse = new DegreeDetailResponse();
+
+        String ipfsUrl = degree.getIpfsUrl() != null ? Constants.IPFS_URL + degree.getIpfsUrl() : null;
+
+        degreeDetailResponse.setId(degree.getId());
+        degreeDetailResponse.setNameStudent(degree.getStudent().getName());
+        degreeDetailResponse.setClassName(degree.getStudent().getStudentClass().getName());
+        degreeDetailResponse.setDepartmentName(degree.getStudent().getStudentClass().getDepartment().getName());
+        degreeDetailResponse.setUniversity(degree.getStudent().getStudentClass().getDepartment().getUniversity().getName());
+        degreeDetailResponse.setStudentCode(degree.getStudent().getStudentCode());
+        degreeDetailResponse.setIssueDate(degree.getIssueDate());
+        degreeDetailResponse.setGraduationYear(degree.getGraduationYear());
+        degreeDetailResponse.setEmail(degree.getStudent().getEmail());
+        degreeDetailResponse.setBirthDate(degree.getStudent().getBirthDate());
+        degreeDetailResponse.setCourse(degree.getStudent().getCourse());
+        degreeDetailResponse.setSigner(degree.getSigner());
+        degreeDetailResponse.setStatus(degree.getStatus());
+        degreeDetailResponse.setImageUrl(degree.getImageUrl());
+        degreeDetailResponse.setIpfsUrl(ipfsUrl);
+        degreeDetailResponse.setQrCodeUrl(degree.getQrCode());
+        degreeDetailResponse.setTransactionHash(degree.getBlockchainTxHash());
+        degreeDetailResponse.setDiplomaNumber(degree.getDiplomaNumber());
+        degreeDetailResponse.setLotteryNumber(degree.getLotteryNumber());
+        degreeDetailResponse.setCreatedAt(degree.getUpdatedAt());
+        return ApiResponseBuilder.success("thành công", degreeDetailResponse);
     }
 
     private String convertStatusToDisplay(Status status) {

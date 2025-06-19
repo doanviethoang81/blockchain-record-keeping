@@ -6,6 +6,8 @@ import com.example.blockchain.record.keeping.dtos.StatisticsUniversityDTO;
 import com.example.blockchain.record.keeping.models.University;
 import com.example.blockchain.record.keeping.models.User;
 import com.example.blockchain.record.keeping.response.ApiResponseBuilder;
+import com.example.blockchain.record.keeping.response.FacultyDegreeStatisticResponse;
+import com.example.blockchain.record.keeping.services.DegreeService;
 import com.example.blockchain.record.keeping.services.UniversityService;
 import com.example.blockchain.record.keeping.services.UserService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -17,6 +19,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("${api.prefix:/api/v1}")
 @RequiredArgsConstructor
@@ -25,6 +29,7 @@ public class DashboardController {
 
     private final UserService userService;
     private final UniversityService universityService;
+    private final DegreeService degreeService;
 
     //---------------------------- ADMIN -------------------------------------------------------
 
@@ -71,4 +76,21 @@ public class DashboardController {
             return ApiResponseBuilder.internalError("Lỗi " + e.getMessage());
         }
     }
+
+    // thống kê sl văn bằng theo từng khoa pdt (hỏi lại có thêm cả ch ch th sua lai
+    @GetMapping("/pdt/faculty-degree-statistics")
+    public ResponseEntity<?> getFacultyDegreeStatistics() {
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String username = authentication.getName();
+            University university = universityService.getUniversityByEmail(username);
+
+            List<FacultyDegreeStatisticResponse> statistics = degreeService.getFacultyDegreeStatistics(university.getId());
+
+            return ApiResponseBuilder.success("Thống kê thành công", statistics);
+        } catch (Exception e) {
+            return ApiResponseBuilder.internalError("Lỗi: " + e.getMessage());
+        }
+    }
+
 }
