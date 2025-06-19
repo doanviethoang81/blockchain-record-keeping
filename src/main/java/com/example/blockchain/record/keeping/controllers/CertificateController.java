@@ -51,6 +51,7 @@ public class CertificateController {
     private final ObjectMapper objectMapper;
     private final RSAUtil rsaUtil;
     private final BlockChainService blockChainService;
+    private final DegreeService degreeService;
 
     //---------------------------- ADMIN -------------------------------------------------------
     // xem all chứng chỉ
@@ -342,38 +343,71 @@ public class CertificateController {
 
     // xem chứng chỉ người dùng
     @GetMapping("/verify")
-    public ResponseEntity<?> verifyCertificate( @RequestParam(required = false) String ipfsUrl){
+    public ResponseEntity<?> verifyCertificate(
+            @RequestParam(required = false) String ipfsUrl,
+            @RequestParam(required = false) String type
+    ){
         try{
-            if (ipfsUrl == null || ipfsUrl.trim().isEmpty()) {
-                return ApiResponseBuilder.badRequest("Vui lòng nhập ipfs của chứng chỉ!");
+            if (ipfsUrl == null || ipfsUrl.trim().isEmpty() || type.trim().isEmpty()) {
+                return ApiResponseBuilder.badRequest("Vui lòng nhập ipfs và type của chứng chỉ/văn bằng!");
             }
-            Certificate certificate = certificateService.findByIpfsUrl(ipfsUrl);
-            if(certificate == null){
-                return ApiResponseBuilder.badRequest("Không tìm thấy chứng chỉ!");
+            switch (type.toLowerCase()) {
+                case "degree":
+                    Degree degree = degreeService.findByIpfsUrl(ipfsUrl);
+                    if (degree == null)
+                        return ApiResponseBuilder.badRequest("Không tìm thấy văn bằng!");
+                    DegreeDetailResponse degreeDetailResponse = new DegreeDetailResponse();
+                    degreeDetailResponse.setId(degree.getId());
+                    degreeDetailResponse.setNameStudent(degree.getStudent().getName());
+                    degreeDetailResponse.setClassName(degree.getStudent().getStudentClass().getName());
+                    degreeDetailResponse.setDepartmentName(degree.getStudent().getStudentClass().getDepartment().getName());
+                    degreeDetailResponse.setUniversity(degree.getStudent().getStudentClass().getDepartment().getUniversity().getName());
+                    degreeDetailResponse.setStudentCode(degree.getStudent().getStudentCode());
+                    degreeDetailResponse.setIssueDate(degree.getIssueDate());
+                    degreeDetailResponse.setGraduationYear(degree.getGraduationYear());
+                    degreeDetailResponse.setEmail(degree.getStudent().getEmail());
+                    degreeDetailResponse.setBirthDate(degree.getStudent().getBirthDate());
+                    degreeDetailResponse.setCourse(degree.getStudent().getCourse());
+                    degreeDetailResponse.setSigner(degree.getSigner());
+                    degreeDetailResponse.setStatus(degree.getStatus());
+                    degreeDetailResponse.setImageUrl(degree.getImageUrl());
+                    degreeDetailResponse.setIpfsUrl(Constants.IPFS_URL + degree.getIpfsUrl());
+                    degreeDetailResponse.setQrCodeUrl(degree.getQrCode());
+                    degreeDetailResponse.setTransactionHash(degree.getBlockchainTxHash());
+                    degreeDetailResponse.setDiplomaNumber(degree.getDiplomaNumber());
+                    degreeDetailResponse.setLotteryNumber(degree.getLotteryNumber());
+                    degreeDetailResponse.setCreatedAt(degree.getUpdatedAt());
+                    return ApiResponseBuilder.success("Chi tiết văn bằng", degreeDetailResponse);
+                case "certificate":
+                    Certificate certificate = certificateService.findByIpfsUrl(ipfsUrl);
+                    if (certificate == null)
+                        return ApiResponseBuilder.badRequest("Không tìm thấy chứng chỉ!");
+                    CertificateDetailResponse certificateDetailResponse = new CertificateDetailResponse(
+                            certificate.getId(),
+                            certificate.getStudent().getName(),
+                            certificate.getStudent().getStudentClass().getName(),
+                            certificate.getStudent().getStudentClass().getDepartment().getName(),
+                            certificate.getStudent().getStudentClass().getDepartment().getUniversity().getName(),
+                            certificate.getUniversityCertificateType().getCertificateType().getName(),
+                            certificate.getIssueDate(),
+                            certificate.getDiplomaNumber(),
+                            certificate.getStudent().getStudentCode(),
+                            certificate.getStudent().getEmail(),
+                            certificate.getStudent().getBirthDate(),
+                            certificate.getStudent().getCourse(),
+                            certificate.getGrantor(),
+                            certificate.getSigner(),
+                            convertStatusToDisplay(certificate.getStatus()),
+                            certificate.getImageUrl(),
+                            Constants.IPFS_URL + ipfsUrl,
+                            certificate.getQrCodeUrl(),
+                            certificate.getBlockchainTxHash(),
+                            certificate.getUpdatedAt()
+                    );
+                    return ApiResponseBuilder.success("Chi tiết chứng chỉ", certificateDetailResponse);
+                default:
+                    return ApiResponseBuilder.badRequest("Loại chứng chỉ/văn bằng không hợp lệ: degree hoặc certificate");
             }
-            CertificateDetailResponse certificateDetailResponse = new CertificateDetailResponse(
-                    certificate.getId(),
-                    certificate.getStudent().getName(),
-                    certificate.getStudent().getStudentClass().getName(),
-                    certificate.getStudent().getStudentClass().getDepartment().getName(),
-                    certificate.getStudent().getStudentClass().getDepartment().getUniversity().getName(),
-                    certificate.getUniversityCertificateType().getCertificateType().getName(),
-                    certificate.getIssueDate(),
-                    certificate.getDiplomaNumber(),
-                    certificate.getStudent().getStudentCode(),
-                    certificate.getStudent().getEmail(),
-                    certificate.getStudent().getBirthDate(),
-                    certificate.getStudent().getCourse(),
-                    certificate.getGrantor(),
-                    certificate.getSigner(),
-                    convertStatusToDisplay(certificate.getStatus()),
-                    certificate.getImageUrl(),
-                    Constants.IPFS_URL + ipfsUrl,
-                    certificate.getQrCodeUrl(),
-                    certificate.getBlockchainTxHash(),
-                    certificate.getUpdatedAt()
-            );
-            return ApiResponseBuilder.success("Chi tiết chứng chỉ", certificateDetailResponse);
         } catch (IllegalArgumentException e) {
             return ApiResponseBuilder.badRequest(e.getMessage());
         } catch (Exception e) {

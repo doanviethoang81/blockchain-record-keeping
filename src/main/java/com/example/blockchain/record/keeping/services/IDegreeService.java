@@ -40,4 +40,6 @@ public interface IDegreeService {
     List<Degree> listAllDegree(String universityName, String departmentName, String className, String studentCode, String studentName,String graduationYear);
 
     Degree findByIdAndStatus(Long id);
+
+    Degree findByIpfsUrl(String ipfsUrl);
 }

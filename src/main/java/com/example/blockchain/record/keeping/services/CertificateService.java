@@ -242,7 +242,7 @@ public class CertificateService implements ICertificateService{
             certificate.setIpfsUrl(ipfsUrl);
 
             //đường dẫn chứng chỉ IPFS
-            String certificateUrl = Constants.VERIFY_URL + ipfsUrl;
+            String certificateUrl = Constants.VERIFY_URL + ipfsUrl +"&type=certificate";
 
             String qrBase64 = qrCodeUtil.generateQRCodeBase64(certificateUrl, 250, 250);
             certificate.setQrCodeUrl(qrBase64);

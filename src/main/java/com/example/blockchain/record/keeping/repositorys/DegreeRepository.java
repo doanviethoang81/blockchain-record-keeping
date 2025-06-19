@@ -2,7 +2,6 @@ package com.example.blockchain.record.keeping.repositorys;
 
 import com.example.blockchain.record.keeping.dtos.request.FacultyDegreeStatisticRequest;
 import com.example.blockchain.record.keeping.enums.Status;
-import com.example.blockchain.record.keeping.models.Certificate;
 import com.example.blockchain.record.keeping.models.Degree;
 import com.example.blockchain.record.keeping.models.Student;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -172,18 +171,21 @@ public interface DegreeRepository extends JpaRepository<Degree,Long> {
 
     // thống kee sô luong hvan bang theo các khoa cua 1 truong
     @Query(value = """
-    SELECT dp.name AS faculty_name,
-           COUNT(CASE WHEN d.status = 'APPROVED' THEN 1 END) AS validated_count,
-           COUNT(CASE WHEN d.status = 'PENDING' THEN 1 END) AS not_validated_count
+    SELECT dp.name AS department_name,
+           COUNT(CASE WHEN d.status = 'APPROVED' THEN 1 END) AS validated_degree_count,
+           COUNT(CASE WHEN d.status = 'PENDING' THEN 1 END) AS not_validated_degree_count,
+           COUNT(CASE WHEN c.status = 'APPROVED' THEN 1 END) AS validated_certificate_count,
+           COUNT(CASE WHEN c.status = 'PENDING' THEN 1 END) AS not_validated_certificate_count
     FROM departments dp
     JOIN universitys u ON dp.university_id = u.id
     LEFT JOIN student_class sc ON sc.department_id = dp.id
     LEFT JOIN students s ON s.student_class_id = sc.id
     LEFT JOIN degrees d ON d.student_id = s.id
+    LEFT JOIN certificates c on s.id = c.student_id
     WHERE u.id = :universityId
     GROUP BY dp.id, dp.name
     """, nativeQuery = true)
     List<FacultyDegreeStatisticRequest> getFacultyDegreeStatistics(@Param("universityId") Long universityId);
 
-
+    Degree findByIpfsUrl(String ipfs);
 }

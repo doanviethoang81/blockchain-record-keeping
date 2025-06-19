@@ -224,6 +224,11 @@ public class DegreeService implements IDegreeService{
         return degreeRepository.findByIdAndStatus(id, Status.APPROVED);
     }
 
+    @Override
+    public Degree findByIpfsUrl(String ipfsUrl) {
+        return degreeRepository.findByIpfsUrl(ipfsUrl);
+    }
+
     public Map<String, Boolean> checkStudentsGrantedDegree(Set<String> studentCodes) {
         List<String> existingCodes = degreeRepository.findStudentCodesWithDegree(studentCodes);
         Map<String, Boolean> result = new HashMap<>();
@@ -259,7 +264,7 @@ public class DegreeService implements IDegreeService{
             degree.setIpfsUrl(ipfsUrl);
 
             //đường dẫn chứng chỉ IPFS
-            String certificateUrl = Constants.VERIFY_URL + ipfsUrl;
+            String certificateUrl = Constants.VERIFY_URL + ipfsUrl + "&type=degree";
 
             String qrBase64 = qrCodeUtil.generateQRCodeBase64(certificateUrl, 250, 250);
             degree.setQrCode(qrBase64);
@@ -318,8 +323,10 @@ public class DegreeService implements IDegreeService{
         for (FacultyDegreeStatisticRequest row : results) {
             FacultyDegreeStatisticResponse a = new FacultyDegreeStatisticResponse(
                     row.getDepartmentName(),
-                    row.getValidatedCount(),
-                    row.getNotValidatedCount()
+                    row.getValidatedDegreeCount(),
+                    row.getNotValidatedDegreeCount(),
+                    row.getValidatedCertificateCount(),
+                    row.getNotValidatedCertificateCount()
             );
             response.add(a);
         }

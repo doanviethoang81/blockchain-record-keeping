@@ -11,6 +11,8 @@ import lombok.Setter;
 @Setter
 public class FacultyDegreeStatisticResponse {
     private String departmentName;
-    private Long validatedCount;
-    private Long notValidatedCount;
+    private Long validatedDegreeCount;
+    private Long notValidatedDegreeCount;
+    private Long validatedCertificateCount;
+    private Long notValidatedCertificateCount;
 }

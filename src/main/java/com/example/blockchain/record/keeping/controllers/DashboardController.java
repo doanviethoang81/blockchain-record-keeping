@@ -77,7 +77,7 @@ public class DashboardController {
         }
     }
 
-    // thống kê sl văn bằng theo từng khoa pdt (hỏi lại có thêm cả ch ch th sua lai
+    // thống kê sl văn bằng chứng chỉ theo từng khoa pdt
     @GetMapping("/pdt/faculty-degree-statistics")
     public ResponseEntity<?> getFacultyDegreeStatistics() {
         try {
@@ -92,5 +92,4 @@ public class DashboardController {
             return ApiResponseBuilder.internalError("Lỗi: " + e.getMessage());
         }
     }
-
 }
