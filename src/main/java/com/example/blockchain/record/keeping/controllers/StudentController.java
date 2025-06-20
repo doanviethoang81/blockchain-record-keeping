@@ -102,8 +102,14 @@ public class StudentController {
     // hiện các khoa của lớp (đã chọn lớp trong giao diện thêm sinh viên)
     @PreAuthorize("hasAuthority('READ')")
     @GetMapping("/pdt/get-department-of-class")
-    public ResponseEntity<?> getDepartmentOfClass(@RequestParam Long classId) {
+    public ResponseEntity<?> getDepartmentOfClass(
+            @RequestParam Long classId,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size)
+    {
         try{
+            if (page < 1) page = 1;
+            if (size < 1) size = 10;
             StudentClass studentClass = studentClassService.findById(classId);
             Department department = studentClass.getDepartment();
             DepartmentResponse departmentResponse = new DepartmentResponse(
@@ -119,8 +125,13 @@ public class StudentController {
     // hiện các lớp của 1 khoa (đã chọn khoa trong giao diện thêm sinh viên)
     @PreAuthorize("hasAuthority('READ')")
     @GetMapping("/pdt/get-class-of-department")
-    public ResponseEntity<?> getClassOfDepartment(@RequestParam Long departmentId) {
+    public ResponseEntity<?> getClassOfDepartment(@RequestParam Long departmentId,
+                    @RequestParam(defaultValue = "1") int page,
+                    @RequestParam(defaultValue = "10") int size
+    ) {
         try{
+            if (page < 1) page = 1;
+            if (size < 1) size = 10;
             User user= userService.finbById(departmentId);
             Department department = departmentService.findById(user.getDepartment().getId());
             List<StudentClass> studentClassList = studentClassService.findAllClassesByDepartmentId(department.getId(),null);
@@ -134,8 +145,18 @@ public class StudentController {
             if(studentClassResponseList.isEmpty()){
                 return ApiResponseBuilder.success("Khoa này chưa có lớp nào!",studentClassResponseList);
             }
-            return ApiResponseBuilder.success("Các lớp của khoa", studentClassResponseList);
 
+            int start = (page -1) * size;
+            int end = Math.min(start + size, studentClassResponseList.size());
+            if (start >= studentClassResponseList.size()) {
+                return ApiResponseBuilder.success("Không có lớp nào!",studentClassResponseList);
+            }
+
+            List<StudentClassResponse> pagedResult = studentClassResponseList.subList(start, end);
+            PaginatedData<StudentClassResponse> data = new PaginatedData<>(pagedResult,
+                    new PaginationMeta(studentClassResponseList.size(), pagedResult.size(), size, page,
+                            (int) Math.ceil((double) studentClassResponseList.size() / size)));
+            return ApiResponseBuilder.success("Các lớp của khoa", data);
         } catch (Exception e) {
             return ApiResponseBuilder.internalError("Lỗi " + e.getMessage());
         }
