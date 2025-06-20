@@ -714,6 +714,26 @@ public class CertificateController {
         }
     }
 
+    // từ chối 1 chứng chỉ
+    @PreAuthorize("hasAuthority('READ')")
+    @PostMapping("/pdt/certificate-rejected/{id}")
+    public ResponseEntity<?> certificateRejected(@PathVariable("id") Long id){
+        try{
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String username = authentication.getName();
+            University university = universityService.getUniversityByEmail(username);
+            Certificate certificate = certificateService.findByIdAndStatus(id, Status.APPROVED);
+
+            if(certificate != null){
+                return ApiResponseBuilder.badRequest("Chứng chỉ này đã được xác nhận rồi!");
+            }
+            certificateService.certificateRejected(university,id);
+            return ApiResponseBuilder.success("Từ chối xác nhận thành công ", null);
+        } catch (Exception e) {
+            return ApiResponseBuilder.internalError("Lỗi " + e.getMessage());
+        }
+    }
+
     private String convertStatusToDisplay(Status status) {
         return switch (status) {
             case PENDING -> "Chưa duyệt";

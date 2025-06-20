@@ -529,6 +529,25 @@ public class DegreeController {
         }
     }
 
+    //từ chối xac nhận 1 văn bằng
+    @PreAuthorize("hasAuthority('READ')")
+    @PostMapping("/pdt/degree-rejected/{id}")
+    public ResponseEntity<?> degreeRejected(@PathVariable("id") Long id){
+        try{
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String username = authentication.getName();
+            University university = universityService.getUniversityByEmail(username);
+            Degree degree = degreeService.findByIdAndStatus(id);
+            if(degree != null){
+                return ApiResponseBuilder.badRequest("Văn bằng này đã được xác nhận rồi!");
+            }
+            degreeService.degreeRejected(university,id);
+            return ApiResponseBuilder.success("Từ chối Xác nhận thành công ", null);
+        } catch (Exception e) {
+            return ApiResponseBuilder.internalError("Lỗi " + e.getMessage());
+        }
+    }
+
     //xác nhận 1 list văn bằng
     @PreAuthorize("hasAuthority('READ')")
     @PostMapping("/pdt/confirm-degree-list")

@@ -273,11 +273,29 @@ public class CertificateService implements ICertificateService{
 
 //            String txHash = "123"; //sua
             certificate.setBlockchainTxHash(txHash);
-//            certificateRepository.save(certificate);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
+
+    // từ chối xác nhận chứng chỉ
+    @Transactional
+    public void certificateRejected (University university,Long idCertificate) throws Exception {
+        try {
+            ZonedDateTime vietnamTime = ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
+
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+
+            Certificate certificate = certificateRepository.findById(idCertificate)
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy chứng chỉ có id " + idCertificate));
+
+            certificate.setStatus(Status.REJECTED);
+            certificate.setUpdatedAt(vietnamTime.toLocalDateTime());
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
 
     public Set<String> findAllDiplomaNumbers(Collection<String> diplomaNumbers) {
         return new HashSet<>(certificateRepository.findExistingDiplomaNumbers(diplomaNumbers));

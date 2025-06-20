@@ -246,7 +246,7 @@ public class DegreeService implements IDegreeService{
         return new HashSet<>(degreeRepository.findExistingLotteryNumbers(lotteryNumbers));
     }
 
-    // them dau moc van bang
+    // xác nhận them dau moc van bang
     @Transactional
     public void degreeValidation (University university,Long degreeId) throws Exception {
         try {
@@ -298,23 +298,26 @@ public class DegreeService implements IDegreeService{
 
 //            String txHash = "123"; //sua
             degree.setBlockchainTxHash(txHash);
-//            certificateRepository.save(certificate);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
-//    public List<FacultyDegreeStatisticResponse> getFacultyStatisticsByUniversity(University university) {
-//        List<Faculty> faculties = facultyRepository.findByUniversityId(university.getId());
-//
-//        List<FacultyDegreeStatisticResponse> result = new ArrayList<>();
-//        for (Faculty faculty : faculties) {
-//            Long validated = degreeRepository.countByFacultyIdAndStatus(faculty.getId(), "VALIDATED");
-//            Long notValidated = degreeRepository.countByFacultyIdAndStatus(faculty.getId(), "PENDING");
-//            result.add(new FacultyDegreeStatisticResponse(faculty.getName(), validated, notValidated));
-//        }
-//        return result;
-//    }
+    //từ chối xác nhận van bang
+    @Transactional
+    public void degreeRejected (University university,Long degreeId) throws Exception {
+        try {
+            ZonedDateTime vietnamTime = ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
+
+            Degree degree = degreeRepository.findById(degreeId)
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy văn bằng có id " + degreeId));
+
+            degree.setStatus(Status.REJECTED);
+            degree.setUpdatedAt(vietnamTime.toLocalDateTime());
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     public List<FacultyDegreeStatisticResponse> getFacultyDegreeStatistics(Long universityId) {
         List<FacultyDegreeStatisticRequest> results = degreeRepository.getFacultyDegreeStatistics(universityId);
