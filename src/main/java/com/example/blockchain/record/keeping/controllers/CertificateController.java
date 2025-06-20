@@ -734,6 +734,45 @@ public class CertificateController {
         }
     }
 
+    //từ chối xác nhận 1 list chứng chỉ
+    @PreAuthorize("hasAuthority('READ')")
+    @PostMapping("/pdt/reject-a-list-of-certificate")
+    public ResponseEntity<?> rejectAListOfCertificate(@RequestBody ListValidationRequest request) {
+        try {
+            if (request == null || request.getIds() == null || request.getIds().isEmpty()) {
+                return ApiResponseBuilder.badRequest("Vui lòng chọn chứng chỉ cần từ chối xác nhận!");
+            }
+
+            List<Long> ids = request.getIds();
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String username = authentication.getName();
+            University university = universityService.getUniversityByEmail(username);
+
+            List<String> alreadyValidated = new ArrayList<>();
+
+            for (Long id : ids) {
+                Certificate certificate = certificateService.findByIdAndStatus(id,Status.APPROVED);
+                if (certificate != null) {
+                    alreadyValidated.add("Chứng chỉ ID " + id + " đã được xác nhận!");
+                }
+            }
+
+            if (!alreadyValidated.isEmpty()) {
+                return ApiResponseBuilder.listBadRequest(
+                        "Không thể từ chối xác nhận vì có chứng chỉ đã được xác nhận.",
+                        alreadyValidated
+                );
+            }
+
+            for (Long id : ids) {
+                certificateService.certificateRejected(university, id);
+            }
+            return ApiResponseBuilder.success("Từ chối xác nhận danh sách chứng chỉ thành công", null);
+        } catch (Exception e) {
+            return ApiResponseBuilder.internalError("Lỗi: " + e.getMessage());
+        }
+    }
+
     private String convertStatusToDisplay(Status status) {
         return switch (status) {
             case PENDING -> "Chưa duyệt";

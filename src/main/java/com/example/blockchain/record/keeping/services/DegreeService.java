@@ -319,6 +319,8 @@ public class DegreeService implements IDegreeService{
         }
     }
 
+
+
     public List<FacultyDegreeStatisticResponse> getFacultyDegreeStatistics(Long universityId) {
         List<FacultyDegreeStatisticRequest> results = degreeRepository.getFacultyDegreeStatistics(universityId);
 
