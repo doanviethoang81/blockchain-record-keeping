@@ -81,7 +81,7 @@ public interface DegreeRepository extends JpaRepository<Degree,Long> {
             and s.status ='ACTIVE'
             and sc.status ='ACTIVE'
             and dp.status ='ACTIVE'          
-            and d.status = 'PENDING'
+            and d.status = :status
             AND (:departmentName IS NULL OR dp.name LIKE CONCAT('%', :departmentName, '%'))
             AND (:className IS NULL OR sc.name LIKE CONCAT('%', :className, '%'))
             AND (:studentCode IS NULL OR s.student_code LIKE CONCAT('%', :studentCode, '%'))
@@ -89,12 +89,14 @@ public interface DegreeRepository extends JpaRepository<Degree,Long> {
             AND (:graduationYear IS NULL OR d.graduation_year LIKE CONCAT('%', :graduationYear, '%'))                        
             ORDER BY d.updated_at DESC 
             """,nativeQuery = true)
-    List<Degree> listDegreeOfUniversityPending(@Param("universityId") Long universityId,
+    List<Degree> listDegreeOfUniversity(@Param("universityId") Long universityId,
                                                @Param("departmentName") String departmentName,
                                                @Param("className") String className,
                                                @Param("studentCode") String studentCode,
                                                @Param("studentName") String studentName,
-                                               @Param("graduationYear") String graduationYear);
+                                               @Param("graduationYear") String graduationYear,
+                                               @Param("status") String status
+    );
     // list văn bằng của 1 khoa
     @Query(value = """
             SELECT d.*
@@ -116,6 +118,7 @@ public interface DegreeRepository extends JpaRepository<Degree,Long> {
                                            @Param("studentCode") String studentCode,
                                            @Param("studentName") String studentName,
                                            @Param("graduationYear") String graduationYear);
+
     // list văn bằng chưa đc xác nhận của 1 khoa
     @Query(value = """
             SELECT d.*
@@ -124,7 +127,7 @@ public interface DegreeRepository extends JpaRepository<Degree,Long> {
             JOIN student_class sc on s.student_class_id = sc.id
             join departments dp on sc.department_id = dp.id
             WHERE dp.id = :departmentId
-            and d.status = 'PENDING'            
+            and d.status = :status            
             and s.status ='ACTIVE'
             and sc.status ='ACTIVE'
             AND (:className IS NULL OR sc.name LIKE CONCAT('%', :className, '%'))
@@ -133,11 +136,13 @@ public interface DegreeRepository extends JpaRepository<Degree,Long> {
             AND (:graduationYear IS NULL OR d.graduation_year LIKE CONCAT('%', :graduationYear, '%'))            
             ORDER BY d.updated_at DESC 
             """,nativeQuery = true)
-    List<Degree> listAllDegreeOfDepartmentPending(@Param("departmentId") Long departmentId,
+    List<Degree> listAllDegreeOfDepartmentAndStatus(@Param("departmentId") Long departmentId,
                                                   @Param("className") String className,
                                                   @Param("studentCode") String studentCode,
                                                   @Param("studentName") String studentName,
-                                                  @Param("graduationYear") String graduationYear);
+                                                  @Param("graduationYear") String graduationYear,
+                                                  @Param("status") String status
+    );
 
     // list văn bằng all admin
     @Query(value = """

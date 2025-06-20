@@ -330,13 +330,14 @@ public class DegreeController {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             String username = authentication.getName();
             University university = universityService.getUniversityByEmail(username);
-            List<Degree> degreeList = degreeService.listAllDegreeOfUniversityPending(
+            List<Degree> degreeList = degreeService.listAllDegreeOfUniversityAndStatus(
                     university.getId(),
                     departmentName,
                     className,
                     studentCode,
                     studentName,
-                    graduationYear
+                    graduationYear,
+                    Status.PENDING.name()
             );
             if (departmentName != null && !departmentName.isEmpty()
                     ||className != null && !className.isEmpty()
@@ -373,6 +374,73 @@ public class DegreeController {
                             (int) Math.ceil((double) degreeResponseList.size() / size)));
 
             return ApiResponseBuilder.success("Danh sách văn bằng chưa được xác nhận của trường",data);
+        } catch (IllegalArgumentException e) {
+            return ApiResponseBuilder.badRequest(e.getMessage());
+        } catch (Exception e) {
+            return ApiResponseBuilder.internalError("Lỗi " + e.getMessage());
+        }
+    }
+
+    //list văn bằng rejected của 1 tr
+    @PreAuthorize("hasAuthority('READ')")
+    @GetMapping("/pdt/list-degree-rejected")
+    public ResponseEntity<?> getDegreeRejectedOfUniversity(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String departmentName,
+            @RequestParam(required = false) String className,
+            @RequestParam(required = false) String studentCode,
+            @RequestParam(required = false) String studentName,
+            @RequestParam(required = false) String graduationYear
+    ) {
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String username = authentication.getName();
+            University university = universityService.getUniversityByEmail(username);
+            List<Degree> degreeList = degreeService.listAllDegreeOfUniversityAndStatus(
+                    university.getId(),
+                    departmentName,
+                    className,
+                    studentCode,
+                    studentName,
+                    graduationYear,
+                    Status.REJECTED.name()
+            );
+            if (departmentName != null && !departmentName.isEmpty()
+                    ||className != null && !className.isEmpty()
+                    ||studentCode != null && !studentCode.isEmpty()
+                    ||studentName != null && !studentName.isEmpty()
+                    ||graduationYear != null && !graduationYear.isEmpty()
+            ) {
+                if (degreeList.isEmpty()) {
+                    return ApiResponseBuilder.success("Không tìm thấy văn bằng!",degreeList);
+                }
+            }
+            List<DegreeResponse> degreeResponseList = degreeList.stream()
+                    .map(s -> new DegreeResponse(
+                            s.getId(),
+                            s.getStudent().getName(),
+                            s.getStudent().getStudentClass().getName(),
+                            s.getStudent().getStudentClass().getDepartment().getName(),
+                            s.getIssueDate(),
+                            convertStatusToDisplay(s.getStatus()),
+                            s.getGraduationYear(),
+                            s.getDiplomaNumber(),
+                            s.getCreatedAt()
+                    ))
+                    .collect(Collectors.toList());
+            int start = (page - 1) * size;
+            int end = Math.min(start + size, degreeResponseList.size());
+            if (start >= degreeResponseList.size()) {
+                return ApiResponseBuilder.success("Không có văn bằng nào!",degreeResponseList);
+            }
+
+            List<DegreeResponse> pagedResult = degreeResponseList.subList(start, end);
+            PaginatedData<DegreeResponse> data = new PaginatedData<>(pagedResult,
+                    new PaginationMeta(degreeResponseList.size(), pagedResult.size(), size, page ,
+                            (int) Math.ceil((double) degreeResponseList.size() / size)));
+
+            return ApiResponseBuilder.success("Danh sách văn bằng đã bị từ chối được xác nhận trong trường",data);
         } catch (IllegalArgumentException e) {
             return ApiResponseBuilder.badRequest(e.getMessage());
         } catch (Exception e) {
@@ -461,12 +529,13 @@ public class DegreeController {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             String username = authentication.getName();
             User user = userService.findByUser(username);
-            List<Degree> degreeList = degreeService.listAllDegreeOfDepartmentPending(
+            List<Degree> degreeList = degreeService.listAllDegreeOfDepartmentAndStatus(
                     user.getDepartment().getId(),
                     className,
                     studentCode,
                     studentName,
-                    graduationYear
+                    graduationYear,
+                    Status.PENDING.name()
             );
             if (departmentName != null && !departmentName.isEmpty()
                     ||className != null && !className.isEmpty()
@@ -503,6 +572,72 @@ public class DegreeController {
                             (int) Math.ceil((double) degreeResponseList.size() / size)));
 
             return ApiResponseBuilder.success("Danh sách văn bằng chưa được xác nhận của khoa",data);
+        } catch (IllegalArgumentException e) {
+            return ApiResponseBuilder.badRequest(e.getMessage());
+        } catch (Exception e) {
+            return ApiResponseBuilder.internalError("Lỗi " + e.getMessage());
+        }
+    }
+
+    //list văn bằng rejected của khoa
+    @PreAuthorize("hasAuthority('READ')")
+    @GetMapping("/khoa/list-degree-rejected")
+    public ResponseEntity<?> getDegreeRejectedOfDepartment(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String departmentName,
+            @RequestParam(required = false) String className,
+            @RequestParam(required = false) String studentCode,
+            @RequestParam(required = false) String studentName,
+            @RequestParam(required = false) String graduationYear
+    ) {
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String username = authentication.getName();
+            User user = userService.findByUser(username);
+            List<Degree> degreeList = degreeService.listAllDegreeOfDepartmentAndStatus(
+                    user.getDepartment().getId(),
+                    className,
+                    studentCode,
+                    studentName,
+                    graduationYear,
+                    Status.REJECTED.name()
+            );
+            if (departmentName != null && !departmentName.isEmpty()
+                    ||className != null && !className.isEmpty()
+                    ||studentCode != null && !studentCode.isEmpty()
+                    ||studentName != null && !studentName.isEmpty()
+                    ||graduationYear != null && !graduationYear.isEmpty()
+            ) {
+                if (degreeList.isEmpty()) {
+                    return ApiResponseBuilder.success("Không tìm thấy văn bằng!",degreeList);
+                }
+            }
+            List<DegreeResponse> degreeResponseList = degreeList.stream()
+                    .map(s -> new DegreeResponse(
+                            s.getId(),
+                            s.getStudent().getName(),
+                            s.getStudent().getStudentClass().getName(),
+                            s.getStudent().getStudentClass().getDepartment().getName(),
+                            s.getIssueDate(),
+                            convertStatusToDisplay(s.getStatus()),
+                            s.getGraduationYear(),
+                            s.getDiplomaNumber(),
+                            s.getCreatedAt()
+                    ))
+                    .collect(Collectors.toList());
+            int start = (page - 1) * size;
+            int end = Math.min(start + size, degreeResponseList.size());
+            if (start >= degreeResponseList.size()) {
+                return ApiResponseBuilder.success("Không có văn bằng nào!",degreeResponseList);
+            }
+
+            List<DegreeResponse> pagedResult = degreeResponseList.subList(start, end);
+            PaginatedData<DegreeResponse> data = new PaginatedData<>(pagedResult,
+                    new PaginationMeta(degreeResponseList.size(), pagedResult.size(), size, page ,
+                            (int) Math.ceil((double) degreeResponseList.size() / size)));
+
+            return ApiResponseBuilder.success("Danh sách văn bằng đã bị từ chối xác nhận trong khoa",data);
         } catch (IllegalArgumentException e) {
             return ApiResponseBuilder.badRequest(e.getMessage());
         } catch (Exception e) {

@@ -38,9 +38,9 @@ public interface ICertificateService {
 
     Certificate update(Certificate certificate, CertificateRequest certificateRequest);
 
-    List<Certificate> listCertificateOfUniversityPending(Long universittyId, String departmentName, String className, String studentCode, String studentName);
+    List<Certificate> listCertificateOfUniversityAndStatus(Long universittyId, String departmentName, String className, String studentCode, String studentName, String status);
 
-    List<Certificate> listCertificateOfDepartmentPending(Long departmentId, String className, String studentCode, String studentName);
+    List<Certificate> listCertificateOfDepartmentAndStatus(Long departmentId, String className, String studentCode, String studentName, String status);
 
     Certificate findByIpfsUrl(String ipfsUrl);
 

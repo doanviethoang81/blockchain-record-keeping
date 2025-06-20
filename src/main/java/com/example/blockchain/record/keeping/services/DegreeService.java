@@ -200,8 +200,8 @@ public class DegreeService implements IDegreeService{
     }
 
     @Override
-    public List<Degree> listAllDegreeOfUniversityPending(Long universittyId, String departmentName, String className, String studentCode, String studentName,String graduationYear) {
-        return degreeRepository.listDegreeOfUniversityPending(universittyId,departmentName,className,studentCode,studentName, graduationYear);
+    public List<Degree> listAllDegreeOfUniversityAndStatus(Long universittyId, String departmentName, String className, String studentCode, String studentName,String graduationYear, String status) {
+        return degreeRepository.listDegreeOfUniversity(universittyId,departmentName,className,studentCode,studentName, graduationYear, status);
     }
 
     @Override
@@ -210,8 +210,8 @@ public class DegreeService implements IDegreeService{
     }
 
     @Override
-    public List<Degree> listAllDegreeOfDepartmentPending( Long departmentId, String className, String studentCode, String studentName,String graduationYear) {
-        return degreeRepository.listAllDegreeOfDepartmentPending(departmentId,className,studentCode,studentName, graduationYear);
+    public List<Degree> listAllDegreeOfDepartmentAndStatus( Long departmentId, String className, String studentCode, String studentName,String graduationYear, String status) {
+        return degreeRepository.listAllDegreeOfDepartmentAndStatus(departmentId,className,studentCode,studentName, graduationYear, status);
     }
 
     @Override

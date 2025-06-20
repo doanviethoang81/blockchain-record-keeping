@@ -31,11 +31,11 @@ public interface IDegreeService {
 
     List<Degree> listAllDegreeOfUniversity(Long universittyId, String departmentName, String className, String studentCode, String studentName,String graduationYear);
 
-    List<Degree> listAllDegreeOfUniversityPending(Long universittyId, String departmentName, String className, String studentCode, String studentName,String graduationYear);
+    List<Degree> listAllDegreeOfUniversityAndStatus(Long universittyId, String departmentName, String className, String studentCode, String studentName,String graduationYear, String status);
 
     List<Degree> listAllDegreeOfDepartment(Long departmentId, String className, String studentCode, String studentName,String graduationYear);
 
-    List<Degree> listAllDegreeOfDepartmentPending(Long departmentId, String className, String studentCode, String studentName,String graduationYear);
+    List<Degree> listAllDegreeOfDepartmentAndStatus(Long departmentId, String className, String studentCode, String studentName,String graduationYear,String status);
 
     List<Degree> listAllDegree(String universityName, String departmentName, String className, String studentCode, String studentName,String graduationYear);
 

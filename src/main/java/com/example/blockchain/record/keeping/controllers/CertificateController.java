@@ -219,7 +219,7 @@ public class CertificateController {
         }
     }
 
-    // danh sách chứng chỉ chưa xác nhận
+    // danh sách chứng chỉ chưa xác nhận của 1 trường
     @PreAuthorize("hasAuthority('READ')")
     @GetMapping("/pdt/list-certificates-pending")
     public ResponseEntity<?> getCertificateOfUniversityPending(
@@ -234,12 +234,13 @@ public class CertificateController {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             String username = authentication.getName();
             University university = universityService.getUniversityByEmail(username);
-            List<Certificate> certificateList = certificateService.listCertificateOfUniversityPending(
+            List<Certificate> certificateList = certificateService.listCertificateOfUniversityAndStatus(
                     university.getId(),
                     departmentName,
                     className,
                     studentCode,
-                    studentName
+                    studentName,
+                    Status.PENDING.name()
             );
             if (departmentName != null && !departmentName.isEmpty()
                     ||className != null && !className.isEmpty()
@@ -275,6 +276,70 @@ public class CertificateController {
                             (int) Math.ceil((double) certificateResponseList.size() / size)));
 
             return ApiResponseBuilder.success("Danh sách chứng chỉ chưa xác nhận của một trường",data);
+        } catch (IllegalArgumentException e) {
+            return ApiResponseBuilder.badRequest(e.getMessage());
+        } catch (Exception e) {
+            return ApiResponseBuilder.internalError("Lỗi" + e.getMessage());
+        }
+    }
+
+    // danh sách chứng chỉ bij từ chối xác nhận của 1 trường
+    @PreAuthorize("hasAuthority('READ')")
+    @GetMapping("/pdt/list-certificates-rejected")
+    public ResponseEntity<?> getCertificateOfUniversityRejected(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String departmentName,
+            @RequestParam(required = false) String className,
+            @RequestParam(required = false) String studentCode,
+            @RequestParam(required = false) String studentName
+    ) {
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String username = authentication.getName();
+            University university = universityService.getUniversityByEmail(username);
+            List<Certificate> certificateList = certificateService.listCertificateOfUniversityAndStatus(
+                    university.getId(),
+                    departmentName,
+                    className,
+                    studentCode,
+                    studentName,
+                    Status.REJECTED.name()
+            );
+            if (departmentName != null && !departmentName.isEmpty()
+                    ||className != null && !className.isEmpty()
+                    ||studentCode != null && !studentCode.isEmpty()
+                    ||studentName != null && !studentName.isEmpty()
+            ) {
+                if (certificateList.isEmpty()) {
+                    return ApiResponseBuilder.success("Không tìm thấy chứng chỉ!",certificateList);
+                }
+            }
+            List<CertificateResponse> certificateResponseList = certificateList.stream()
+                    .map(s -> new CertificateResponse(
+                            s.getId(),
+                            s.getStudent().getName(),
+                            s.getStudent().getStudentClass().getName(),
+                            s.getStudent().getStudentClass().getDepartment().getName(),
+                            s.getIssueDate(),
+                            convertStatusToDisplay(s.getStatus()),
+                            s.getDiplomaNumber(),
+                            s.getUniversityCertificateType().getCertificateType().getName(),
+                            s.getCreatedAt()
+                    ))
+                    .collect(Collectors.toList());
+            int start = (page - 1) * size;
+            int end = Math.min(start + size, certificateResponseList.size());
+            if (start >= certificateResponseList.size()) {
+                return ApiResponseBuilder.success("Chưa có chứng chỉ nào!",certificateList);
+            }
+
+            List<CertificateResponse> pagedResult = certificateResponseList.subList(start, end);
+            PaginatedData<CertificateResponse> data = new PaginatedData<>(pagedResult,
+                    new PaginationMeta(certificateResponseList.size(), pagedResult.size(), size, page ,
+                            (int) Math.ceil((double) certificateResponseList.size() / size)));
+
+            return ApiResponseBuilder.success("Danh sách chứng chỉ bị từ chối xác nhận của một trường",data);
         } catch (IllegalArgumentException e) {
             return ApiResponseBuilder.badRequest(e.getMessage());
         } catch (Exception e) {
@@ -508,11 +573,12 @@ public class CertificateController {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             String username = authentication.getName();
             User user = userService.findByUser(username);
-            List<Certificate> certificateList = certificateService.listCertificateOfDepartmentPending(
+            List<Certificate> certificateList = certificateService.listCertificateOfDepartmentAndStatus(
                     user.getDepartment().getId(),
                     className,
                     studentCode,
-                    studentName
+                    studentName,
+                    Status.PENDING.name()
             );
             if (className != null && !className.isEmpty()
                     ||studentCode != null && !studentCode.isEmpty()
@@ -547,6 +613,67 @@ public class CertificateController {
                             (int) Math.ceil((double) certificateResponseList.size() / size)));
 
             return ApiResponseBuilder.success("Danh sách chứng chỉ chưa xác nhận của một khoa",data);
+        } catch (IllegalArgumentException e) {
+            return ApiResponseBuilder.badRequest(e.getMessage());
+        } catch (Exception e) {
+            return ApiResponseBuilder.internalError("Lỗi" + e.getMessage());
+        }
+    }
+
+    //chunng chi chưa xác nhận cua 1 khoa
+    @PreAuthorize("hasAuthority('READ')")
+    @GetMapping("/khoa/list-certificates-rejected")
+    public ResponseEntity<?> getCertificateOfDepartmentRejected(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String className,
+            @RequestParam(required = false) String studentCode,
+            @RequestParam(required = false) String studentName
+    ) {
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String username = authentication.getName();
+            User user = userService.findByUser(username);
+            List<Certificate> certificateList = certificateService.listCertificateOfDepartmentAndStatus(
+                    user.getDepartment().getId(),
+                    className,
+                    studentCode,
+                    studentName,
+                    Status.REJECTED.name()
+            );
+            if (className != null && !className.isEmpty()
+                    ||studentCode != null && !studentCode.isEmpty()
+                    ||studentName != null && !studentName.isEmpty()
+            ) {
+                if (certificateList.isEmpty()) {
+                    return ApiResponseBuilder.success("Không tìm thấy chứng chỉ ",certificateList);
+                }
+            }
+            List<CertificateResponse> certificateResponseList = certificateList.stream()
+                    .map(s -> new CertificateResponse(
+                            s.getId(),
+                            s.getStudent().getName(),
+                            s.getStudent().getStudentClass().getName(),
+                            s.getStudent().getStudentClass().getDepartment().getName(),
+                            s.getIssueDate(),
+                            convertStatusToDisplay(s.getStatus()),
+                            s.getDiplomaNumber(),
+                            s.getUniversityCertificateType().getCertificateType().getName(),
+                            s.getCreatedAt()
+                    ))
+                    .collect(Collectors.toList());
+            int start = (page - 1) * size;
+            int end = Math.min(start + size, certificateResponseList.size());
+            if (start >= certificateResponseList.size()) {
+                return ApiResponseBuilder.success("Chưa có chứng chỉ nào!",certificateList);
+            }
+
+            List<CertificateResponse> pagedResult = certificateResponseList.subList(start, end);
+            PaginatedData<CertificateResponse> data = new PaginatedData<>(pagedResult,
+                    new PaginationMeta(certificateResponseList.size(), pagedResult.size(), size, page ,
+                            (int) Math.ceil((double) certificateResponseList.size() / size)));
+
+            return ApiResponseBuilder.success("Danh sách chứng chỉ bị từ chối xác nhận của một khoa",data);
         } catch (IllegalArgumentException e) {
             return ApiResponseBuilder.badRequest(e.getMessage());
         } catch (Exception e) {

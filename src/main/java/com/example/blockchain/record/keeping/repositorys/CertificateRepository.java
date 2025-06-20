@@ -61,16 +61,17 @@ public interface CertificateRepository extends JpaRepository<Certificate,Long> {
             where d.id= :departmentId
             and s.status ='ACTIVE'
             and sc.status ='ACTIVE'      
-            and c.status ='PENDING'
+            and c.status = :status
             AND (:className IS NULL OR sc.name LIKE CONCAT('%', :className, '%'))
             AND (:studentCode IS NULL OR s.student_code LIKE CONCAT('%', :studentCode, '%'))
             AND (:studentName IS NULL OR s.name LIKE CONCAT('%', :studentName, '%'))
             ORDER BY c.updated_at DESC      
             """,nativeQuery = true)
-    List<Certificate> listCertificateOfDepartmentPending(@Param("departmentId") Long departmentId,
+    List<Certificate> listCertificateOfDepartmentAndStatus(@Param("departmentId") Long departmentId,
                                                   @Param("className") String className,
                                                   @Param("studentCode") String studentCode,
-                                                  @Param("studentName") String studentName);
+                                                  @Param("studentName") String studentName,
+                                                  @Param("status") String status);
 
 
     //danh sách ch chỉ của 1 truong
@@ -132,18 +133,19 @@ public interface CertificateRepository extends JpaRepository<Certificate,Long> {
             and s.status ='ACTIVE'
             and sc.status ='ACTIVE'
             and d.status ='ACTIVE'          
-            and c.status = 'PENDING'
+            and c.status = :status
             AND (:departmentName IS NULL OR d.name LIKE CONCAT('%', :departmentName, '%'))
             AND (:className IS NULL OR sc.name LIKE CONCAT('%', :className, '%'))
             AND (:studentCode IS NULL OR s.student_code LIKE CONCAT('%', :studentCode, '%'))
             AND (:studentName IS NULL OR s.name LIKE CONCAT('%', :studentName, '%'))
             ORDER BY c.updated_at DESC      
             """, nativeQuery = true)
-    List<Certificate> listCertificateOfUniversityPending(@Param("universityId") Long universityId,
+    List<Certificate> listCertificateOfUniversityAndStatus(@Param("universityId") Long universityId,
                                                   @Param("departmentName") String departmentName,
                                                   @Param("className") String className,
                                                   @Param("studentCode") String studentCode,
-                                                  @Param("studentName") String studentName);
+                                                  @Param("studentName") String studentName,
+                                                  @Param("status") String status);
 
     Certificate findByIpfsUrl(String ipfsUrl);
 
