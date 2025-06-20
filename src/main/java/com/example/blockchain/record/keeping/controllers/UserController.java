@@ -1,6 +1,7 @@
 package com.example.blockchain.record.keeping.controllers;
 
 import com.example.blockchain.record.keeping.dtos.request.ChangePasswordRequest;
+import com.example.blockchain.record.keeping.dtos.request.VerifyPasswordRequest;
 import com.example.blockchain.record.keeping.models.University;
 import com.example.blockchain.record.keeping.models.User;
 import com.example.blockchain.record.keeping.response.ApiResponseBuilder;
@@ -15,13 +16,16 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.Map;
 
 @RestController
 @RequestMapping("${api.prefix:/api/v1}")
@@ -33,6 +37,7 @@ public class UserController {
     private final UserService userService;
     private final BrevoApiEmailService brevoApiEmailService;
     private final DepartmentService departmentService;
+    private final PasswordEncoder passwordEncoder;
 
     //---------------------------- ADMIN -------------------------------------------------------
     // khóa/Mở tài khoản của 1 trường
@@ -193,5 +198,28 @@ public class UserController {
         }
     }
 
+    //xác nhận password để xem private key
+    @PreAuthorize("hasAuthority('WRITE')")
+    @PostMapping("/pdt/verify-password")
+    public ResponseEntity<?> verifyPassword(@RequestBody VerifyPasswordRequest request) {
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String username = authentication.getName();
 
+            User user = userService.findByUser(username);
+            if (user == null) {
+                return ApiResponseBuilder.badRequest("Không tìm thấy người dùng");
+            }
+
+            boolean isPasswordCorrect = passwordEncoder.matches(request.getPassword(), user.getPassword());
+            if (!isPasswordCorrect) {
+                return ApiResponseBuilder.badRequest("Mật khẩu không đúng");
+            }
+
+            // Ví dụ: trả về id hoặc xác nhận thành công
+            return ApiResponseBuilder.success("Xác nhận thành công", null);
+        } catch (Exception e) {
+            return ApiResponseBuilder.internalError("Đã xảy ra lỗi!");
+        }
+    }
 }
