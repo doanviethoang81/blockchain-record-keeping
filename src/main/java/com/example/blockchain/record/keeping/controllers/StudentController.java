@@ -363,7 +363,9 @@ public class StudentController {
                     student.getEmail(),
                     student.getBirthDate(),
                     student.getCourse(),
+                    student.getStudentClass().getId(),
                     student.getStudentClass().getName(),
+                    student.getStudentClass().getDepartment().getId(),
                     student.getStudentClass().getDepartment().getName(),
                     student.getStudentClass().getDepartment().getUniversity().getName()
             );

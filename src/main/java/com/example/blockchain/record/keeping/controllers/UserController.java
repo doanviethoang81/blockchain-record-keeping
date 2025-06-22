@@ -216,7 +216,6 @@ public class UserController {
                 return ApiResponseBuilder.badRequest("Mật khẩu không đúng");
             }
 
-            // Ví dụ: trả về id hoặc xác nhận thành công
             return ApiResponseBuilder.success("Xác nhận thành công", null);
         } catch (Exception e) {
             return ApiResponseBuilder.internalError("Đã xảy ra lỗi!");

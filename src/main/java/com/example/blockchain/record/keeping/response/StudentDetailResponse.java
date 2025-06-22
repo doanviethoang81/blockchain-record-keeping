@@ -15,7 +15,9 @@ public class StudentDetailResponse {
     private String email;
     private LocalDate birthDate;
     private String course;
+    private Long classId;
     private String className;
+    private Long departmentId;
     private String departmentName;
     private String universityName;
 }
