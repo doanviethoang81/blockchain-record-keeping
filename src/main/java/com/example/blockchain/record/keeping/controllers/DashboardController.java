@@ -6,7 +6,10 @@ import com.example.blockchain.record.keeping.dtos.StatisticsUniversityDTO;
 import com.example.blockchain.record.keeping.models.University;
 import com.example.blockchain.record.keeping.models.User;
 import com.example.blockchain.record.keeping.response.ApiResponseBuilder;
+import com.example.blockchain.record.keeping.response.DegreeClassificationStatisticsResponse;
 import com.example.blockchain.record.keeping.response.FacultyDegreeStatisticResponse;
+import com.example.blockchain.record.keeping.response.MonthlyCertificateStatisticsResponse;
+import com.example.blockchain.record.keeping.services.CertificateService;
 import com.example.blockchain.record.keeping.services.DegreeService;
 import com.example.blockchain.record.keeping.services.UniversityService;
 import com.example.blockchain.record.keeping.services.UserService;
@@ -30,6 +33,7 @@ public class DashboardController {
     private final UserService userService;
     private final UniversityService universityService;
     private final DegreeService degreeService;
+    private final CertificateService certificateService;
 
     //---------------------------- ADMIN -------------------------------------------------------
 
@@ -78,7 +82,7 @@ public class DashboardController {
     }
 
     // thống kê sl văn bằng chứng chỉ theo từng khoa pdt
-    @GetMapping("/pdt/faculty-degree-statistics")
+    @GetMapping("/pdt/dashboard/faculty-degree-statistics")
     public ResponseEntity<?> getFacultyDegreeStatistics() {
         try {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -92,4 +96,52 @@ public class DashboardController {
             return ApiResponseBuilder.internalError("Lỗi: " + e.getMessage());
         }
     }
+
+    // thống kê sl văn bằng theo xêp loại của 1 trường
+    @GetMapping("/pdt/dashboard/degree-rating-statistics")
+    public ResponseEntity<?> getDegreeClassificationStatisticsOfUniversity() {
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String username = authentication.getName();
+            University university = universityService.getUniversityByEmail(username);
+
+            DegreeClassificationStatisticsResponse result = degreeService.degreeClassificationStatisticsOfUniversity(university.getId());
+            return ApiResponseBuilder.success("Thống kê văn bằng của 1 trường theo xếp loại thành công", result);
+        } catch (Exception e) {
+            return ApiResponseBuilder.internalError("Lỗi: " + e.getMessage());
+        }
+    }
+
+    // thống kê sl văn bằng theo xêp loại của 1 khoa
+    @GetMapping("/khoa/dashboard/degree-rating-statistics")
+    public ResponseEntity<?> getDegreeClassificationStatisticsOfDepartment() {
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String username = authentication.getName();
+            User user = userService.findByUser(username);
+
+            DegreeClassificationStatisticsResponse result = degreeService.degreeClassificationStatisticsOfDepartment(user.getDepartment().getId());
+            return ApiResponseBuilder.success("Thống kê văn bằng của 1 khoa theo xếp loại thành công", result);
+        } catch (Exception e) {
+            return ApiResponseBuilder.internalError("Lỗi: " + e.getMessage());
+        }
+    }
+
+
+    // thống kê sl chứng chỉ theo các tháng của 1 tr sua lại dang bug
+//    @GetMapping("/pdt/dashboard/monthly-certificate-statistics")
+//    public ResponseEntity<?> monthlyCertificateStatisticsOfUniversity() {
+//        try {
+//            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+//            String username = authentication.getName();
+//            University university = universityService.getUniversityByEmail(username);
+//
+//            List<MonthlyCertificateStatisticsResponse> result = certificateService.monthlyCertificateStatistics(university.getId());
+//            return ApiResponseBuilder.success("Thống kê chứng chỉ đã cấp của trường theo các tháng", result);
+//        } catch (Exception e) {
+//            return ApiResponseBuilder.internalError("Lỗi: " + e.getMessage());
+//        }
+//    }
+
+
 }

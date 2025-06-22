@@ -1,6 +1,8 @@
 package com.example.blockchain.record.keeping.repositorys;
 
 import com.example.blockchain.record.keeping.dtos.CertificateDTO;
+import com.example.blockchain.record.keeping.dtos.request.FacultyDegreeStatisticRequest;
+import com.example.blockchain.record.keeping.dtos.request.MonthlyCertificateStatisticsRequest;
 import com.example.blockchain.record.keeping.enums.Status;
 import com.example.blockchain.record.keeping.models.Certificate;
 import com.example.blockchain.record.keeping.models.Degree;
@@ -72,7 +74,6 @@ public interface CertificateRepository extends JpaRepository<Certificate,Long> {
                                                   @Param("studentCode") String studentCode,
                                                   @Param("studentName") String studentName,
                                                   @Param("status") String status);
-
 
     //danh sách ch chỉ của 1 truong
     @Query(value = """
@@ -160,6 +161,7 @@ public interface CertificateRepository extends JpaRepository<Certificate,Long> {
     List<String> findStudentCodesWithCertificateNative(@Param("studentIds") Set<Long> studentIds,
                                                        @Param("certificateTypeId") Long certificateTypeId);
 
+    // kiểm tra xem có trùng mã chứng chỉ đã có k
     @Query(value = """
             SELECT c.diploma_number
             FROM certificates c
@@ -167,4 +169,23 @@ public interface CertificateRepository extends JpaRepository<Certificate,Long> {
             """,nativeQuery = true)
     List<String> findExistingDiplomaNumbers(@Param("diplomaNumbers") Collection<String> diplomaNumbers);
 
+    //thống kê chứng chỉ theo các tháng trong năm
+    @Query(value = """
+            SELECT
+                MONTH(c.updated_at) AS month,
+                COUNT(*) AS total
+            FROM certificates c
+            JOIN students s ON c.student_id = s.id
+            JOIN student_class sc ON s.student_class_id = sc.id
+            JOIN departments d ON sc.department_id = d.id
+            JOIN universitys u ON d.university_id = u.id
+            WHERE u.id = :universityId
+              AND s.status = 'ACTIVE'
+              AND sc.status = 'ACTIVE'
+              AND d.status = 'ACTIVE'
+              AND YEAR(c.updated_at) = 2025
+            GROUP BY MONTH(c.updated_at)
+            ORDER BY MONTH(c.updated_at)
+            """,nativeQuery = true)
+    List<MonthlyCertificateStatisticsRequest> monthlyCertificateStatistics(@Param("universityId") Long universityId);
 }

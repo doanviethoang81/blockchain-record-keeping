@@ -1,10 +1,9 @@
 package com.example.blockchain.record.keeping.services;
 
 import com.example.blockchain.record.keeping.dtos.request.DegreeRequest;
-import com.example.blockchain.record.keeping.enums.Status;
-import com.example.blockchain.record.keeping.models.Certificate;
 import com.example.blockchain.record.keeping.models.Degree;
 import com.example.blockchain.record.keeping.models.Student;
+import com.example.blockchain.record.keeping.response.DegreeClassificationStatisticsResponse;
 
 import java.util.List;
 import java.util.Optional;
@@ -42,4 +41,7 @@ public interface IDegreeService {
     Degree findByIdAndStatus(Long id);
 
     Degree findByIpfsUrl(String ipfsUrl);
+
+    DegreeClassificationStatisticsResponse degreeClassificationStatisticsOfUniversity(Long universityId);
+    DegreeClassificationStatisticsResponse degreeClassificationStatisticsOfDepartment(Long departmentId);
 }

@@ -1,9 +1,11 @@
 package com.example.blockchain.record.keeping.services;
 
 import com.example.blockchain.record.keeping.dtos.request.CertificateRequest;
+import com.example.blockchain.record.keeping.dtos.request.MonthlyCertificateStatisticsRequest;
 import com.example.blockchain.record.keeping.enums.Status;
 import com.example.blockchain.record.keeping.models.Certificate;
 import com.example.blockchain.record.keeping.models.Student;
+import com.example.blockchain.record.keeping.response.MonthlyCertificateStatisticsResponse;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
@@ -46,4 +48,5 @@ public interface ICertificateService {
 
     Map<String, Boolean> findCertificatesOfStudentsByType(Set<Long> studentIds, Long certificateTypeId);
 
+    List<MonthlyCertificateStatisticsResponse> monthlyCertificateStatistics(Long universityId);
 }

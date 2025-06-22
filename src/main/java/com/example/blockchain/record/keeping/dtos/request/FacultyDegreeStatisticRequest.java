@@ -7,8 +7,10 @@ import lombok.Data;
 @AllArgsConstructor
 public class FacultyDegreeStatisticRequest {
     private String departmentName;
-    private Long validatedDegreeCount;
-    private Long notValidatedDegreeCount;
-    private Long validatedCertificateCount;
-    private Long notValidatedCertificateCount;
+    private Long degreePending;
+    private Long degreeApproved;
+    private Long degreeRejected;
+    private Long certificatePending;
+    private Long certificateApproved;
+    private Long certificateRejected;
 }

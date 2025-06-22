@@ -1,5 +1,6 @@
 package com.example.blockchain.record.keeping.repositorys;
 
+import com.example.blockchain.record.keeping.dtos.request.DegreeClassificationStatisticsRequest;
 import com.example.blockchain.record.keeping.dtos.request.FacultyDegreeStatisticRequest;
 import com.example.blockchain.record.keeping.enums.Status;
 import com.example.blockchain.record.keeping.models.Degree;
@@ -177,10 +178,12 @@ public interface DegreeRepository extends JpaRepository<Degree,Long> {
     // thống kee sô luong hvan bang theo các khoa cua 1 truong
     @Query(value = """
     SELECT dp.name AS department_name,
-           COUNT(CASE WHEN d.status = 'APPROVED' THEN 1 END) AS validated_degree_count,
-           COUNT(CASE WHEN d.status = 'PENDING' THEN 1 END) AS not_validated_degree_count,
-           COUNT(CASE WHEN c.status = 'APPROVED' THEN 1 END) AS validated_certificate_count,
-           COUNT(CASE WHEN c.status = 'PENDING' THEN 1 END) AS not_validated_certificate_count
+           COUNT(CASE WHEN d.status = 'PENDING' THEN 1 END) AS degree_pending,
+           COUNT(CASE WHEN d.status = 'APPROVED' THEN 1 END) AS degree_approved,
+           COUNT(CASE WHEN d.status = 'REJECTED' THEN 1 END) AS degree_rejected,
+           COUNT(CASE WHEN c.status = 'PENDING' THEN 1 END) AS certificate_peding,
+           COUNT(CASE WHEN c.status = 'APPROVED' THEN 1 END) AS certificate_approved,
+           COUNT(CASE WHEN c.status = 'REJECTED' THEN 1 END) AS certificate_rejected
     FROM departments dp
     JOIN universitys u ON dp.university_id = u.id
     LEFT JOIN student_class sc ON sc.department_id = dp.id
@@ -193,4 +196,37 @@ public interface DegreeRepository extends JpaRepository<Degree,Long> {
     List<FacultyDegreeStatisticRequest> getFacultyDegreeStatistics(@Param("universityId") Long universityId);
 
     Degree findByIpfsUrl(String ipfs);
+
+    //thống kê văn bằng theo xếp loại của 1 trường (sx,g,k,tb)
+    @Query(value = """
+            SELECT
+                COUNT(CASE WHEN d.rating_id = 1 THEN 1 END) AS excellent,
+                COUNT(CASE WHEN d.rating_id = 2 THEN 1 END) AS veryGood,
+                COUNT(CASE WHEN d.rating_id = 3 THEN 1 END) AS good,
+                COUNT(CASE WHEN d.rating_id = 4 THEN 1 END) AS average
+            FROM degrees d
+            join students s on d.student_id = s.id
+            JOIN student_class sc on s.student_class_id = sc.id
+            join departments dp on sc.department_id = dp.id
+            join universitys u on dp.university_id = u.id
+            where u.id = :universityId
+            """,nativeQuery = true)
+    DegreeClassificationStatisticsRequest getDegreeClassificationStatistics(@Param("universityId")Long universityId);
+
+    //thống kê văn bằng theo xếp loại của 1 khoa (sx,g,k,tb)
+    @Query(value = """
+            SELECT
+                COUNT(CASE WHEN d.rating_id = 1 THEN 1 END) AS excellent,
+                COUNT(CASE WHEN d.rating_id = 2 THEN 1 END) AS veryGood,
+                COUNT(CASE WHEN d.rating_id = 3 THEN 1 END) AS good,
+                COUNT(CASE WHEN d.rating_id = 4 THEN 1 END) AS average
+            FROM degrees d
+            join students s on d.student_id = s.id
+            JOIN student_class sc on s.student_class_id = sc.id
+            join departments dp on sc.department_id = dp.id
+            where dp.id = :departmentId
+            """,nativeQuery = true)
+    DegreeClassificationStatisticsRequest getDegreeClassificationStatisticsOfDepartment(@Param("departmentId")Long departmentId);
+
+
 }

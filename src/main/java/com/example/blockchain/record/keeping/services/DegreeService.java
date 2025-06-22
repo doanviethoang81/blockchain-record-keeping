@@ -8,6 +8,7 @@ import com.example.blockchain.record.keeping.repositorys.CertificateRepository;
 import com.example.blockchain.record.keeping.repositorys.DegreeRepository;
 import com.example.blockchain.record.keeping.repositorys.DegreeTitleRepository;
 import com.example.blockchain.record.keeping.repositorys.StudentRepository;
+import com.example.blockchain.record.keeping.response.DegreeClassificationStatisticsResponse;
 import com.example.blockchain.record.keeping.response.FacultyDegreeStatisticResponse;
 import com.example.blockchain.record.keeping.utils.PinataUploader;
 import com.example.blockchain.record.keeping.utils.QrCodeUtil;
@@ -229,6 +230,32 @@ public class DegreeService implements IDegreeService{
         return degreeRepository.findByIpfsUrl(ipfsUrl);
     }
 
+    @Override
+    public DegreeClassificationStatisticsResponse degreeClassificationStatisticsOfUniversity(Long universityId) {
+        DegreeClassificationStatisticsRequest result = degreeRepository.getDegreeClassificationStatistics(universityId);
+
+        DegreeClassificationStatisticsResponse response = new DegreeClassificationStatisticsResponse(
+                result.getExcellent(),
+                result.getVeryGood(),
+                result.getGood(),
+                result.getAverage()
+        );
+        return response;
+    }
+
+    @Override
+    public DegreeClassificationStatisticsResponse degreeClassificationStatisticsOfDepartment(Long departmentId) {
+        DegreeClassificationStatisticsRequest result = degreeRepository.getDegreeClassificationStatisticsOfDepartment(departmentId);
+
+        DegreeClassificationStatisticsResponse response = new DegreeClassificationStatisticsResponse(
+                result.getExcellent(),
+                result.getVeryGood(),
+                result.getGood(),
+                result.getAverage()
+        );
+        return response;
+    }
+
     public Map<String, Boolean> checkStudentsGrantedDegree(Set<String> studentCodes) {
         List<String> existingCodes = degreeRepository.findStudentCodesWithDegree(studentCodes);
         Map<String, Boolean> result = new HashMap<>();
@@ -328,10 +355,12 @@ public class DegreeService implements IDegreeService{
         for (FacultyDegreeStatisticRequest row : results) {
             FacultyDegreeStatisticResponse a = new FacultyDegreeStatisticResponse(
                     row.getDepartmentName(),
-                    row.getValidatedDegreeCount(),
-                    row.getNotValidatedDegreeCount(),
-                    row.getValidatedCertificateCount(),
-                    row.getNotValidatedCertificateCount()
+                    row.getDegreePending(),
+                    row.getDegreeApproved(),
+                    row.getDegreeRejected(),
+                    row.getCertificatePending(),
+                    row.getCertificateApproved(),
+                    row.getCertificateRejected()
             );
             response.add(a);
         }

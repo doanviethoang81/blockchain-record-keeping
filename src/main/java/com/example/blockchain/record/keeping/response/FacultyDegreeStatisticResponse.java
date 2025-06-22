@@ -5,14 +5,15 @@ import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 
-@Data
 @AllArgsConstructor
 @Getter
 @Setter
 public class FacultyDegreeStatisticResponse {
     private String departmentName;
-    private Long validatedDegreeCount;
-    private Long notValidatedDegreeCount;
-    private Long validatedCertificateCount;
-    private Long notValidatedCertificateCount;
+    private Long degreePending;
+    private Long degreeApproved;
+    private Long degreeRejected;
+    private Long certificatePending;
+    private Long certificateApproved;
+    private Long certificateRejected;
 }

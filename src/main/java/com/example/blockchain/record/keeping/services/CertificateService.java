@@ -1,12 +1,12 @@
 package com.example.blockchain.record.keeping.services;
 import com.certificate.contract.CertificateStorage_sol_EncryptedCertificateStorage;
 import com.example.blockchain.record.keeping.configs.Constants;
-import com.example.blockchain.record.keeping.dtos.request.CertificateBlockchainRequest;
-import com.example.blockchain.record.keeping.dtos.request.CertificatePrintData;
-import com.example.blockchain.record.keeping.dtos.request.CertificateRequest;
+import com.example.blockchain.record.keeping.dtos.request.*;
 import com.example.blockchain.record.keeping.enums.Status;
 import com.example.blockchain.record.keeping.models.*;
 import com.example.blockchain.record.keeping.repositorys.*;
+import com.example.blockchain.record.keeping.response.FacultyDegreeStatisticResponse;
+import com.example.blockchain.record.keeping.response.MonthlyCertificateStatisticsResponse;
 import com.example.blockchain.record.keeping.utils.EnvUtil;
 import com.example.blockchain.record.keeping.utils.PinataUploader;
 import com.example.blockchain.record.keeping.utils.QrCodeUtil;
@@ -130,6 +130,20 @@ public class CertificateService implements ICertificateService{
             result.put(studentCode, studentCodesWithCert.contains(studentCode));
         }
         return result;
+    }
+
+    @Override
+    public List<MonthlyCertificateStatisticsResponse> monthlyCertificateStatistics(Long universityId) {
+        List<MonthlyCertificateStatisticsRequest> results = certificateRepository.monthlyCertificateStatistics(universityId);
+        List<MonthlyCertificateStatisticsResponse> response = new ArrayList<>();
+        for (MonthlyCertificateStatisticsRequest row : results) {
+            MonthlyCertificateStatisticsResponse a = new MonthlyCertificateStatisticsResponse(
+                    row.getMonth(),
+                    row.getTotal()
+            );
+            response.add(a);
+        }
+        return response;
     }
 
     @Override
