@@ -162,7 +162,7 @@ public class StudentController {
         }
     }
 
-    // thêm sinh viên
+    // thêm sinh viên ngày sinh > 18
     @PreAuthorize("hasAuthority('WRITE')")
     @PostMapping("/pdt/create-student")
     public ResponseEntity<?> createStudent(
@@ -357,6 +357,8 @@ public class StudentController {
     {
         try{
             Student student = studentService.findById(id);
+            Department department = departmentService.findById(student.getStudentClass().getDepartment().getId());
+            User user = userService.findByDepartment(department);
             StudentDetailResponse studentDetailReponse= new StudentDetailResponse(
                     student.getName(),
                     student.getStudentCode(),
@@ -365,7 +367,7 @@ public class StudentController {
                     student.getCourse(),
                     student.getStudentClass().getId(),
                     student.getStudentClass().getName(),
-                    student.getStudentClass().getDepartment().getId(),
+                    user.getId(),
                     student.getStudentClass().getDepartment().getName(),
                     student.getStudentClass().getDepartment().getUniversity().getName()
             );
