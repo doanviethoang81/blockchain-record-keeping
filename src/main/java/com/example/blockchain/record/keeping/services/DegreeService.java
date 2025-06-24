@@ -8,8 +8,10 @@ import com.example.blockchain.record.keeping.repositorys.CertificateRepository;
 import com.example.blockchain.record.keeping.repositorys.DegreeRepository;
 import com.example.blockchain.record.keeping.repositorys.DegreeTitleRepository;
 import com.example.blockchain.record.keeping.repositorys.StudentRepository;
+import com.example.blockchain.record.keeping.response.DegreeClassificationByYearResponse;
 import com.example.blockchain.record.keeping.response.DegreeClassificationStatisticsResponse;
 import com.example.blockchain.record.keeping.response.FacultyDegreeStatisticResponse;
+import com.example.blockchain.record.keeping.response.MonthlyCertificateStatisticsResponse;
 import com.example.blockchain.record.keeping.utils.PinataUploader;
 import com.example.blockchain.record.keeping.utils.QrCodeUtil;
 import com.example.blockchain.record.keeping.utils.RSAUtil;
@@ -30,6 +32,7 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -254,6 +257,30 @@ public class DegreeService implements IDegreeService{
                 result.getAverage()
         );
         return response;
+    }
+
+    @Override
+    public List<DegreeClassificationByYearResponse> getDegreeClassificationByUniversityAndLast5Years(Long universityId) {
+        List<Object[]> raw =  degreeRepository.getDegreeClassificationByUniversityAndLast5Years(universityId);
+
+        return raw.stream().map(row -> new DegreeClassificationByYearResponse(
+                ((Number) row[0]).intValue(),
+                ((Number) row[1]).longValue(),
+                ((Number) row[2]).longValue(),
+                ((Number) row[3]).longValue()
+        )).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<DegreeClassificationByYearResponse> getDegreeClassificationByDepartmentAndLast5Years(Long departmentId) {
+        List<Object[]> raw =  degreeRepository.getDegreeClassificationByDepartmentAndLast5Years(departmentId);
+
+        return raw.stream().map(row -> new DegreeClassificationByYearResponse(
+                ((Number) row[0]).intValue(),
+                ((Number) row[1]).longValue(),
+                ((Number) row[2]).longValue(),
+                ((Number) row[3]).longValue()
+        )).collect(Collectors.toList());
     }
 
     public Map<String, Boolean> checkStudentsGrantedDegree(Set<String> studentCodes) {

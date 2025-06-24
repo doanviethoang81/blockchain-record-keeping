@@ -9,8 +9,8 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class MonthlyCertificateStatisticsResponse {
-    private int month;
+public class DegreeClassificationByYearResponse {
+    private int year;
     private Long pending;
     private Long approved;
     private Long rejected;

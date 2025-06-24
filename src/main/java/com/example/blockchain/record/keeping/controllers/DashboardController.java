@@ -5,10 +5,7 @@ import com.example.blockchain.record.keeping.dtos.StatisticsDepartmentDTO;
 import com.example.blockchain.record.keeping.dtos.StatisticsUniversityDTO;
 import com.example.blockchain.record.keeping.models.University;
 import com.example.blockchain.record.keeping.models.User;
-import com.example.blockchain.record.keeping.response.ApiResponseBuilder;
-import com.example.blockchain.record.keeping.response.DegreeClassificationStatisticsResponse;
-import com.example.blockchain.record.keeping.response.FacultyDegreeStatisticResponse;
-import com.example.blockchain.record.keeping.response.MonthlyCertificateStatisticsResponse;
+import com.example.blockchain.record.keeping.response.*;
 import com.example.blockchain.record.keeping.services.CertificateService;
 import com.example.blockchain.record.keeping.services.DegreeService;
 import com.example.blockchain.record.keeping.services.UniversityService;
@@ -128,20 +125,63 @@ public class DashboardController {
     }
 
 
-    // thống kê sl chứng chỉ theo các tháng của 1 tr sua lại dang bug
-//    @GetMapping("/pdt/dashboard/monthly-certificate-statistics")
-//    public ResponseEntity<?> monthlyCertificateStatisticsOfUniversity() {
-//        try {
-//            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-//            String username = authentication.getName();
-//            University university = universityService.getUniversityByEmail(username);
-//
-//            List<MonthlyCertificateStatisticsResponse> result = certificateService.monthlyCertificateStatistics(university.getId());
-//            return ApiResponseBuilder.success("Thống kê chứng chỉ đã cấp của trường theo các tháng", result);
-//        } catch (Exception e) {
-//            return ApiResponseBuilder.internalError("Lỗi: " + e.getMessage());
-//        }
-//    }
+    // thống kê sl chứng chỉ theo các tháng của 1 tr
+    @GetMapping("/pdt/dashboard/monthly-certificate-statistics")
+    public ResponseEntity<?> monthlyCertificateStatisticsOfUniversity() {
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String username = authentication.getName();
+            University university = universityService.getUniversityByEmail(username);
 
+            List<MonthlyCertificateStatisticsResponse> result = certificateService.monthlyCertificateStatisticsOfUniversity(university.getId());
+            return ApiResponseBuilder.success("Thống kê chứng chỉ của trường theo các tháng", result);
+        } catch (Exception e) {
+            return ApiResponseBuilder.internalError("Lỗi: " + e.getMessage());
+        }
+    }
 
+    // thống kê sl chứng chỉ theo các tháng của 1 khoa
+    @GetMapping("/khoa/dashboard/monthly-certificate-statistics")
+    public ResponseEntity<?> monthlyCertificateStatisticsOfDepartment() {
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String username = authentication.getName();
+            User user = userService.findByUser(username);
+
+            List<MonthlyCertificateStatisticsResponse> result = certificateService.monthlyCertificateStatisticsOfDepartment(user.getDepartment().getId());
+            return ApiResponseBuilder.success("Thống kê chứng chỉ của khoa theo các tháng", result);
+        } catch (Exception e) {
+            return ApiResponseBuilder.internalError("Lỗi: " + e.getMessage());
+        }
+    }
+
+    // thống kê số lượng văn bằng trong 5 năm theo trường sửa lại tên
+    @GetMapping("/pdt/dashboard/year-certificate-statistics")
+    public ResponseEntity<?> getDegreeClassificationByUniversityAndLast5Years() {
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String username = authentication.getName();
+            User user = userService.findByUser(username);
+
+            List<DegreeClassificationByYearResponse> result = degreeService.getDegreeClassificationByUniversityAndLast5Years(user.getUniversity().getId());
+            return ApiResponseBuilder.success("Thống kê văn bằng trong năm 5 của trường", result);
+        } catch (Exception e) {
+            return ApiResponseBuilder.internalError("Lỗi: " + e.getMessage());
+        }
+    }
+
+    // thống kê số lượng văn bằng trong 5 năm theo khoa sửa lại url
+    @GetMapping("/pdt/dashboard/year-certificate-statistics")
+    public ResponseEntity<?> getDegreeClassificationByDepartmentAndLast5Years() {
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String username = authentication.getName();
+            User user = userService.findByUser(username);
+
+            List<DegreeClassificationByYearResponse> result = degreeService.getDegreeClassificationByDepartmentAndLast5Years(user.getDepartment().getId());
+            return ApiResponseBuilder.success("Thống kê văn bằng trong năm 5 của trường", result);
+        } catch (Exception e) {
+            return ApiResponseBuilder.internalError("Lỗi: " + e.getMessage());
+        }
+    }
 }

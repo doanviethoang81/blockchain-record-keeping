@@ -1,13 +1,10 @@
 package com.example.blockchain.record.keeping.services;
-import com.certificate.contract.CertificateStorage_sol_EncryptedCertificateStorage;
 import com.example.blockchain.record.keeping.configs.Constants;
 import com.example.blockchain.record.keeping.dtos.request.*;
 import com.example.blockchain.record.keeping.enums.Status;
 import com.example.blockchain.record.keeping.models.*;
 import com.example.blockchain.record.keeping.repositorys.*;
-import com.example.blockchain.record.keeping.response.FacultyDegreeStatisticResponse;
 import com.example.blockchain.record.keeping.response.MonthlyCertificateStatisticsResponse;
-import com.example.blockchain.record.keeping.utils.EnvUtil;
 import com.example.blockchain.record.keeping.utils.PinataUploader;
 import com.example.blockchain.record.keeping.utils.QrCodeUtil;
 import com.example.blockchain.record.keeping.utils.RSAUtil;
@@ -17,22 +14,14 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.web3j.crypto.Credentials;
 import org.web3j.protocol.Web3j;
-import org.web3j.protocol.core.methods.response.EthTransaction;
-import org.web3j.protocol.core.methods.response.Transaction;
-import org.web3j.protocol.core.methods.response.TransactionReceipt;
-import org.web3j.tx.gas.ContractGasProvider;
-import org.web3j.utils.Numeric;
-
-import java.nio.charset.StandardCharsets;
 import java.security.PrivateKey;
-import java.security.PublicKey;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -133,17 +122,27 @@ public class CertificateService implements ICertificateService{
     }
 
     @Override
-    public List<MonthlyCertificateStatisticsResponse> monthlyCertificateStatistics(Long universityId) {
-        List<MonthlyCertificateStatisticsRequest> results = certificateRepository.monthlyCertificateStatistics(universityId);
-        List<MonthlyCertificateStatisticsResponse> response = new ArrayList<>();
-        for (MonthlyCertificateStatisticsRequest row : results) {
-            MonthlyCertificateStatisticsResponse a = new MonthlyCertificateStatisticsResponse(
-                    row.getMonth(),
-                    row.getTotal()
-            );
-            response.add(a);
-        }
-        return response;
+    public List<MonthlyCertificateStatisticsResponse> monthlyCertificateStatisticsOfUniversity(Long universityId) {
+        List<Object[]> raw =  certificateRepository.monthlyCertificateStatisticsOfUniversity(universityId);
+
+        return raw.stream().map(row -> new MonthlyCertificateStatisticsResponse(
+                ((Number) row[0]).intValue(),
+                ((Number) row[1]).longValue(),
+                ((Number) row[2]).longValue(),
+                ((Number) row[3]).longValue()
+        )).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<MonthlyCertificateStatisticsResponse> monthlyCertificateStatisticsOfDepartment(Long departmentId) {
+        List<Object[]> raw =  certificateRepository.monthlyCertificateStatisticsOfDepartment(departmentId);
+
+        return raw.stream().map(row -> new MonthlyCertificateStatisticsResponse(
+                ((Number) row[0]).intValue(),
+                ((Number) row[1]).longValue(),
+                ((Number) row[2]).longValue(),
+                ((Number) row[3]).longValue()
+        )).collect(Collectors.toList());
     }
 
     @Override

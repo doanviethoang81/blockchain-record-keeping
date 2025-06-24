@@ -10,10 +10,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 @Repository
 public interface DegreeRepository extends JpaRepository<Degree,Long> {
@@ -229,4 +226,51 @@ public interface DegreeRepository extends JpaRepository<Degree,Long> {
     DegreeClassificationStatisticsRequest getDegreeClassificationStatisticsOfDepartment(@Param("departmentId")Long departmentId);
 
 
+    //thống kê văn bằng trong 5 năm của 1 trường
+    @Query(value = """
+            SELECT
+                y.year,
+                COALESCE(SUM(CASE WHEN d.status = 'PENDING' THEN 1 ELSE 0 END), 0) AS pending,
+                COALESCE(SUM(CASE WHEN d.status = 'APPROVED' THEN 1 ELSE 0 END), 0) AS approved,
+                COALESCE(SUM(CASE WHEN d.status = 'REJECTED' THEN 1 ELSE 0 END), 0) AS rejected
+            FROM (
+                SELECT YEAR(CURDATE()) AS year
+                UNION ALL SELECT YEAR(CURDATE()) - 1
+                UNION ALL SELECT YEAR(CURDATE()) - 2
+                UNION ALL SELECT YEAR(CURDATE()) - 3
+                UNION ALL SELECT YEAR(CURDATE()) - 4
+            ) AS y
+            LEFT JOIN degrees d ON YEAR(d.updated_at) = y.year
+            LEFT JOIN students s ON d.student_id = s.id
+            LEFT JOIN student_class sc ON s.student_class_id = sc.id
+            LEFT JOIN departments dp ON sc.department_id = dp.id
+            LEFT JOIN universitys u ON dp.university_id = u.id AND u.id = :universityId
+            GROUP BY y.year
+            ORDER BY y.year;            
+            """,nativeQuery = true)
+    List<Object[]> getDegreeClassificationByUniversityAndLast5Years(@Param("universityId") Long universityId);
+
+
+    //thống kê văn bằng trong 5 năm của 1 trường
+    @Query(value = """
+            SELECT
+                y.year,
+                COALESCE(SUM(CASE WHEN d.status = 'PENDING' THEN 1 ELSE 0 END), 0) AS pending,
+                COALESCE(SUM(CASE WHEN d.status = 'APPROVED' THEN 1 ELSE 0 END), 0) AS approved,
+                COALESCE(SUM(CASE WHEN d.status = 'REJECTED' THEN 1 ELSE 0 END), 0) AS rejected
+            FROM (
+                SELECT YEAR(CURDATE()) AS year
+                UNION ALL SELECT YEAR(CURDATE()) - 1
+                UNION ALL SELECT YEAR(CURDATE()) - 2
+                UNION ALL SELECT YEAR(CURDATE()) - 3
+                UNION ALL SELECT YEAR(CURDATE()) - 4
+            ) AS y
+            LEFT JOIN degrees d ON YEAR(d.updated_at) = y.year
+            LEFT JOIN students s ON d.student_id = s.id
+            LEFT JOIN student_class sc ON s.student_class_id = sc.id
+            LEFT JOIN departments dp ON sc.department_id = dp.id And dp.id: departmentId
+            GROUP BY y.year
+            ORDER BY y.year;            
+            """,nativeQuery = true)
+    List<Object[]> getDegreeClassificationByDepartmentAndLast5Years(@Param("departmentId") Long departmentId);
 }

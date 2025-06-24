@@ -1,11 +1,7 @@
 package com.example.blockchain.record.keeping.repositorys;
 
-import com.example.blockchain.record.keeping.dtos.CertificateDTO;
-import com.example.blockchain.record.keeping.dtos.request.FacultyDegreeStatisticRequest;
-import com.example.blockchain.record.keeping.dtos.request.MonthlyCertificateStatisticsRequest;
 import com.example.blockchain.record.keeping.enums.Status;
 import com.example.blockchain.record.keeping.models.Certificate;
-import com.example.blockchain.record.keeping.models.Degree;
 import com.example.blockchain.record.keeping.models.Student;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -169,23 +165,48 @@ public interface CertificateRepository extends JpaRepository<Certificate,Long> {
             """,nativeQuery = true)
     List<String> findExistingDiplomaNumbers(@Param("diplomaNumbers") Collection<String> diplomaNumbers);
 
-    //thống kê chứng chỉ theo các tháng trong năm
+    //thống kê chứng chỉ của tr theo các tháng trong năm
     @Query(value = """
-            SELECT
-                MONTH(c.updated_at) AS month,
-                COUNT(*) AS total
-            FROM certificates c
-            JOIN students s ON c.student_id = s.id
-            JOIN student_class sc ON s.student_class_id = sc.id
-            JOIN departments d ON sc.department_id = d.id
-            JOIN universitys u ON d.university_id = u.id
-            WHERE u.id = :universityId
-              AND s.status = 'ACTIVE'
-              AND sc.status = 'ACTIVE'
-              AND d.status = 'ACTIVE'
-              AND YEAR(c.updated_at) = 2025
-            GROUP BY MONTH(c.updated_at)
-            ORDER BY MONTH(c.updated_at)
-            """,nativeQuery = true)
-    List<MonthlyCertificateStatisticsRequest> monthlyCertificateStatistics(@Param("universityId") Long universityId);
+    SELECT
+        m.month,
+        COALESCE(SUM(CASE WHEN c.status = 'PENDING' THEN 1 ELSE 0 END), 0) AS pending,
+        COALESCE(SUM(CASE WHEN c.status = 'APPROVED' THEN 1 ELSE 0 END), 0) AS approved,
+        COALESCE(SUM(CASE WHEN c.status = 'REJECTED' THEN 1 ELSE 0 END), 0) AS rejected
+    FROM (
+        SELECT 1 AS month UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4 UNION ALL
+        SELECT 5 UNION ALL SELECT 6 UNION ALL SELECT 7 UNION ALL SELECT 8 UNION ALL
+        SELECT 9 UNION ALL SELECT 10 UNION ALL SELECT 11 UNION ALL SELECT 12
+    ) AS m
+    LEFT JOIN certificates c ON MONTH(c.updated_at) = m.month AND YEAR(c.updated_at) = YEAR(CURDATE())
+    LEFT JOIN students s ON c.student_id = s.id AND s.status = 'ACTIVE'
+    LEFT JOIN student_class sc ON s.student_class_id = sc.id AND sc.status = 'ACTIVE'
+    LEFT JOIN departments d ON sc.department_id = d.id AND d.status = 'ACTIVE'
+    LEFT JOIN universitys u ON d.university_id = u.id AND u.id = :universityId
+    GROUP BY m.month
+    ORDER BY m.month
+""", nativeQuery = true)
+    List<Object[]> monthlyCertificateStatisticsOfUniversity(@Param("universityId") Long universityId);
+
+    //thống kê chứng chỉ của khoa theo các tháng trong năm
+    @Query(value = """
+    SELECT
+        m.month,
+        COALESCE(SUM(CASE WHEN c.status = 'PENDING' THEN 1 ELSE 0 END), 0) AS pending,
+        COALESCE(SUM(CASE WHEN c.status = 'APPROVED' THEN 1 ELSE 0 END), 0) AS approved,
+        COALESCE(SUM(CASE WHEN c.status = 'REJECTED' THEN 1 ELSE 0 END), 0) AS rejected
+    FROM (
+        SELECT 1 AS month UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4 UNION ALL
+        SELECT 5 UNION ALL SELECT 6 UNION ALL SELECT 7 UNION ALL SELECT 8 UNION ALL
+        SELECT 9 UNION ALL SELECT 10 UNION ALL SELECT 11 UNION ALL SELECT 12
+    ) AS m
+    LEFT JOIN certificates c ON MONTH(c.updated_at) = m.month AND YEAR(c.updated_at) = YEAR(CURDATE())
+    LEFT JOIN students s ON c.student_id = s.id AND s.status = 'ACTIVE'
+    LEFT JOIN student_class sc ON s.student_class_id = sc.id AND sc.status = 'ACTIVE'
+    LEFT JOIN departments d ON sc.department_id = d.id AND d.id = :departmentId
+    GROUP BY m.month
+    ORDER BY m.month
+""", nativeQuery = true)
+    List<Object[]> monthlyCertificateStatisticsOfDepartment(@Param("departmentId") Long departmentId);
+
+
 }
