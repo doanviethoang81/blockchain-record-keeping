@@ -155,8 +155,8 @@ public class DashboardController {
         }
     }
 
-    // thống kê số lượng văn bằng trong 5 năm theo trường sửa lại tên
-    @GetMapping("/pdt/dashboard/year-certificate-statistics")
+    // thống kê số lượng văn bằng trong 5 năm theo trường
+    @GetMapping("/pdt/dashboard/certificate-statistics-by-year")
     public ResponseEntity<?> getDegreeClassificationByUniversityAndLast5Years() {
         try {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -170,8 +170,8 @@ public class DashboardController {
         }
     }
 
-    // thống kê số lượng văn bằng trong 5 năm theo khoa sửa lại url
-    @GetMapping("/pdt/dashboard/year-certificate-statistics")
+    // thống kê số lượng văn bằng trong 5 năm theo khoa
+    @GetMapping("/khoa/dashboard/certificate-statistics-by-year")
     public ResponseEntity<?> getDegreeClassificationByDepartmentAndLast5Years() {
         try {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -179,7 +179,7 @@ public class DashboardController {
             User user = userService.findByUser(username);
 
             List<DegreeClassificationByYearResponse> result = degreeService.getDegreeClassificationByDepartmentAndLast5Years(user.getDepartment().getId());
-            return ApiResponseBuilder.success("Thống kê văn bằng trong năm 5 của trường", result);
+            return ApiResponseBuilder.success("Thống kê văn bằng trong năm 5 của khoa", result);
         } catch (Exception e) {
             return ApiResponseBuilder.internalError("Lỗi: " + e.getMessage());
         }

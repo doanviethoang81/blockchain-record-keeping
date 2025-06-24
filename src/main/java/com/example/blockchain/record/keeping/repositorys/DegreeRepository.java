@@ -268,7 +268,7 @@ public interface DegreeRepository extends JpaRepository<Degree,Long> {
             LEFT JOIN degrees d ON YEAR(d.updated_at) = y.year
             LEFT JOIN students s ON d.student_id = s.id
             LEFT JOIN student_class sc ON s.student_class_id = sc.id
-            LEFT JOIN departments dp ON sc.department_id = dp.id And dp.id: departmentId
+            LEFT JOIN departments dp ON sc.department_id = dp.id And dp.id= :departmentId
             GROUP BY y.year
             ORDER BY y.year;            
             """,nativeQuery = true)
