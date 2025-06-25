@@ -656,8 +656,6 @@ public class DegreeController {
                             (int) Math.ceil((double) degreeResponseList.size() / size)));
 
             return ApiResponseBuilder.success("Danh sách văn bằng chưa được xác nhận của khoa",data);
-        } catch (IllegalArgumentException e) {
-            return ApiResponseBuilder.badRequest(e.getMessage());
         } catch (Exception e) {
             return ApiResponseBuilder.internalError("Lỗi " + e.getMessage());
         }
@@ -937,6 +935,12 @@ public class DegreeController {
         degreeDetailResponse.setGraduationYear(degree.getGraduationYear());
         degreeDetailResponse.setEmail(degree.getStudent().getEmail());
         degreeDetailResponse.setBirthDate(degree.getStudent().getBirthDate());
+        degreeDetailResponse.setRatingId(degree.getRating().getId());
+        degreeDetailResponse.setRatingName(degree.getRating().getName());
+        degreeDetailResponse.setDegreeTitleId(degree.getDegreeTitle().getId());
+        degreeDetailResponse.setDegreeTitleName(degree.getDegreeTitle().getName());
+        degreeDetailResponse.setEducationModeId(degree.getEducationMode().getId());
+        degreeDetailResponse.setEducationModeName(degree.getEducationMode().getName());
         degreeDetailResponse.setCourse(degree.getStudent().getCourse());
         degreeDetailResponse.setSigner(degree.getSigner());
         degreeDetailResponse.setStatus(degree.getStatus());

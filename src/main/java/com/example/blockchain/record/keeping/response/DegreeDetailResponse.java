@@ -20,6 +20,12 @@ public class DegreeDetailResponse {
     private String graduationYear;
     private String email;
     private LocalDate birthDate;
+    private Long ratingId;
+    private String ratingName;
+    private Long degreeTitleId;
+    private String degreeTitleName;
+    private Long educationModeId;
+    private String educationModeName;
     private String course;
     private String signer;
     private Status status;

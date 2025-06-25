@@ -180,43 +180,7 @@ public class CertificateTypeController {
     }
 
     //---------------------------- KHOA -------------------------------------------------------
-    // danh sách chứng chỉ cho khoa
-//    @PreAuthorize("hasAuthority('READ')")
-//    @GetMapping("/khoa/certificate-type")
-//    public ResponseEntity<?> getCertificateTypeKhoa(
-//            @RequestParam(defaultValue = "1") int page,
-//            @RequestParam(defaultValue = "10") int size,
-//            @RequestParam(required = false) String name
-//    ) {
-//        try {
-//            if (page < 1) page = 1;
-//            if (size < 1) size = 1000;
-//            String username = SecurityContextHolder.getContext().getAuthentication().getName();
-//            User user = userService.findByUser(username);
-//
-//            List<CertificateTypeDTO> result = universityCertificateTypeService
-//                    .listUniversityCertificateType(user.getUniversity())
-//                    .stream()
-//                    .map(u -> new CertificateTypeDTO(
-//                            u.getCertificateType().getId(),
-//                            u.getCertificateType().getName()
-//                    ))
-//                    .collect(Collectors.toList());
-//
-//            if (CollectionUtils.isEmpty(result)) {
-//                return ApiResponseBuilder.success("Không có chứng chỉ nào!");
-//            }
-//            List<CertificateTypeDTO> pagedResult = result.subList(start, end);
-//            PaginatedData<CertificateTypeDTO> data = new PaginatedData<>(pagedResult,
-//                    new PaginationMeta(certificateTypeDTOS.size(), pagedResult.size(), size, page ,
-//                            (int) Math.ceil((double) certificateTypeDTOS.size() / size)));
-//            return ApiResponseBuilder.success(message, data);
-//            return ApiResponseBuilder.success("Lấy danh sách loại chứng chỉ cho khoa thành công.", result);
-//        } catch (Exception e) {
-//            return ApiResponseBuilder.internalError("Lỗi: " + e.getMessage());
-//        }
-//    }
-
+//    ds ch ch
     @PreAuthorize("hasAuthority('READ')")
     @GetMapping("/khoa/certificate-type")
     public ResponseEntity<?> getCertificateTypeDepartment(
@@ -247,7 +211,7 @@ public class CertificateTypeController {
                 }
             }
 
-            int start = (page-1) * size;
+            int start = (page - 1) * size;
             int end = Math.min(start + size, certificateTypeDTOS.size());
             if (start >= result.size()) {
                 return ApiResponseBuilder.success("Không có loại chứng chỉ nào!",result);
@@ -261,5 +225,4 @@ public class CertificateTypeController {
             return ApiResponseBuilder.internalError("Lỗi: " + e.getMessage());
         }
     }
-
 }

@@ -16,6 +16,7 @@ public class CertificateDetailResponse {
     private String studentClass;
     private String department;
     private String university;
+    private Long certificateTypeId;
     private String certificateName;
     private LocalDate issueDate;
     private String diplomaNumber;

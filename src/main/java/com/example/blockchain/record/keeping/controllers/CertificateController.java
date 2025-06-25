@@ -134,6 +134,7 @@ public class CertificateController {
                     certificate.getStudent().getStudentClass().getName(),
                     certificate.getStudent().getStudentClass().getDepartment().getName(),
                     certificate.getStudent().getStudentClass().getDepartment().getUniversity().getName(),
+                    certificate.getUniversityCertificateType().getCertificateType().getId(),
                     certificate.getUniversityCertificateType().getCertificateType().getName(),
                     certificate.getIssueDate(),
                     certificate.getDiplomaNumber(),
@@ -532,6 +533,7 @@ public class CertificateController {
                             certificate.getStudent().getStudentClass().getName(),
                             certificate.getStudent().getStudentClass().getDepartment().getName(),
                             certificate.getStudent().getStudentClass().getDepartment().getUniversity().getName(),
+                            certificate.getUniversityCertificateType().getCertificateType().getId(),
                             certificate.getUniversityCertificateType().getCertificateType().getName(),
                             certificate.getIssueDate(),
                             certificate.getDiplomaNumber(),
@@ -590,6 +592,8 @@ public class CertificateController {
             @RequestParam(required = false) String diplomaNumber
     ) {
         try {
+            if (page < 1) page = 1;
+            if (size < 1) size = 10;
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             String username = authentication.getName();
             User user = userService.findByUser(username);
@@ -624,7 +628,7 @@ public class CertificateController {
                     .collect(Collectors.toList());
             int start = (page - 1) * size;
             int end = Math.min(start + size, certificateResponseList.size());
-            if (start >= certificateResponseList.size()) {
+            if (certificateList.size() <= 0) {
                 return ApiResponseBuilder.success("Chưa có chứng chỉ nào!",certificateList);
             }
 
