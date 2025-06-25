@@ -29,15 +29,15 @@ public interface IDegreeService {
 
     Degree findByLotteryNumber(String lotteryNumber);
 
-    List<Degree> listAllDegreeOfUniversity(Long universittyId, String departmentName, String className, String studentCode, String studentName,String graduationYear);
+    List<Degree> listAllDegreeOfUniversity(Long universittyId, String departmentName, String className, String studentCode, String studentName,String graduationYear, String diplomaNumber);
 
-    List<Degree> listAllDegreeOfUniversityAndStatus(Long universittyId, String departmentName, String className, String studentCode, String studentName,String graduationYear, String status);
+    List<Degree> listAllDegreeOfUniversityAndStatus(Long universittyId, String departmentName, String className, String studentCode, String studentName,String graduationYear, String diplomaNumber,String status);
 
-    List<Degree> listAllDegreeOfDepartment(Long departmentId, String className, String studentCode, String studentName,String graduationYear);
+    List<Degree> listAllDegreeOfDepartment(Long departmentId, String className, String studentCode, String studentName,String graduationYear, String diplomaNumber);
 
-    List<Degree> listAllDegreeOfDepartmentAndStatus(Long departmentId, String className, String studentCode, String studentName,String graduationYear,String status);
+    List<Degree> listAllDegreeOfDepartmentAndStatus(Long departmentId, String className, String studentCode, String studentName,String graduationYear,String diplomaNumber, String status);
 
-    List<Degree> listAllDegree(String universityName, String departmentName, String className, String studentCode, String studentName,String graduationYear);
+    List<Degree> listAllDegree(String universityName, String departmentName, String className, String studentCode, String studentName,String graduationYear, String diplomaNumber);
 
     Degree findByIdAndStatus(Long id);
 

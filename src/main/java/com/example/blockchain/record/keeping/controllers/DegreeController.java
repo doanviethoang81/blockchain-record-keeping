@@ -7,7 +7,6 @@ import com.example.blockchain.record.keeping.dtos.request.ListValidationRequest;
 import com.example.blockchain.record.keeping.dtos.request.DegreeRequest;
 import com.example.blockchain.record.keeping.enums.Status;
 import com.example.blockchain.record.keeping.models.*;
-import com.example.blockchain.record.keeping.repositorys.StudentRepository;
 import com.example.blockchain.record.keeping.response.*;
 import com.example.blockchain.record.keeping.services.*;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -43,9 +42,6 @@ public class DegreeController {
     private final DegreeTitleSevice degreeTitleSevice;
     private final StudentService studentService;
     private final GraphicsTextWriter graphicsTextWriter;
-
-    //---------------------------- ADMIN -------------------------------------------------------
-
 
     //---------------------------- KHOA -------------------------------------------------------
     // cấp văn bằng
@@ -96,7 +92,7 @@ public class DegreeController {
         }
     }
 
-    // excel thiếu trùng số hiện chuwngsc chỉ
+    // excel
     @PreAuthorize("hasAuthority('WRITE')")
     @PostMapping("/khoa/degree/create-excel")
     public ResponseEntity<?> uploadExcel(
@@ -184,7 +180,7 @@ public class DegreeController {
         }
     }
 
-    //danh sách văn bằng của 1 tr
+    //danh sách văn bằng của các trường
     @PreAuthorize("hasAuthority('READ')")
     @GetMapping("/admin/list-degree")
     public ResponseEntity<?> listAllDegree(
@@ -195,7 +191,8 @@ public class DegreeController {
             @RequestParam(required = false) String className,
             @RequestParam(required = false) String studentCode,
             @RequestParam(required = false) String studentName,
-            @RequestParam(required = false) String graduationYear
+            @RequestParam(required = false) String graduationYear,
+            @RequestParam(required = false) String diplomaNumber
     ) {
         try {
             List<Degree> degreeList = degreeService.listAllDegree(
@@ -204,13 +201,15 @@ public class DegreeController {
                     className,
                     studentCode,
                     studentName,
-                    graduationYear
+                    graduationYear,
+                    diplomaNumber
             );
             if (departmentName != null && !departmentName.isEmpty()
                     ||className != null && !className.isEmpty()
                     ||studentCode != null && !studentCode.isEmpty()
                     ||studentName != null && !studentName.isEmpty()
                     ||graduationYear != null && !graduationYear.isEmpty()
+                    ||diplomaNumber != null && !diplomaNumber.isEmpty()
             ) {
                 if (degreeList.isEmpty()) {
                     return ApiResponseBuilder.success("Không tìm thấy văn bằng!",degreeList);
@@ -258,7 +257,8 @@ public class DegreeController {
             @RequestParam(required = false) String className,
             @RequestParam(required = false) String studentCode,
             @RequestParam(required = false) String studentName,
-            @RequestParam(required = false) String graduationYear
+            @RequestParam(required = false) String graduationYear,
+            @RequestParam(required = false) String diplomaNumber
     ) {
         try {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -270,13 +270,15 @@ public class DegreeController {
                     className,
                     studentCode,
                     studentName,
-                    graduationYear
+                    graduationYear,
+                    diplomaNumber
             );
             if (departmentName != null && !departmentName.isEmpty()
                     ||className != null && !className.isEmpty()
                     ||studentCode != null && !studentCode.isEmpty()
                     ||studentName != null && !studentName.isEmpty()
                     ||graduationYear != null && !graduationYear.isEmpty()
+                    ||diplomaNumber != null && !diplomaNumber.isEmpty()
             ) {
                 if (degreeList.isEmpty()) {
                     return ApiResponseBuilder.success("Không tìm thấy văn bằng!",degreeList);
@@ -324,7 +326,8 @@ public class DegreeController {
             @RequestParam(required = false) String className,
             @RequestParam(required = false) String studentCode,
             @RequestParam(required = false) String studentName,
-            @RequestParam(required = false) String graduationYear
+            @RequestParam(required = false) String graduationYear,
+            @RequestParam(required = false) String diplomaNumber
     ) {
         try {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -337,6 +340,7 @@ public class DegreeController {
                     studentCode,
                     studentName,
                     graduationYear,
+                    diplomaNumber,
                     Status.PENDING.name()
             );
             if (departmentName != null && !departmentName.isEmpty()
@@ -344,6 +348,7 @@ public class DegreeController {
                     ||studentCode != null && !studentCode.isEmpty()
                     ||studentName != null && !studentName.isEmpty()
                     ||graduationYear != null && !graduationYear.isEmpty()
+                    ||diplomaNumber != null && !diplomaNumber.isEmpty()
             ) {
                 if (degreeList.isEmpty()) {
                     return ApiResponseBuilder.success("Không tìm thấy văn bằng!",degreeList);
@@ -381,17 +386,18 @@ public class DegreeController {
         }
     }
 
-    //list văn bằng rejected của 1 tr
+    //list văn bằng approved của 1 tr
     @PreAuthorize("hasAuthority('READ')")
-    @GetMapping("/pdt/list-degree-rejected")
-    public ResponseEntity<?> getDegreeRejectedOfUniversity(
+    @GetMapping("/pdt/list-degree-approved")
+    public ResponseEntity<?> getDegreeApprovedOfUniversity(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) String departmentName,
             @RequestParam(required = false) String className,
             @RequestParam(required = false) String studentCode,
             @RequestParam(required = false) String studentName,
-            @RequestParam(required = false) String graduationYear
+            @RequestParam(required = false) String graduationYear,
+            @RequestParam(required = false) String diplomaNumber
     ) {
         try {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -404,6 +410,77 @@ public class DegreeController {
                     studentCode,
                     studentName,
                     graduationYear,
+                    diplomaNumber,
+                    Status.APPROVED.name()
+            );
+            if (departmentName != null && !departmentName.isEmpty()
+                    ||className != null && !className.isEmpty()
+                    ||studentCode != null && !studentCode.isEmpty()
+                    ||studentName != null && !studentName.isEmpty()
+                    ||graduationYear != null && !graduationYear.isEmpty()
+                    ||diplomaNumber != null && !diplomaNumber.isEmpty()
+            ) {
+                if (degreeList.isEmpty()) {
+                    return ApiResponseBuilder.success("Không tìm thấy văn bằng!",degreeList);
+                }
+            }
+            List<DegreeResponse> degreeResponseList = degreeList.stream()
+                    .map(s -> new DegreeResponse(
+                            s.getId(),
+                            s.getStudent().getName(),
+                            s.getStudent().getStudentClass().getName(),
+                            s.getStudent().getStudentClass().getDepartment().getName(),
+                            s.getIssueDate(),
+                            convertStatusToDisplay(s.getStatus()),
+                            s.getGraduationYear(),
+                            s.getDiplomaNumber(),
+                            s.getCreatedAt()
+                    ))
+                    .collect(Collectors.toList());
+            int start = (page - 1) * size;
+            int end = Math.min(start + size, degreeResponseList.size());
+            if (start >= degreeResponseList.size()) {
+                return ApiResponseBuilder.success("Không có văn bằng nào!",degreeResponseList);
+            }
+
+            List<DegreeResponse> pagedResult = degreeResponseList.subList(start, end);
+            PaginatedData<DegreeResponse> data = new PaginatedData<>(pagedResult,
+                    new PaginationMeta(degreeResponseList.size(), pagedResult.size(), size, page ,
+                            (int) Math.ceil((double) degreeResponseList.size() / size)));
+
+            return ApiResponseBuilder.success("Danh sách văn bằng đã được xác nhận của trường",data);
+        } catch (IllegalArgumentException e) {
+            return ApiResponseBuilder.badRequest(e.getMessage());
+        } catch (Exception e) {
+            return ApiResponseBuilder.internalError("Lỗi " + e.getMessage());
+        }
+    }
+
+    //list văn bằng rejected của 1 tr
+    @PreAuthorize("hasAuthority('READ')")
+    @GetMapping("/pdt/list-degree-rejected")
+    public ResponseEntity<?> getDegreeRejectedOfUniversity(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String departmentName,
+            @RequestParam(required = false) String className,
+            @RequestParam(required = false) String studentCode,
+            @RequestParam(required = false) String studentName,
+            @RequestParam(required = false) String graduationYear,
+            @RequestParam(required = false) String diplomaNumber
+    ) {
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String username = authentication.getName();
+            University university = universityService.getUniversityByEmail(username);
+            List<Degree> degreeList = degreeService.listAllDegreeOfUniversityAndStatus(
+                    university.getId(),
+                    departmentName,
+                    className,
+                    studentCode,
+                    studentName,
+                    graduationYear,
+                    diplomaNumber,
                     Status.REJECTED.name()
             );
             if (departmentName != null && !departmentName.isEmpty()
@@ -411,6 +488,7 @@ public class DegreeController {
                     ||studentCode != null && !studentCode.isEmpty()
                     ||studentName != null && !studentName.isEmpty()
                     ||graduationYear != null && !graduationYear.isEmpty()
+                    ||diplomaNumber != null && !diplomaNumber.isEmpty()
             ) {
                 if (degreeList.isEmpty()) {
                     return ApiResponseBuilder.success("Không tìm thấy văn bằng!",degreeList);
@@ -458,7 +536,8 @@ public class DegreeController {
             @RequestParam(required = false) String className,
             @RequestParam(required = false) String studentCode,
             @RequestParam(required = false) String studentName,
-            @RequestParam(required = false) String graduationYear
+            @RequestParam(required = false) String graduationYear,
+            @RequestParam(required = false) String diplomaNumber
     ) {
         try {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -469,13 +548,15 @@ public class DegreeController {
                     className,
                     studentCode,
                     studentName,
-                    graduationYear
+                    graduationYear,
+                    diplomaNumber
             );
             if (departmentName != null && !departmentName.isEmpty()
                     ||className != null && !className.isEmpty()
                     ||studentCode != null && !studentCode.isEmpty()
                     ||studentName != null && !studentName.isEmpty()
                     ||graduationYear != null && !graduationYear.isEmpty()
+                    ||diplomaNumber != null && !diplomaNumber.isEmpty()
             ) {
                 if (degreeList.isEmpty()) {
                     return ApiResponseBuilder.success("Không tìm thấy văn bằng!",degreeList);
@@ -523,7 +604,8 @@ public class DegreeController {
             @RequestParam(required = false) String className,
             @RequestParam(required = false) String studentCode,
             @RequestParam(required = false) String studentName,
-            @RequestParam(required = false) String graduationYear
+            @RequestParam(required = false) String graduationYear,
+            @RequestParam(required = false) String diplomaNumber
     ) {
         try {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -535,6 +617,7 @@ public class DegreeController {
                     studentCode,
                     studentName,
                     graduationYear,
+                    diplomaNumber,
                     Status.PENDING.name()
             );
             if (departmentName != null && !departmentName.isEmpty()
@@ -542,6 +625,7 @@ public class DegreeController {
                     ||studentCode != null && !studentCode.isEmpty()
                     ||studentName != null && !studentName.isEmpty()
                     ||graduationYear != null && !graduationYear.isEmpty()
+                    ||diplomaNumber != null && !diplomaNumber.isEmpty()
             ) {
                 if (degreeList.isEmpty()) {
                     return ApiResponseBuilder.success("Không tìm thấy văn bằng!",degreeList);
@@ -579,17 +663,18 @@ public class DegreeController {
         }
     }
 
-    //list văn bằng rejected của khoa
+    //list văn bằng approved của khoa
     @PreAuthorize("hasAuthority('READ')")
-    @GetMapping("/khoa/list-degree-rejected")
-    public ResponseEntity<?> getDegreeRejectedOfDepartment(
+    @GetMapping("/khoa/list-degree-approved")
+    public ResponseEntity<?> getDegreeApprovedOfDepartment(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) String departmentName,
             @RequestParam(required = false) String className,
             @RequestParam(required = false) String studentCode,
             @RequestParam(required = false) String studentName,
-            @RequestParam(required = false) String graduationYear
+            @RequestParam(required = false) String graduationYear,
+            @RequestParam(required = false) String diplomaNumber
     ) {
         try {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -601,6 +686,76 @@ public class DegreeController {
                     studentCode,
                     studentName,
                     graduationYear,
+                    diplomaNumber,
+                    Status.APPROVED.name()
+            );
+            if (departmentName != null && !departmentName.isEmpty()
+                    ||className != null && !className.isEmpty()
+                    ||studentCode != null && !studentCode.isEmpty()
+                    ||studentName != null && !studentName.isEmpty()
+                    ||graduationYear != null && !graduationYear.isEmpty()
+                    ||diplomaNumber != null && !diplomaNumber.isEmpty()
+            ) {
+                if (degreeList.isEmpty()) {
+                    return ApiResponseBuilder.success("Không tìm thấy văn bằng!",degreeList);
+                }
+            }
+            List<DegreeResponse> degreeResponseList = degreeList.stream()
+                    .map(s -> new DegreeResponse(
+                            s.getId(),
+                            s.getStudent().getName(),
+                            s.getStudent().getStudentClass().getName(),
+                            s.getStudent().getStudentClass().getDepartment().getName(),
+                            s.getIssueDate(),
+                            convertStatusToDisplay(s.getStatus()),
+                            s.getGraduationYear(),
+                            s.getDiplomaNumber(),
+                            s.getCreatedAt()
+                    ))
+                    .collect(Collectors.toList());
+            int start = (page - 1) * size;
+            int end = Math.min(start + size, degreeResponseList.size());
+            if (start >= degreeResponseList.size()) {
+                return ApiResponseBuilder.success("Không có văn bằng nào!",degreeResponseList);
+            }
+
+            List<DegreeResponse> pagedResult = degreeResponseList.subList(start, end);
+            PaginatedData<DegreeResponse> data = new PaginatedData<>(pagedResult,
+                    new PaginationMeta(degreeResponseList.size(), pagedResult.size(), size, page ,
+                            (int) Math.ceil((double) degreeResponseList.size() / size)));
+
+            return ApiResponseBuilder.success("Danh sách văn bằng đã được xác nhận của khoa",data);
+        } catch (IllegalArgumentException e) {
+            return ApiResponseBuilder.badRequest(e.getMessage());
+        } catch (Exception e) {
+            return ApiResponseBuilder.internalError("Lỗi " + e.getMessage());
+        }
+    }
+
+    //list văn bằng rejected của khoa
+    @PreAuthorize("hasAuthority('READ')")
+    @GetMapping("/khoa/list-degree-rejected")
+    public ResponseEntity<?> getDegreeRejectedOfDepartment(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String departmentName,
+            @RequestParam(required = false) String className,
+            @RequestParam(required = false) String studentCode,
+            @RequestParam(required = false) String studentName,
+            @RequestParam(required = false) String graduationYear,
+            @RequestParam(required = false) String diplomaNumber
+    ) {
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String username = authentication.getName();
+            User user = userService.findByUser(username);
+            List<Degree> degreeList = degreeService.listAllDegreeOfDepartmentAndStatus(
+                    user.getDepartment().getId(),
+                    className,
+                    studentCode,
+                    studentName,
+                    graduationYear,
+                    diplomaNumber,
                     Status.REJECTED.name()
             );
             if (departmentName != null && !departmentName.isEmpty()
@@ -608,6 +763,7 @@ public class DegreeController {
                     ||studentCode != null && !studentCode.isEmpty()
                     ||studentName != null && !studentName.isEmpty()
                     ||graduationYear != null && !graduationYear.isEmpty()
+                    ||diplomaNumber != null && !diplomaNumber.isEmpty()
             ) {
                 if (degreeList.isEmpty()) {
                     return ApiResponseBuilder.success("Không tìm thấy văn bằng!",degreeList);

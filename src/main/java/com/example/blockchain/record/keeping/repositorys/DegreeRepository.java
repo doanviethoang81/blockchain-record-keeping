@@ -59,6 +59,7 @@ public interface DegreeRepository extends JpaRepository<Degree,Long> {
             AND (:studentCode IS NULL OR s.student_code LIKE CONCAT('%', :studentCode, '%'))
             AND (:studentName IS NULL OR s.name LIKE CONCAT('%', :studentName, '%'))
             AND (:graduationYear IS NULL OR d.graduation_year LIKE CONCAT('%', :graduationYear, '%'))            
+            AND (:diplomaNumber IS NULL OR d.diploma_number LIKE CONCAT('%', :diplomaNumber, '%'))            
             ORDER BY d.updated_at DESC 
             """,nativeQuery = true)
     List<Degree> listAllDegreeOfUniversity(@Param("universityId") Long universityId,
@@ -66,7 +67,8 @@ public interface DegreeRepository extends JpaRepository<Degree,Long> {
                                            @Param("className") String className,
                                            @Param("studentCode") String studentCode,
                                            @Param("studentName") String studentName,
-                                           @Param("graduationYear") String graduationYear);
+                                           @Param("graduationYear") String graduationYear,
+                                           @Param("diplomaNumber") String diplomaNumber);
 
     // list văn bằng chưa đc xác nhận của 1 trường
     @Query(value = """
@@ -85,6 +87,7 @@ public interface DegreeRepository extends JpaRepository<Degree,Long> {
             AND (:studentCode IS NULL OR s.student_code LIKE CONCAT('%', :studentCode, '%'))
             AND (:studentName IS NULL OR s.name LIKE CONCAT('%', :studentName, '%'))
             AND (:graduationYear IS NULL OR d.graduation_year LIKE CONCAT('%', :graduationYear, '%'))                        
+            AND (:diplomaNumber IS NULL OR d.diploma_number LIKE CONCAT('%', :diplomaNumber, '%'))                        
             ORDER BY d.updated_at DESC 
             """,nativeQuery = true)
     List<Degree> listDegreeOfUniversity(@Param("universityId") Long universityId,
@@ -93,6 +96,7 @@ public interface DegreeRepository extends JpaRepository<Degree,Long> {
                                                @Param("studentCode") String studentCode,
                                                @Param("studentName") String studentName,
                                                @Param("graduationYear") String graduationYear,
+                                               @Param("diplomaNumber") String diplomaNumber,
                                                @Param("status") String status
     );
     // list văn bằng của 1 khoa
@@ -109,13 +113,15 @@ public interface DegreeRepository extends JpaRepository<Degree,Long> {
             AND (:studentCode IS NULL OR s.student_code LIKE CONCAT('%', :studentCode, '%'))
             AND (:studentName IS NULL OR s.name LIKE CONCAT('%', :studentName, '%'))
             AND (:graduationYear IS NULL OR d.graduation_year LIKE CONCAT('%', :graduationYear, '%'))                        
+            AND (:diplomaNumber IS NULL OR d.diploma_number LIKE CONCAT('%', :diplomaNumber, '%'))                        
             ORDER BY d.updated_at DESC 
             """,nativeQuery = true)
     List<Degree> listAllDegreeOfDepartment(@Param("departmentId") Long departmentId,
                                            @Param("className") String className,
                                            @Param("studentCode") String studentCode,
                                            @Param("studentName") String studentName,
-                                           @Param("graduationYear") String graduationYear);
+                                           @Param("graduationYear") String graduationYear,
+                                           @Param("diplomaNumber") String diplomaNumber);
 
     // list văn bằng chưa đc xác nhận của 1 khoa
     @Query(value = """
@@ -132,6 +138,7 @@ public interface DegreeRepository extends JpaRepository<Degree,Long> {
             AND (:studentCode IS NULL OR s.student_code LIKE CONCAT('%', :studentCode, '%'))
             AND (:studentName IS NULL OR s.name LIKE CONCAT('%', :studentName, '%'))
             AND (:graduationYear IS NULL OR d.graduation_year LIKE CONCAT('%', :graduationYear, '%'))            
+            AND (:diplomaNumber IS NULL OR d.diploma_number LIKE CONCAT('%', :diplomaNumber, '%'))            
             ORDER BY d.updated_at DESC 
             """,nativeQuery = true)
     List<Degree> listAllDegreeOfDepartmentAndStatus(@Param("departmentId") Long departmentId,
@@ -139,6 +146,7 @@ public interface DegreeRepository extends JpaRepository<Degree,Long> {
                                                   @Param("studentCode") String studentCode,
                                                   @Param("studentName") String studentName,
                                                   @Param("graduationYear") String graduationYear,
+                                                  @Param("diplomaNumber") String diplomaNumber,
                                                   @Param("status") String status
     );
 
@@ -159,6 +167,7 @@ public interface DegreeRepository extends JpaRepository<Degree,Long> {
             AND (:studentCode IS NULL OR s.student_code LIKE CONCAT('%', :studentCode, '%'))
             AND (:studentName IS NULL OR s.name LIKE CONCAT('%', :studentName, '%'))
             AND (:graduationYear IS NULL OR d.graduation_year LIKE CONCAT('%', :graduationYear, '%'))          
+            AND (:diplomaNumber IS NULL OR d.diploma_number LIKE CONCAT('%', :diplomaNumber, '%'))          
             ORDER BY d.updated_at DESC
             """,nativeQuery = true)
     List<Degree> listAllDegree(@Param("universityName") String universityName,
@@ -166,7 +175,8 @@ public interface DegreeRepository extends JpaRepository<Degree,Long> {
                                            @Param("className") String className,
                                            @Param("studentCode") String studentCode,
                                            @Param("studentName") String studentName,
-                                           @Param("graduationYear") String graduationYear);
+                                           @Param("graduationYear") String graduationYear,
+                                           @Param("diplomaNumber") String diplomaNumber);
 
     //kiem tra xem chung chi da duoc xac thuc chua
     Degree findByIdAndStatus(Long id, Status status);

@@ -58,14 +58,16 @@ public class CertificateService implements ICertificateService{
             String departmentName,
             String className,
             String studentCode,
-            String studentName
+            String studentName,
+            String diplomaNumber
     ) {
         return certificateRepository.findByAllCertificate(
                 universityName,
                 departmentName,
                 className,
                 studentCode,
-                studentName
+                studentName,
+                diplomaNumber
         );
     }
 
@@ -96,13 +98,13 @@ public class CertificateService implements ICertificateService{
     }
 
     @Override
-    public List<Certificate> listCertificateOfDepartment(Long departmentId, String className, String studentCode, String studentName) {
-        return certificateRepository.listCertificateOfDepartment(departmentId, className,studentCode,studentName );
+    public List<Certificate> listCertificateOfDepartment(Long departmentId, String className, String studentCode, String studentName, String diplomaNumber) {
+        return certificateRepository.listCertificateOfDepartment(departmentId, className,studentCode,studentName ,diplomaNumber);
     }
 
     @Override
-    public List<Certificate> listCertificateOfDepartmentAndStatus(Long departmentId, String className, String studentCode, String studentName, String status) {
-        return certificateRepository.listCertificateOfDepartmentAndStatus(departmentId, className,studentCode,studentName, status);
+    public List<Certificate> listCertificateOfDepartmentAndStatus(Long departmentId, String className, String studentCode, String studentName,String diplomaNumber, String status) {
+        return certificateRepository.listCertificateOfDepartmentAndStatus(departmentId, className,studentCode,studentName,diplomaNumber, status);
     }
 
     @Override
@@ -175,8 +177,8 @@ public class CertificateService implements ICertificateService{
     }
 
     @Override
-    public List<Certificate> listCertificateOfUniversity(Long universittyId, String departmentName, String className, String studentCode, String studentName) {
-        return certificateRepository.listCertificateOfUniversity(universittyId,departmentName,className,studentCode,studentName);
+    public List<Certificate> listCertificateOfUniversity(Long universittyId, String departmentName, String className, String studentCode, String studentName, String diplomaNumber) {
+        return certificateRepository.listCertificateOfUniversity(universittyId,departmentName,className,studentCode,studentName, diplomaNumber);
     }
 
     @Override
@@ -210,8 +212,8 @@ public class CertificateService implements ICertificateService{
     }
 
     @Override
-    public List<Certificate> listCertificateOfUniversityAndStatus(Long universittyId, String departmentName, String className, String studentCode, String studentName, String status) {
-        return certificateRepository.listCertificateOfUniversityAndStatus(universittyId,departmentName,className,studentCode,studentName,status);
+    public List<Certificate> listCertificateOfUniversityAndStatus(Long universittyId, String departmentName, String className, String studentCode, String studentName,String diplomaNumber, String status) {
+        return certificateRepository.listCertificateOfUniversityAndStatus(universittyId,departmentName,className,studentCode,studentName,diplomaNumber, status);
     }
 
     @Transactional

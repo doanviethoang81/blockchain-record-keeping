@@ -199,28 +199,28 @@ public class DegreeService implements IDegreeService{
     }
 
     @Override
-    public List<Degree> listAllDegreeOfUniversity(Long universittyId, String departmentName, String className, String studentCode, String studentName,String graduationYear) {
-        return degreeRepository.listAllDegreeOfUniversity(universittyId,departmentName,className,studentCode,studentName, graduationYear);
+    public List<Degree> listAllDegreeOfUniversity(Long universittyId, String departmentName, String className, String studentCode, String studentName,String graduationYear, String diplomaNumber) {
+        return degreeRepository.listAllDegreeOfUniversity(universittyId,departmentName,className,studentCode,studentName, graduationYear,diplomaNumber);
     }
 
     @Override
-    public List<Degree> listAllDegreeOfUniversityAndStatus(Long universittyId, String departmentName, String className, String studentCode, String studentName,String graduationYear, String status) {
-        return degreeRepository.listDegreeOfUniversity(universittyId,departmentName,className,studentCode,studentName, graduationYear, status);
+    public List<Degree> listAllDegreeOfUniversityAndStatus(Long universittyId, String departmentName, String className, String studentCode, String studentName,String graduationYear,String diplomaNumber, String status) {
+        return degreeRepository.listDegreeOfUniversity(universittyId,departmentName,className,studentCode,studentName, graduationYear,diplomaNumber, status);
     }
 
     @Override
-    public List<Degree> listAllDegreeOfDepartment(Long departmentId, String className, String studentCode, String studentName,String graduationYear) {
-        return degreeRepository.listAllDegreeOfDepartment(departmentId,className,studentCode,studentName, graduationYear);
+    public List<Degree> listAllDegreeOfDepartment(Long departmentId, String className, String studentCode, String studentName,String graduationYear, String diplomaNumber) {
+        return degreeRepository.listAllDegreeOfDepartment(departmentId,className,studentCode,studentName, graduationYear,diplomaNumber);
     }
 
     @Override
-    public List<Degree> listAllDegreeOfDepartmentAndStatus( Long departmentId, String className, String studentCode, String studentName,String graduationYear, String status) {
-        return degreeRepository.listAllDegreeOfDepartmentAndStatus(departmentId,className,studentCode,studentName, graduationYear, status);
+    public List<Degree> listAllDegreeOfDepartmentAndStatus( Long departmentId, String className, String studentCode, String studentName,String graduationYear,String diplomaNumber, String status) {
+        return degreeRepository.listAllDegreeOfDepartmentAndStatus(departmentId,className,studentCode,studentName, graduationYear,diplomaNumber, status);
     }
 
     @Override
-    public List<Degree> listAllDegree(String universityName, String departmentName, String className, String studentCode, String studentName, String graduationYear) {
-        return degreeRepository.listAllDegree(universityName, departmentName,className,studentCode,studentName, graduationYear);
+    public List<Degree> listAllDegree(String universityName, String departmentName, String className, String studentCode, String studentName, String graduationYear, String diplomaNumber) {
+        return degreeRepository.listAllDegree(universityName, departmentName,className,studentCode,studentName, graduationYear,diplomaNumber);
     }
 
     @Override

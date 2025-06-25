@@ -22,7 +22,8 @@ public interface ICertificateService {
             String departmentNa,
             String className,
             String studentCode,
-            String studentName
+            String studentName,
+            String diplomaNumber
     );
 
     Certificate findById(Long id);
@@ -32,17 +33,17 @@ public interface ICertificateService {
     Certificate save(Certificate certificate);
     List<Certificate> saveAll(List<Certificate> certificateList);
 
-    List<Certificate> listCertificateOfDepartment(Long departmentId,String className, String studentCode, String studentName);
+    List<Certificate> listCertificateOfDepartment(Long departmentId,String className, String studentCode, String studentName, String diplomaNumber);
 
     Certificate findByIdAndStatus(Long id, Status status);
 
-    List<Certificate> listCertificateOfUniversity(Long universittyId, String departmentName,String className, String studentCode, String studentName);
+    List<Certificate> listCertificateOfUniversity(Long universittyId, String departmentName,String className, String studentCode, String studentName, String diplomaNumber);
 
     Certificate update(Certificate certificate, CertificateRequest certificateRequest);
 
-    List<Certificate> listCertificateOfUniversityAndStatus(Long universittyId, String departmentName, String className, String studentCode, String studentName, String status);
+    List<Certificate> listCertificateOfUniversityAndStatus(Long universittyId, String departmentName, String className, String studentCode, String studentName,String diplomaNumber, String status);
 
-    List<Certificate> listCertificateOfDepartmentAndStatus(Long departmentId, String className, String studentCode, String studentName, String status);
+    List<Certificate> listCertificateOfDepartmentAndStatus(Long departmentId, String className, String studentCode, String studentName,String diplomaNumber, String status);
 
     Certificate findByIpfsUrl(String ipfsUrl);
 
