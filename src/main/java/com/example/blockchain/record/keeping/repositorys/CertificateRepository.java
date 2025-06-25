@@ -1,5 +1,6 @@
 package com.example.blockchain.record.keeping.repositorys;
 
+import com.example.blockchain.record.keeping.dtos.request.CountCertificateTypeRequest;
 import com.example.blockchain.record.keeping.enums.Status;
 import com.example.blockchain.record.keeping.models.Certificate;
 import com.example.blockchain.record.keeping.models.Student;
@@ -208,5 +209,32 @@ public interface CertificateRepository extends JpaRepository<Certificate,Long> {
 """, nativeQuery = true)
     List<Object[]> monthlyCertificateStatisticsOfDepartment(@Param("departmentId") Long departmentId);
 
+
+    //thống kê sl từng loại chung chi theo tr
+    @Query(value = """
+            SELECT
+            ct.name, COUNT(CASE WHEN c.status ='APPROVED' THEN 1 END) AS approved
+            from university_certificate_types uct
+            left JOIN certificate_types ct on uct.certificate_type_id = ct.id
+            left join universitys u on uct.university_id = u.id and u.id = :universityId
+            left join certificates c on uct.id = c.university_certificate_type_id
+            where ct.status = 'ACTIVE'
+            GROUP by ct.name
+            """,nativeQuery = true)
+    List<CountCertificateTypeRequest> countCertificateTypeOfUniversity(@Param("universityId")Long universityId);
+
+    //thống kê sl từng loại chung chi theo khoa
+    @Query(value = """
+            SELECT
+            ct.name, COUNT(CASE WHEN c.status ='APPROVED' THEN 1 END) AS approved
+            from university_certificate_types uct
+            left JOIN certificate_types ct on uct.certificate_type_id = ct.id
+            left join universitys u on uct.university_id = u.id
+            left join departments d on u.id = d.university_id
+            left join certificates c on uct.id = c.university_certificate_type_id
+            where ct.status = 'ACTIVE' and d.id = :departmentId
+            GROUP by ct.name
+            """,nativeQuery = true)
+    List<CountCertificateTypeRequest> countCertificateTypeOfDepartment(@Param("departmentId")Long departmentId);
 
 }

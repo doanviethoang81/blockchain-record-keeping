@@ -4,6 +4,7 @@ import com.example.blockchain.record.keeping.dtos.request.*;
 import com.example.blockchain.record.keeping.enums.Status;
 import com.example.blockchain.record.keeping.models.*;
 import com.example.blockchain.record.keeping.repositorys.*;
+import com.example.blockchain.record.keeping.response.CountCertificateTypeResponse;
 import com.example.blockchain.record.keeping.response.MonthlyCertificateStatisticsResponse;
 import com.example.blockchain.record.keeping.utils.PinataUploader;
 import com.example.blockchain.record.keeping.utils.QrCodeUtil;
@@ -143,6 +144,34 @@ public class CertificateService implements ICertificateService{
                 ((Number) row[2]).longValue(),
                 ((Number) row[3]).longValue()
         )).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<CountCertificateTypeResponse> countCertificateTypeOfUniversity(Long universityId) {
+        List<CountCertificateTypeRequest> count = certificateRepository.countCertificateTypeOfUniversity(universityId);
+        List<CountCertificateTypeResponse> responseList = new ArrayList<>();
+        for (CountCertificateTypeRequest request : count){
+            CountCertificateTypeResponse response = new CountCertificateTypeResponse(
+                    request.getName(),
+                    request.getApproved()
+            );
+            responseList.add(response);
+        }
+        return responseList;
+    }
+
+    @Override
+    public List<CountCertificateTypeResponse> countCertificateTypeOfDepartment(Long departmentId) {
+        List<CountCertificateTypeRequest> count = certificateRepository.countCertificateTypeOfDepartment(departmentId);
+        List<CountCertificateTypeResponse> responseList = new ArrayList<>();
+        for (CountCertificateTypeRequest request : count){
+            CountCertificateTypeResponse response = new CountCertificateTypeResponse(
+                    request.getName(),
+                    request.getApproved()
+            );
+            responseList.add(response);
+        }
+        return responseList;
     }
 
     @Override

@@ -1,9 +1,11 @@
 package com.example.blockchain.record.keeping.services;
 
 import com.example.blockchain.record.keeping.dtos.request.CertificateRequest;
+import com.example.blockchain.record.keeping.dtos.request.CountCertificateTypeRequest;
 import com.example.blockchain.record.keeping.enums.Status;
 import com.example.blockchain.record.keeping.models.Certificate;
 import com.example.blockchain.record.keeping.models.Student;
+import com.example.blockchain.record.keeping.response.CountCertificateTypeResponse;
 import com.example.blockchain.record.keeping.response.MonthlyCertificateStatisticsResponse;
 
 import java.util.List;
@@ -47,5 +49,10 @@ public interface ICertificateService {
     Map<String, Boolean> findCertificatesOfStudentsByType(Set<Long> studentIds, Long certificateTypeId);
 
     List<MonthlyCertificateStatisticsResponse> monthlyCertificateStatisticsOfUniversity(Long universityId);
+
     List<MonthlyCertificateStatisticsResponse> monthlyCertificateStatisticsOfDepartment(Long universityId);
+
+    List<CountCertificateTypeResponse> countCertificateTypeOfUniversity(Long universityId);
+
+    List<CountCertificateTypeResponse> countCertificateTypeOfDepartment(Long departmentId);
 }

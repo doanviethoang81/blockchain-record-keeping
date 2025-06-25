@@ -184,4 +184,34 @@ public class DashboardController {
             return ApiResponseBuilder.internalError("Lỗi: " + e.getMessage());
         }
     }
+
+    // thống kê chứng chỉ đã cấp của từng loại ch ch trong 1 tr
+    @GetMapping("/pdt/dashboard/count-certificate-type")
+    public ResponseEntity<?> getTheNumberOfEachTypeOfCertificateInTheUniversity() {
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String username = authentication.getName();
+            User user = userService.findByUser(username);
+            List<CountCertificateTypeResponse> result = certificateService.countCertificateTypeOfUniversity(user.getUniversity().getId());
+            return ApiResponseBuilder.success("Thống kê số lượng từng loại chứng chỉ đã cấp của trường", result);
+        } catch (Exception e) {
+            return ApiResponseBuilder.internalError("Lỗi: " + e.getMessage());
+        }
+    }
+
+    // thống kê chứng chỉ đã cấp của từng loại ch ch trong 1 khoa
+    @GetMapping("/khoa/dashboard/count-certificate-type")
+    public ResponseEntity<?> getTheNumberOfEachTypeOfCertificateInTheDepartment() {
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String username = authentication.getName();
+            User user = userService.findByUser(username);
+            List<CountCertificateTypeResponse> result = certificateService.countCertificateTypeOfDepartment(user.getDepartment().getId());
+            return ApiResponseBuilder.success("Thống kê số lượng từng loại chứng chỉ đã cấp của khoa", result);
+        } catch (Exception e) {
+            return ApiResponseBuilder.internalError("Lỗi: " + e.getMessage());
+        }
+    }
+
+
 }

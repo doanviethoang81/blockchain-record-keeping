@@ -205,7 +205,6 @@ public interface UserRepository extends JpaRepository<User,Long> {
                    AND sc.status = 'ACTIVE' 
                    AND s.status = 'ACTIVE' 
                    AND d.status = 'REJECTED') AS degree_rejected
-            
             """, nativeQuery = true)
     StatisticsDepartmentDTO getStatisticsDepartment(@Param("departmentId") Long departmentId);
 
