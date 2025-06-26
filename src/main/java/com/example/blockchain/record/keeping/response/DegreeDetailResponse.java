@@ -11,6 +11,7 @@ import java.time.LocalDateTime;
 @Setter
 public class DegreeDetailResponse {
     private Long id;
+    private Long studentId;
     private String nameStudent;
     private String className;
     private String departmentName;

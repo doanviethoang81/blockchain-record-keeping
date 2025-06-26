@@ -130,6 +130,7 @@ public class CertificateController {
             String ipfsUrl = certificate.getIpfsUrl() != null ? Constants.IPFS_URL + certificate.getIpfsUrl() : null;
                     CertificateDetailResponse certificateDetailResponse = new CertificateDetailResponse(
                     certificate.getId(),
+                    certificate.getStudent().getId(),
                     certificate.getStudent().getName(),
                     certificate.getStudent().getStudentClass().getName(),
                     certificate.getStudent().getStudentClass().getDepartment().getName(),
@@ -503,6 +504,7 @@ public class CertificateController {
                         return ApiResponseBuilder.badRequest("Không tìm thấy văn bằng!");
                     DegreeDetailResponse degreeDetailResponse = new DegreeDetailResponse();
                     degreeDetailResponse.setId(degree.getId());
+                    degreeDetailResponse.setStudentId(degree.getStudent().getId());
                     degreeDetailResponse.setNameStudent(degree.getStudent().getName());
                     degreeDetailResponse.setClassName(degree.getStudent().getStudentClass().getName());
                     degreeDetailResponse.setDepartmentName(degree.getStudent().getStudentClass().getDepartment().getName());
@@ -529,6 +531,7 @@ public class CertificateController {
                         return ApiResponseBuilder.badRequest("Không tìm thấy chứng chỉ!");
                     CertificateDetailResponse certificateDetailResponse = new CertificateDetailResponse(
                             certificate.getId(),
+                            certificate.getStudent().getId(),
                             certificate.getStudent().getName(),
                             certificate.getStudent().getStudentClass().getName(),
                             certificate.getStudent().getStudentClass().getDepartment().getName(),

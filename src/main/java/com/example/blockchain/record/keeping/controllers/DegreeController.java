@@ -926,6 +926,7 @@ public class DegreeController {
         String ipfsUrl = degree.getIpfsUrl() != null ? Constants.IPFS_URL + degree.getIpfsUrl() : null;
 
         degreeDetailResponse.setId(degree.getId());
+        degreeDetailResponse.setStudentId(degree.getStudent().getId());
         degreeDetailResponse.setNameStudent(degree.getStudent().getName());
         degreeDetailResponse.setClassName(degree.getStudent().getStudentClass().getName());
         degreeDetailResponse.setDepartmentName(degree.getStudent().getStudentClass().getDepartment().getName());

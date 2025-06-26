@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class CertificateDetailResponse {
     private Long id;
+    private Long studentId;
     private String nameStudent;
     private String studentClass;
     private String department;
