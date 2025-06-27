@@ -1,17 +1,15 @@
 package com.example.blockchain.record.keeping.controllers;
 
-import com.example.blockchain.record.keeping.dtos.request.ChangePasswordRequest;
-import com.example.blockchain.record.keeping.dtos.request.VerifyPasswordRequest;
+import com.example.blockchain.record.keeping.dtos.request.*;
+import com.example.blockchain.record.keeping.models.Permission;
 import com.example.blockchain.record.keeping.models.University;
 import com.example.blockchain.record.keeping.models.User;
+import com.example.blockchain.record.keeping.models.UserPermission;
 import com.example.blockchain.record.keeping.response.ApiResponseBuilder;
 import com.example.blockchain.record.keeping.response.DepartmentDetailResponse;
 import com.example.blockchain.record.keeping.response.UniversityDetaillResponse;
 import com.example.blockchain.record.keeping.response.UniversityResponse;
-import com.example.blockchain.record.keeping.services.BrevoApiEmailService;
-import com.example.blockchain.record.keeping.services.DepartmentService;
-import com.example.blockchain.record.keeping.services.UniversityService;
-import com.example.blockchain.record.keeping.services.UserService;
+import com.example.blockchain.record.keeping.services.*;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -23,9 +21,13 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.NoSuchAlgorithmException;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.Base64;
+import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 @RestController
 @RequestMapping("${api.prefix:/api/v1}")
@@ -38,6 +40,7 @@ public class UserController {
     private final BrevoApiEmailService brevoApiEmailService;
     private final DepartmentService departmentService;
     private final PasswordEncoder passwordEncoder;
+    private final OtpService otpService;
 
     //---------------------------- ADMIN -------------------------------------------------------
     // khóa/Mở tài khoản của 1 trường
@@ -221,4 +224,6 @@ public class UserController {
             return ApiResponseBuilder.internalError("Đã xảy ra lỗi!");
         }
     }
+
+
 }

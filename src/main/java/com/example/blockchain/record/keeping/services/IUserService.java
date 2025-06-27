@@ -33,4 +33,6 @@ public interface IUserService {
     StatisticsDepartmentDTO dashboarDepartment(Long departmentId);
 
     User findByDepartment(Department department);
+
+    boolean resetPassword(String email, String newPassword);
 }

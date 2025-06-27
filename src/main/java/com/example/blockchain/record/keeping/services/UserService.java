@@ -36,7 +36,7 @@ public class UserService implements IUserService{
     @Override
     public User findByUser(String email) {
         return userRepository.findByEmail(email)
-                .orElseThrow(()-> new RuntimeException("Không tìm thấy user!"));
+                .orElse(null   );
     }
 
     @Override
@@ -183,6 +183,16 @@ public class UserService implements IUserService{
     public User findByDepartment(Department department) {
         return userRepository.findByDepartment(department)
                 .orElseThrow(()-> new RuntimeException("Không tìm thấy khoa !"));
+    }
+
+    @Override
+    public boolean resetPassword(String email, String newPassword) {
+        User user= userRepository.findByEmail(email)
+                .orElseThrow(()-> new RuntimeException("Không tìm thấy tài khoản này!"));
+        ZonedDateTime vietnamTime = ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
+        user.setPassword(passwordEncoder.encode(newPassword));
+        user.setUpdatedAt(vietnamTime.toLocalDateTime());
+        return true;
     }
 
     // danh sách user khoa thuộc 1 tr

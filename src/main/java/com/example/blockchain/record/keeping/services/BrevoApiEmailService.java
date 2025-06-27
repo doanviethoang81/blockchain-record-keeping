@@ -56,7 +56,6 @@ public class BrevoApiEmailService {
         context.setVariable("paperName", paperName);
         String contentHtml = templateEngine.process("email-template", context);
 
-        // 2. Gửi email qua Brevo API
         RestTemplate restTemplate = new RestTemplate();
 
         HttpHeaders headers = new HttpHeaders();
@@ -87,13 +86,11 @@ public class BrevoApiEmailService {
         try {
             String url = "https://api.brevo.com/v3/smtp/email";
 
-            // 1. Render template từ Thymeleaf
             Context context = new Context();
             context.setVariable("otpCode", otpCode);
             context.setVariable("email", toEmail);
             String contentHtml = templateEngine.process("otp-email-template", context);
 
-            // 2. Gửi email qua Brevo API
             RestTemplate restTemplate = new RestTemplate();
 
             HttpHeaders headers = new HttpHeaders();
@@ -263,4 +260,36 @@ public class BrevoApiEmailService {
     }
 
 
+    //gửi OTP quên mật khẩu
+    @Async
+    public void sendOtpForgotPasswordEmail(String toEmail, String otpCode) {
+        try {
+            String url = "https://api.brevo.com/v3/smtp/email";
+
+            Context context = new Context();
+            context.setVariable("otpCode", otpCode);
+            context.setVariable("email", toEmail);
+            String contentHtml = templateEngine.process("otp-email-forgot-password-template", context);
+
+            RestTemplate restTemplate = new RestTemplate();
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("api-key", API_KEY);
+            headers.setContentType(MediaType.APPLICATION_JSON);
+
+            Map<String, Object> body = new HashMap<>();
+            body.put("sender", Map.of("name", "Xác Minh Tài Khoản", "email", "hoangdoanviet81@gmail.com"));
+            body.put("to", List.of(Map.of("email", toEmail)));
+            body.put("subject", "Xác nhận OTP để khôi phục mật khẩu");
+            body.put("htmlContent", contentHtml);
+
+            HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
+
+            ResponseEntity<String> response = restTemplate.postForEntity(url, entity, String.class);
+            System.out.println("Kết quả gửi OTP: " + response.getStatusCode());
+        } catch (Exception e) {
+            System.err.println("Lỗi khi gửi OTP tới " + toEmail + ": " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
 }

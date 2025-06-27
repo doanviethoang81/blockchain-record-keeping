@@ -1,6 +1,8 @@
 package com.example.blockchain.record.keeping.controllers;
 
 import com.example.blockchain.record.keeping.dtos.LoginRequest;
+import com.example.blockchain.record.keeping.dtos.request.ForgotPasswordRequest;
+import com.example.blockchain.record.keeping.dtos.request.NewPasswordRequest;
 import com.example.blockchain.record.keeping.response.LoginResponse;
 import com.example.blockchain.record.keeping.dtos.RegisterRequest;
 import com.example.blockchain.record.keeping.dtos.request.VerifyOtpRequest;
@@ -19,6 +21,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.util.StringUtils;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
@@ -58,9 +61,11 @@ public class AuthenticationController {
                     .collect(Collectors.toList());
             return ApiResponseBuilder.listBadRequest("Dữ liệu không hợp lệ!", errors);
         }
-        if (request.getLogo() == null || request.getLogo().isEmpty() ||
-            request.getSealImageUrl() == null || request.getSealImageUrl().isEmpty()) {
+        if (request.getLogo() == null || request.getLogo().isEmpty()) {
             return ApiResponseBuilder.badRequest("Logo không được để trống!");
+        }
+        if (request.getSealImageUrl() == null || request.getSealImageUrl().isEmpty()) {
+            return ApiResponseBuilder.badRequest("Dấu mộc không được để trống!");
         }
         try{
             ZonedDateTime vietnamTime = ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
@@ -203,6 +208,29 @@ public class AuthenticationController {
         }
     }
 
+    // gửi lại otp lúc tạo tài khoản
+    @PostMapping("/api/auth/resend-registration-otp")
+    public ResponseEntity<?> resendOtp(@RequestBody ForgotPasswordRequest request) {
+        try {
+            if(request.getEmail()== null || !StringUtils.hasText(request.getEmail())){
+                return ApiResponseBuilder.badRequest("Vui lòng nhập email!");
+            }
+            User user = userService.findByUser(request.getEmail());
+            if (user == null) {
+                return ApiResponseBuilder.badRequest("Không tìm thấy tài khoản với email này!");
+            }
+            if(user.isLocked()){
+                return ApiResponseBuilder.badRequest("Tài khoản này đã bị khóa!");
+            }
+            String otp = String.format("%06d", new Random().nextInt(999999));
+            otpService.saveOtp(request.getEmail(), otp);
+            brevoApiEmailService.sendActivationEmail(request.getEmail(), otp);
+            return ApiResponseBuilder.success("Mã OTP đã được gửi tới email", null);
+        } catch (Exception e) {
+            return ApiResponseBuilder.badRequest(e.getMessage());
+        }
+    }
+
     @PostMapping("/api/auth/verify-otp")
     public ResponseEntity<?> verifyOtp(@RequestBody VerifyOtpRequest request) throws NoSuchAlgorithmException {
         String email = request.getEmail();
@@ -248,5 +276,79 @@ public class AuthenticationController {
         tokenBlacklistService.blacklistToken(token);
 
         return ApiResponseBuilder.success("Đăng xuất thành công", null);
+    }
+
+    //click quên mật khẩu
+    @PostMapping("/api/auth/forgot-password")
+    public ResponseEntity<?> forgotPassword(@RequestBody ForgotPasswordRequest request) {
+        try {
+            if(request.getEmail()== null || !StringUtils.hasText(request.getEmail())){
+                return ApiResponseBuilder.badRequest("Vui lòng nhập email!");
+            }
+            User user = userService.findByUser(request.getEmail());
+            if (user == null) {
+                return ApiResponseBuilder.badRequest("Không tìm thấy tài khoản với email này!");
+            }
+            if(user.isLocked()){
+                return ApiResponseBuilder.badRequest("Tài khoản này đã bị khóa!");
+            }
+            String roleName = user.getRole().getName();
+            if (roleName == "KHOA") {
+                return ApiResponseBuilder.badRequest("Tài khoản của bạn không có quyền cấp lại mật khẩu!");
+            }
+            String otp = String.format("%06d", new Random().nextInt(999999));
+            otpService.saveOtp(request.getEmail(), otp);
+            brevoApiEmailService.sendOtpForgotPasswordEmail(request.getEmail(), otp);
+            return ApiResponseBuilder.success("Mã OTP đã được gửi tới email", null);
+        } catch (Exception e) {
+            return ApiResponseBuilder.badRequest(e.getMessage());
+        }
+    }
+
+    // xác minh otp quên mật khẩu
+    @PostMapping("/api/auth/verify-otp-forgot-password")
+    public ResponseEntity<?> verifyOtpFgotPassword(@RequestBody VerifyOtpRequest request) throws NoSuchAlgorithmException {
+        if(request.getEmail()== null || !StringUtils.hasText(request.getEmail()) ||
+            request.getOtp()== null || !StringUtils.hasText(request.getOtp())
+        ){
+            return ApiResponseBuilder.badRequest("Vui lòng đầy đủ thông tin!");
+        }
+        String email = request.getEmail();
+        String otp = request.getOtp();
+        boolean valid = otpService.verifyOtp(email, otp);
+        if(valid){
+            return ApiResponseBuilder.success("OTP hợp lệ!", null);
+        }
+        else{
+            return ApiResponseBuilder.badRequest("OTP sai hoặc đã hết hạn!");
+        }
+    }
+
+    // cấp lại mật khẩu khi quên
+    @PostMapping("/api/auth/reset-password")
+    public ResponseEntity<?> resetPassword(@RequestBody NewPasswordRequest request) throws NoSuchAlgorithmException {
+        try {
+            String email = request.getEmail();
+            String newPassword = request.getNewPassword();
+            String confirmPassword = request.getConfirmPassword();
+
+            if(email== null || !StringUtils.hasText(email) ||
+                    newPassword == null || !StringUtils.hasText(newPassword) ||
+                    confirmPassword == null || !StringUtils.hasText(confirmPassword)
+            ){
+                return ApiResponseBuilder.badRequest("Vui lòng đầy đủ thông tin!");
+            }
+            if (!newPassword.equals(confirmPassword)) {
+                return ApiResponseBuilder.badRequest("Mật khẩu mới không giống nhau!");
+            }
+            if (userService.resetPassword(email, newPassword)) {
+                return ApiResponseBuilder.success("Cập nhật mật khẩu thành công", null);
+            }
+            else {
+                return ApiResponseBuilder.success("Cật nhật thất bại!", null);
+            }
+        } catch (Exception e) {
+            return ApiResponseBuilder.badRequest(e.getMessage());
+        }
     }
 }

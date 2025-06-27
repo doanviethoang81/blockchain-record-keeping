@@ -242,7 +242,7 @@ public class DegreeExcelListener extends AnalysisEventListener<DegreeExcelRowReq
             // tạo ảnh
             DegreePrintData degreePrintData = new DegreePrintData();
             degreePrintData.setUniversityName(student.getStudentClass().getDepartment().getUniversity().getName());
-            degreePrintData.setDegreeTitle("Bằng " + rating.getName());
+            degreePrintData.setDegreeTitle("Bằng " + degreeTitle.getName());
             degreePrintData.setDepartmentName(student.getStudentClass().getDepartment().getName());
             degreePrintData.setName(student.getName());
             degreePrintData.setBirthDate(student.getBirthDate().format(formatter));
