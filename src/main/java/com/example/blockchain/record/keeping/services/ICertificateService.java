@@ -56,4 +56,6 @@ public interface ICertificateService {
     List<CountCertificateTypeResponse> countCertificateTypeOfUniversity(Long universityId);
 
     List<CountCertificateTypeResponse> countCertificateTypeOfDepartment(Long departmentId);
+
+    long countCertificatesOfUniversity(Long universittyId, String departmentName, String className, String studentCode, String studentName,String diplomaNumber);
 }

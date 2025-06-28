@@ -184,7 +184,7 @@ public class CertificateController {
             University university = universityService.getUniversityByEmail(username);
             Long universityId = university.getId();
 
-            long totalItems = certificateRepository.countCertificates(
+            long totalItems = certificateService.countCertificatesOfUniversity(
                     universityId,
                     departmentName,
                     className,
@@ -206,7 +206,7 @@ public class CertificateController {
                 offset = 0;
             }
 
-            List<Certificate> certificates = certificateRepository.findPagedCertificates(
+            List<Certificate> certificates = certificateService.listCertificateOfUniversity(
                     universityId,
                     departmentName,
                     className,

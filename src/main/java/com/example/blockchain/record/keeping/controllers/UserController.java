@@ -110,7 +110,7 @@ public class UserController {
                     university.getWebsite(),
                     university.getPublicKey(),
                     university.getPrivateKey(),
-                    university.getWebsite(),
+                    university.getLogo(),
                     university.getSealImageUrl()
             );
             return ApiResponseBuilder.success("Thông tin chi tiết của trường đại học", universityDetailReponse);

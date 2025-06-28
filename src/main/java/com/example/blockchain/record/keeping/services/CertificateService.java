@@ -177,6 +177,11 @@ public class CertificateService implements ICertificateService{
     }
 
     @Override
+    public long countCertificatesOfUniversity(Long universittyId, String departmentName, String className, String studentCode, String studentName, String diplomaNumber) {
+        return certificateRepository.countCertificatesOfUniversity(universittyId,departmentName,className,studentCode,studentName, diplomaNumber);
+    }
+
+    @Override
     public List<Certificate> listCertificateOfUniversity(Long universittyId, String departmentName, String className, String studentCode, String studentName, String diplomaNumber, int limit, int offset){
         return certificateRepository.findPagedCertificates(universittyId,departmentName,className,studentCode,studentName, diplomaNumber, limit, offset);
     }

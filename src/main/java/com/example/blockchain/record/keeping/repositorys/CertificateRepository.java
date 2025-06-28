@@ -150,7 +150,7 @@ public interface CertificateRepository extends JpaRepository<Certificate,Long> {
           AND (:studentName IS NULL OR s.name LIKE CONCAT('%', :studentName, '%'))
           AND (:diplomaNumber IS NULL OR c.diploma_number LIKE CONCAT('%', :diplomaNumber, '%'))
         """, nativeQuery = true)
-    long countCertificates(
+    long countCertificatesOfUniversity(
             @Param("universityId") Long universityId,
             @Param("departmentName") String departmentName,
             @Param("className") String className,
