@@ -142,6 +142,7 @@ public class DegreeController {
     {
         try {
             Degree degree = degreeService.findById(id);
+            request.setTrainingLocation("Tp. Hồ Chí Minh");
             if(degree == null){
                 return ApiResponseBuilder.badRequest("Không tìm thấy văn bằng!");
             }
@@ -153,7 +154,6 @@ public class DegreeController {
                     || request.getDegreeTitleId() == null
                     || request.getEducationModeId() == null
                     || !StringUtils.hasText(String.valueOf(request.getGraduationYear()))
-                    || !StringUtils.hasText(String.valueOf(request.getTrainingLocation()))
                     || !StringUtils.hasText(String.valueOf(request.getSigner()))
                     || !StringUtils.hasText(String.valueOf(request.getDiplomaNumber()))
                     || !StringUtils.hasText(String.valueOf(request.getLotteryNumber()))

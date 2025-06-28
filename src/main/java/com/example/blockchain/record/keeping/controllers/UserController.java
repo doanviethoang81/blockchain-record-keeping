@@ -109,7 +109,6 @@ public class UserController {
                     university.getTaxCode(),
                     university.getWebsite(),
                     university.getPublicKey(),
-                    university.getPrivateKey(),
                     university.getLogo(),
                     university.getSealImageUrl()
             );

@@ -16,7 +16,6 @@ public class UniversityDetaillResponse {
     private String taxCode;
     private String website;
     private String publicKey;
-    private String privateKey;
     private String logo;
     private String sealImageUrl;
 }
