@@ -70,37 +70,11 @@ public interface CertificateRepository extends JpaRepository<Certificate,Long> {
             ORDER BY c.updated_at DESC      
             """,nativeQuery = true)
     List<Certificate> listCertificateOfDepartmentAndStatus(@Param("departmentId") Long departmentId,
-                                                  @Param("className") String className,
-                                                  @Param("studentCode") String studentCode,
-                                                  @Param("studentName") String studentName,
-                                                  @Param("diplomaNumber") String diplomaNumber,
-                                                  @Param("status") String status);
-
-    //danh sách ch chỉ của 1 truong
-    @Query(value = """
-            select c.* from certificates c
-            join students s on c.student_id = s.id
-            join student_class sc on s.student_class_id= sc.id
-            join departments d on sc.department_id = d.id
-            join universitys u on d.university_id =u.id
-            where u.id= :universityId
-            and s.status ='ACTIVE'
-            and sc.status ='ACTIVE'
-            and d.status ='ACTIVE'          
-            AND (:departmentName IS NULL OR d.name LIKE CONCAT('%', :departmentName, '%'))
-            AND (:className IS NULL OR sc.name LIKE CONCAT('%', :className, '%'))
-            AND (:studentCode IS NULL OR s.student_code LIKE CONCAT('%', :studentCode, '%'))
-            AND (:studentName IS NULL OR s.name LIKE CONCAT('%', :studentName, '%'))
-            AND (:diplomaNumber IS NULL OR c.diploma_number LIKE CONCAT('%', :diplomaNumber, '%'))
-            ORDER BY c.updated_at DESC      
-            """, nativeQuery = true)
-    List<Certificate> listCertificateOfUniversity(@Param("universityId") Long universityId,
-                                                  @Param("departmentName") String departmentName,
-                                                  @Param("className") String className,
-                                                  @Param("studentCode") String studentCode,
-                                                  @Param("studentName") String studentName,
-                                                  @Param("diplomaNumber") String diplomaNumber
-    );
+                                                           @Param("className") String className,
+                                                           @Param("studentCode") String studentCode,
+                                                           @Param("studentName") String studentName,
+                                                           @Param("diplomaNumber") String diplomaNumber,
+                                                           @Param("status") String status);
 
     // all chung chi ADMIN
     @Query(value = """
@@ -129,7 +103,66 @@ public interface CertificateRepository extends JpaRepository<Certificate,Long> {
             @Param("diplomaNumber") String diplomaNumber
     );
 
-    //danh sách ch chỉ của 1 truong
+    //danh sách ch chỉ của 1 truong all
+    @Query(value = """
+        SELECT c.* FROM certificates c
+        JOIN students s ON c.student_id = s.id
+        JOIN student_class sc ON s.student_class_id = sc.id
+        JOIN departments d ON sc.department_id = d.id
+        JOIN universitys u ON d.university_id = u.id
+        WHERE u.id = :universityId
+          AND s.status = 'ACTIVE'
+          AND sc.status = 'ACTIVE'
+          AND d.status = 'ACTIVE'
+          AND (:departmentName IS NULL OR d.name LIKE CONCAT('%', :departmentName, '%'))
+          AND (:className IS NULL OR sc.name LIKE CONCAT('%', :className, '%'))
+          AND (:studentCode IS NULL OR s.student_code LIKE CONCAT('%', :studentCode, '%'))
+          AND (:studentName IS NULL OR LOWER(s.name) LIKE CONCAT('%', LOWER(:studentName), '%'))
+          AND (:diplomaNumber IS NULL OR c.diploma_number LIKE CONCAT('%', :diplomaNumber, '%'))
+        ORDER BY c.updated_at DESC
+        LIMIT :limit OFFSET :offset
+        """, nativeQuery = true)
+    List<Certificate> findPagedCertificates(
+            @Param("universityId") Long universityId,
+            @Param("departmentName") String departmentName,
+            @Param("className") String className,
+            @Param("studentCode") String studentCode,
+            @Param("studentName") String studentName,
+            @Param("diplomaNumber") String diplomaNumber,
+            @Param("limit") int limit,
+            @Param("offset") int offset
+    );
+
+    //count số lượng ch ch all pdt
+    @Query(value = """
+        SELECT COUNT(*) FROM certificates c
+        JOIN students s ON c.student_id = s.id
+        JOIN student_class sc ON s.student_class_id = sc.id
+        JOIN departments d ON sc.department_id = d.id
+        JOIN universitys u ON d.university_id = u.id
+        WHERE u.id = :universityId
+          AND s.status = 'ACTIVE'
+          AND sc.status = 'ACTIVE'
+          AND d.status = 'ACTIVE'
+          AND (:departmentName IS NULL OR d.name LIKE CONCAT('%', :departmentName, '%'))
+          AND (:className IS NULL OR sc.name LIKE CONCAT('%', :className, '%'))
+          AND (:studentCode IS NULL OR s.student_code LIKE CONCAT('%', :studentCode, '%'))
+          AND (:studentName IS NULL OR s.name LIKE CONCAT('%', :studentName, '%'))
+          AND (:diplomaNumber IS NULL OR c.diploma_number LIKE CONCAT('%', :diplomaNumber, '%'))
+        """, nativeQuery = true)
+    long countCertificates(
+            @Param("universityId") Long universityId,
+            @Param("departmentName") String departmentName,
+            @Param("className") String className,
+            @Param("studentCode") String studentCode,
+            @Param("studentName") String studentName,
+            @Param("diplomaNumber") String diplomaNumber
+    );
+
+
+
+
+    //danh sách ch chỉ của 1 truong status
     @Query(value = """
             select c.* from certificates c
             join students s on c.student_id = s.id
@@ -149,12 +182,12 @@ public interface CertificateRepository extends JpaRepository<Certificate,Long> {
             ORDER BY c.updated_at DESC      
             """, nativeQuery = true)
     List<Certificate> listCertificateOfUniversityAndStatus(@Param("universityId") Long universityId,
-                                                  @Param("departmentName") String departmentName,
-                                                  @Param("className") String className,
-                                                  @Param("studentCode") String studentCode,
-                                                  @Param("studentName") String studentName,
-                                                  @Param("diplomaNumber") String diplomaNumber,
-                                                  @Param("status") String status);
+                                                           @Param("departmentName") String departmentName,
+                                                           @Param("className") String className,
+                                                           @Param("studentCode") String studentCode,
+                                                           @Param("studentName") String studentName,
+                                                           @Param("diplomaNumber") String diplomaNumber,
+                                                           @Param("status") String status);
 
     Certificate findByIpfsUrl(String ipfsUrl);
 

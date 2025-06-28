@@ -192,6 +192,7 @@ public class UserService implements IUserService{
         ZonedDateTime vietnamTime = ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
         user.setPassword(passwordEncoder.encode(newPassword));
         user.setUpdatedAt(vietnamTime.toLocalDateTime());
+        userRepository.save(user);
         return true;
     }
 

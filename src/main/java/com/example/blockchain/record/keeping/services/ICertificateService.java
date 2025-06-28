@@ -37,7 +37,7 @@ public interface ICertificateService {
 
     Certificate findByIdAndStatus(Long id, Status status);
 
-    List<Certificate> listCertificateOfUniversity(Long universittyId, String departmentName,String className, String studentCode, String studentName, String diplomaNumber);
+    List<Certificate> listCertificateOfUniversity(Long universittyId, String departmentName,String className, String studentCode, String studentName, String diplomaNumber, int limit, int offset);
 
     Certificate update(Certificate certificate, CertificateRequest certificateRequest);
 

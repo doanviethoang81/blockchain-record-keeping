@@ -177,8 +177,8 @@ public class CertificateService implements ICertificateService{
     }
 
     @Override
-    public List<Certificate> listCertificateOfUniversity(Long universittyId, String departmentName, String className, String studentCode, String studentName, String diplomaNumber) {
-        return certificateRepository.listCertificateOfUniversity(universittyId,departmentName,className,studentCode,studentName, diplomaNumber);
+    public List<Certificate> listCertificateOfUniversity(Long universittyId, String departmentName, String className, String studentCode, String studentName, String diplomaNumber, int limit, int offset){
+        return certificateRepository.findPagedCertificates(universittyId,departmentName,className,studentCode,studentName, diplomaNumber, limit, offset);
     }
 
     @Override
@@ -212,7 +212,7 @@ public class CertificateService implements ICertificateService{
     }
 
     @Override
-    public List<Certificate> listCertificateOfUniversityAndStatus(Long universittyId, String departmentName, String className, String studentCode, String studentName,String diplomaNumber, String status) {
+    public List<Certificate> listCertificateOfUniversityAndStatus(Long universittyId, String departmentName, String className, String studentCode, String studentName,String diplomaNumber, String status){
         return certificateRepository.listCertificateOfUniversityAndStatus(universittyId,departmentName,className,studentCode,studentName,diplomaNumber, status);
     }
 

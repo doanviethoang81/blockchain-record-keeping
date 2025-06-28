@@ -3,11 +3,13 @@ package com.example.blockchain.record.keeping.controllers;
 import com.alibaba.excel.EasyExcel;
 import com.example.blockchain.record.keeping.configs.Constants;
 import com.example.blockchain.record.keeping.dtos.CertificateExcelRowDTO;
+import com.example.blockchain.record.keeping.dtos.CertificateTypeDTO;
 import com.example.blockchain.record.keeping.dtos.request.CertificateRequest;
 import com.example.blockchain.record.keeping.dtos.request.DecryptRequest;
 import com.example.blockchain.record.keeping.dtos.request.ListValidationRequest;
 import com.example.blockchain.record.keeping.enums.Status;
 import com.example.blockchain.record.keeping.models.*;
+import com.example.blockchain.record.keeping.repositorys.CertificateRepository;
 import com.example.blockchain.record.keeping.response.*;
 import com.example.blockchain.record.keeping.services.*;
 import com.example.blockchain.record.keeping.utils.RSAUtil;
@@ -31,6 +33,7 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -52,6 +55,7 @@ public class CertificateController {
     private final RSAUtil rsaUtil;
     private final BlockChainService blockChainService;
     private final DegreeService degreeService;
+    private final CertificateRepository certificateRepository;
 
     //---------------------------- ADMIN -------------------------------------------------------
     // xem all chứng chỉ
@@ -176,54 +180,62 @@ public class CertificateController {
         try {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             String username = authentication.getName();
+
             University university = universityService.getUniversityByEmail(username);
-            List<Certificate> certificateList = certificateService.listCertificateOfUniversity(
-                    university.getId(),
+            Long universityId = university.getId();
+
+            long totalItems = certificateRepository.countCertificates(
+                    universityId,
                     departmentName,
                     className,
                     studentCode,
                     studentName,
                     diplomaNumber
             );
-            if (departmentName != null && !departmentName.isEmpty()
-                    ||className != null && !className.isEmpty()
-                    ||studentCode != null && !studentCode.isEmpty()
-                    ||studentName != null && !studentName.isEmpty()
-                    ||diplomaNumber != null && !diplomaNumber.isEmpty()
-            ) {
-                if (certificateList.isEmpty()) {
-                    return ApiResponseBuilder.success("Không tìm thấy chứng chỉ!",certificateList);
-                }
-            }
-            List<CertificateResponse> certificateResponseList = certificateList.stream()
-                    .map(s -> new CertificateResponse(
-                            s.getId(),
-                            s.getStudent().getName(),
-                            s.getStudent().getStudentClass().getName(),
-                            s.getStudent().getStudentClass().getDepartment().getName(),
-                            s.getIssueDate(),
-                            convertStatusToDisplay(s.getStatus()),
-                            s.getDiplomaNumber(),
-                            s.getUniversityCertificateType().getCertificateType().getName(),
-                            s.getCreatedAt()
-                    ))
-                    .collect(Collectors.toList());
-            int start = (page - 1) * size;
-            int end = Math.min(start + size, certificateResponseList.size());
-            if (start >= certificateResponseList.size()) {
-                return ApiResponseBuilder.success("Không có chứng chỉ nào!",certificateList);
+
+            if (totalItems == 0) {
+                PaginationMeta meta = new PaginationMeta(0, 0, size, page, 0);
+                PaginatedData<CertificateResponse> data = new PaginatedData<>(Collections.emptyList(), meta);
+                return ApiResponseBuilder.success("Không có chứng chỉ nào!", data);
             }
 
-            List<CertificateResponse> pagedResult = certificateResponseList.subList(start, end);
-            PaginatedData<CertificateResponse> data = new PaginatedData<>(pagedResult,
-                    new PaginationMeta(certificateResponseList.size(), pagedResult.size(), size, page ,
-                            (int) Math.ceil((double) certificateResponseList.size() / size)));
+            int offset = (page - 1) * size;
 
-            return ApiResponseBuilder.success("Danh sách chứng chỉ của trường",data);
-        } catch (IllegalArgumentException e) {
-            return ApiResponseBuilder.badRequest(e.getMessage());
+            if (offset >= totalItems && totalItems > 0) {
+                page = 1;
+                offset = 0;
+            }
+
+            List<Certificate> certificates = certificateRepository.findPagedCertificates(
+                    universityId,
+                    departmentName,
+                    className,
+                    studentCode == null ? null : studentCode.trim(),
+                    studentName == null ? null : studentName.trim(),
+                    diplomaNumber,
+                    size,
+                    offset
+            );
+
+            List<CertificateResponse> certificateResponseList = certificates.stream().map(s -> new CertificateResponse(
+                    s.getId(),
+                    s.getStudent().getName(),
+                    s.getStudent().getStudentClass().getName(),
+                    s.getStudent().getStudentClass().getDepartment().getName(),
+                    s.getIssueDate(),
+                    convertStatusToDisplay(s.getStatus()),
+                    s.getDiplomaNumber(),
+                    s.getUniversityCertificateType().getCertificateType().getName(),
+                    s.getCreatedAt()
+            )).collect(Collectors.toList());
+
+            int totalPages = (int) Math.ceil((double) totalItems / size);
+            PaginationMeta meta = new PaginationMeta(totalItems, certificateResponseList.size(), size, page, totalPages);
+            PaginatedData<CertificateResponse> data = new PaginatedData<>(certificateResponseList, meta);
+
+            return ApiResponseBuilder.success("Danh sách chứng chỉ của trường", data);
         } catch (Exception e) {
-            return ApiResponseBuilder.internalError("Lỗi " + e.getMessage());
+            return ApiResponseBuilder.internalError("Lỗi: " + e.getMessage());
         }
     }
 
@@ -240,6 +252,8 @@ public class CertificateController {
             @RequestParam(required = false) String diplomaNumber
     ) {
         try {
+            int start = (page - 1) * size;
+
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             String username = authentication.getName();
             University university = universityService.getUniversityByEmail(username);
@@ -275,7 +289,6 @@ public class CertificateController {
                             s.getCreatedAt()
                     ))
                     .collect(Collectors.toList());
-            int start = (page - 1) * size;
             int end = Math.min(start + size, certificateResponseList.size());
             if (start >= certificateResponseList.size()) {
                 return ApiResponseBuilder.success("Chưa có chứng chỉ nào!",certificateList);
@@ -307,6 +320,7 @@ public class CertificateController {
             @RequestParam(required = false) String diplomaNumber
     ) {
         try {
+            int start = (page - 1) * size;
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             String username = authentication.getName();
             University university = universityService.getUniversityByEmail(username);
@@ -342,7 +356,6 @@ public class CertificateController {
                             s.getCreatedAt()
                     ))
                     .collect(Collectors.toList());
-            int start = (page - 1) * size;
             int end = Math.min(start + size, certificateResponseList.size());
             if (start >= certificateResponseList.size()) {
                 return ApiResponseBuilder.success("Chưa có chứng chỉ nào!",certificateList);
@@ -374,6 +387,8 @@ public class CertificateController {
             @RequestParam(required = false) String diplomaNumber
     ) {
         try {
+            int start = (page - 1) * size;
+
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             String username = authentication.getName();
             University university = universityService.getUniversityByEmail(username);
@@ -385,6 +400,7 @@ public class CertificateController {
                     studentName,
                     diplomaNumber,
                     Status.REJECTED.name()
+
             );
             if (departmentName != null && !departmentName.isEmpty()
                     ||className != null && !className.isEmpty()
@@ -409,7 +425,6 @@ public class CertificateController {
                             s.getCreatedAt()
                     ))
                     .collect(Collectors.toList());
-            int start = (page - 1) * size;
             int end = Math.min(start + size, certificateResponseList.size());
             if (start >= certificateResponseList.size()) {
                 return ApiResponseBuilder.success("Chưa có chứng chỉ nào!",certificateList);

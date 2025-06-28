@@ -5,10 +5,7 @@ import com.example.blockchain.record.keeping.models.Permission;
 import com.example.blockchain.record.keeping.models.University;
 import com.example.blockchain.record.keeping.models.User;
 import com.example.blockchain.record.keeping.models.UserPermission;
-import com.example.blockchain.record.keeping.response.ApiResponseBuilder;
-import com.example.blockchain.record.keeping.response.DepartmentDetailResponse;
-import com.example.blockchain.record.keeping.response.UniversityDetaillResponse;
-import com.example.blockchain.record.keeping.response.UniversityResponse;
+import com.example.blockchain.record.keeping.response.*;
 import com.example.blockchain.record.keeping.services.*;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
@@ -203,11 +200,14 @@ public class UserController {
 
     //xác nhận password để xem private key
     @PreAuthorize("hasAuthority('WRITE')")
-    @PostMapping("/pdt/verify-password")
+    @PostMapping("/pdt/private-key")
     public ResponseEntity<?> verifyPassword(@RequestBody VerifyPasswordRequest request) {
         try {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             String username = authentication.getName();
+            if(request == null || !StringUtils.hasText(request.getPassword())){
+                return ApiResponseBuilder.badRequest("Vui lòng nhập mật khẩu!");
+            }
 
             User user = userService.findByUser(username);
             if (user == null) {
@@ -218,8 +218,10 @@ public class UserController {
             if (!isPasswordCorrect) {
                 return ApiResponseBuilder.badRequest("Mật khẩu không đúng");
             }
-
-            return ApiResponseBuilder.success("Xác nhận thành công", null);
+            PrivateKeyResponse response = new PrivateKeyResponse(
+                    user.getUniversity().getPrivateKey()
+            );
+            return ApiResponseBuilder.success("Xác nhận thành công", response);
         } catch (Exception e) {
             return ApiResponseBuilder.internalError("Đã xảy ra lỗi!");
         }
