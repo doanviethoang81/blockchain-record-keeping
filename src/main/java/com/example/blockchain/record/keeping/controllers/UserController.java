@@ -187,7 +187,6 @@ public class UserController {
             universityDetailReponse.setWebsite(user.getUniversity().getWebsite());
             universityDetailReponse.setLogo(user.getUniversity().getLogo());
 
-
             DepartmentDetailResponse departmentDetailResponse= new DepartmentDetailResponse();
             departmentDetailResponse.setNameDepartment(user.getDepartment().getName());
             departmentDetailResponse.setEmail(user.getEmail());

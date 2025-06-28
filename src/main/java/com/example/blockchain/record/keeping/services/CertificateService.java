@@ -98,13 +98,13 @@ public class CertificateService implements ICertificateService{
     }
 
     @Override
-    public List<Certificate> listCertificateOfDepartment(Long departmentId, String className, String studentCode, String studentName, String diplomaNumber) {
-        return certificateRepository.listCertificateOfDepartment(departmentId, className,studentCode,studentName ,diplomaNumber);
+    public List<Certificate> listCertificateOfDepartment(Long departmentId, String className, String studentCode, String studentName, String diplomaNumber, int limit, int offset) {
+        return certificateRepository.listCertificateOfDepartment(departmentId, className,studentCode,studentName ,diplomaNumber, limit,offset);
     }
 
     @Override
-    public List<Certificate> listCertificateOfDepartmentAndStatus(Long departmentId, String className, String studentCode, String studentName,String diplomaNumber, String status) {
-        return certificateRepository.listCertificateOfDepartmentAndStatus(departmentId, className,studentCode,studentName,diplomaNumber, status);
+    public List<Certificate> listCertificateOfDepartmentAndStatus(Long departmentId, String className, String studentCode, String studentName,String diplomaNumber, String status, int limit, int offset) {
+        return certificateRepository.listCertificateOfDepartmentAndStatus(departmentId, className,studentCode,studentName,diplomaNumber,status, limit,offset);
     }
 
     @Override
@@ -182,6 +182,21 @@ public class CertificateService implements ICertificateService{
     }
 
     @Override
+    public long countCertificatesOfUniversityAndStatus(Long universittyId, String departmentName, String className, String studentCode, String studentName, String diplomaNumber, String status) {
+        return certificateRepository.countCertificatesOfUniversityAndStatus(universittyId,departmentName,className,studentCode,studentName, diplomaNumber, status);
+    }
+
+    @Override
+    public long countCertificatesOfDepartment(Long departmentId,String className, String studentCode, String studentName, String diplomaNumber) {
+        return certificateRepository.countCertificatesOfDepartment(departmentId,className,studentCode,studentName, diplomaNumber);
+    }
+
+    @Override
+    public long countCertificatesOfDepartmentOfStatus(Long departmentId, String className, String studentCode, String studentName, String diplomaNumber, String status) {
+        return certificateRepository.countCertificatesOfDepartmentAndStatus(departmentId,className,studentCode,studentName, diplomaNumber, status);
+    }
+
+    @Override
     public List<Certificate> listCertificateOfUniversity(Long universittyId, String departmentName, String className, String studentCode, String studentName, String diplomaNumber, int limit, int offset){
         return certificateRepository.findPagedCertificates(universittyId,departmentName,className,studentCode,studentName, diplomaNumber, limit, offset);
     }
@@ -217,8 +232,8 @@ public class CertificateService implements ICertificateService{
     }
 
     @Override
-    public List<Certificate> listCertificateOfUniversityAndStatus(Long universittyId, String departmentName, String className, String studentCode, String studentName,String diplomaNumber, String status){
-        return certificateRepository.listCertificateOfUniversityAndStatus(universittyId,departmentName,className,studentCode,studentName,diplomaNumber, status);
+    public List<Certificate> listCertificateOfUniversityAndStatus(Long universittyId, String departmentName, String className, String studentCode, String studentName,String diplomaNumber, String status, int limit, int offset){
+        return certificateRepository.listCertificateOfUniversityAndStatus(universittyId,departmentName,className,studentCode,studentName,diplomaNumber, status, limit,offset);
     }
 
     @Transactional

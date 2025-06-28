@@ -45,15 +45,65 @@ public interface CertificateRepository extends JpaRepository<Certificate,Long> {
             AND (:studentCode IS NULL OR s.student_code LIKE CONCAT('%', :studentCode, '%'))
             AND (:studentName IS NULL OR s.name LIKE CONCAT('%', :studentName, '%'))
             AND (:diplomaNumber IS NULL OR c.diploma_number LIKE CONCAT('%', :diplomaNumber, '%'))
-            ORDER BY c.updated_at DESC      
+            ORDER BY c.updated_at DESC   
+            LIMIT :limit OFFSET :offset 
             """,nativeQuery = true)
     List<Certificate> listCertificateOfDepartment(@Param("departmentId") Long departmentId,
                                                   @Param("className") String className,
                                                   @Param("studentCode") String studentCode,
                                                   @Param("studentName") String studentName,
-                                                  @Param("diplomaNumber") String diplomaNumber);
+                                                  @Param("diplomaNumber") String diplomaNumber,
+                                                  @Param("limit") int limit,
+                                                  @Param("offset") int offset
+    );
 
-    //danh sách ch chỉ chưa được xác thực của 1 khoa
+    //count số lượng ch ch all khoa
+    @Query(value = """
+        SELECT COUNT(*) FROM certificates c
+        JOIN students s ON c.student_id = s.id
+        JOIN student_class sc ON s.student_class_id = sc.id
+        JOIN departments d ON sc.department_id = d.id
+        WHERE d.id = :departmentId
+        AND s.status = 'ACTIVE'
+        AND sc.status = 'ACTIVE'
+        AND d.status = 'ACTIVE'
+        AND (:className IS NULL OR sc.name LIKE CONCAT('%', :className, '%'))
+        AND (:studentCode IS NULL OR s.student_code LIKE CONCAT('%', :studentCode, '%'))
+        AND (:studentName IS NULL OR s.name LIKE CONCAT('%', :studentName, '%'))
+        AND (:diplomaNumber IS NULL OR c.diploma_number LIKE CONCAT('%', :diplomaNumber, '%'))
+        ORDER BY c.updated_at DESC     
+        """, nativeQuery = true)
+    long countCertificatesOfDepartment(@Param("departmentId") Long departmentId,
+                                       @Param("className") String className,
+                                       @Param("studentCode") String studentCode,
+                                       @Param("studentName") String studentName,
+                                       @Param("diplomaNumber") String diplomaNumber);
+
+    //count số lượng ch ch status khoa
+    @Query(value = """
+        SELECT COUNT(*) FROM certificates c
+        JOIN students s ON c.student_id = s.id
+        JOIN student_class sc ON s.student_class_id = sc.id
+        JOIN departments d ON sc.department_id = d.id
+        WHERE d.id = :departmentId
+        AND s.status = 'ACTIVE'
+        AND sc.status = 'ACTIVE'
+        AND d.status = 'ACTIVE'
+        and c.status = :status
+        AND (:className IS NULL OR sc.name LIKE CONCAT('%', :className, '%'))
+        AND (:studentCode IS NULL OR s.student_code LIKE CONCAT('%', :studentCode, '%'))
+        AND (:studentName IS NULL OR s.name LIKE CONCAT('%', :studentName, '%'))
+        AND (:diplomaNumber IS NULL OR c.diploma_number LIKE CONCAT('%', :diplomaNumber, '%'))
+        ORDER BY c.updated_at DESC   
+        """, nativeQuery = true)
+    long countCertificatesOfDepartmentAndStatus(@Param("departmentId") Long departmentId,
+                                                @Param("className") String className,
+                                                @Param("studentCode") String studentCode,
+                                                @Param("studentName") String studentName,
+                                                @Param("diplomaNumber") String diplomaNumber,
+                                                @Param("status") String status);
+
+    //danh sách ch chỉ status của 1 khoa
     @Query(value = """
             select c.* from certificates c
             join students s on c.student_id = s.id
@@ -67,14 +117,18 @@ public interface CertificateRepository extends JpaRepository<Certificate,Long> {
             AND (:studentCode IS NULL OR s.student_code LIKE CONCAT('%', :studentCode, '%'))
             AND (:studentName IS NULL OR s.name LIKE CONCAT('%', :studentName, '%'))
             AND (:diplomaNumber IS NULL OR c.diploma_number LIKE CONCAT('%', :diplomaNumber, '%'))
-            ORDER BY c.updated_at DESC      
+            ORDER BY c.updated_at DESC   
+            LIMIT :limit OFFSET :offset 
             """,nativeQuery = true)
     List<Certificate> listCertificateOfDepartmentAndStatus(@Param("departmentId") Long departmentId,
                                                            @Param("className") String className,
                                                            @Param("studentCode") String studentCode,
                                                            @Param("studentName") String studentName,
                                                            @Param("diplomaNumber") String diplomaNumber,
-                                                           @Param("status") String status);
+                                                           @Param("status") String status,
+                                                           @Param("limit") int limit,
+                                                           @Param("offset") int offset
+    );
 
     // all chung chi ADMIN
     @Query(value = """
@@ -159,9 +213,6 @@ public interface CertificateRepository extends JpaRepository<Certificate,Long> {
             @Param("diplomaNumber") String diplomaNumber
     );
 
-
-
-
     //danh sách ch chỉ của 1 truong status
     @Query(value = """
             select c.* from certificates c
@@ -179,9 +230,41 @@ public interface CertificateRepository extends JpaRepository<Certificate,Long> {
             AND (:studentCode IS NULL OR s.student_code LIKE CONCAT('%', :studentCode, '%'))
             AND (:studentName IS NULL OR s.name LIKE CONCAT('%', :studentName, '%'))
             AND (:diplomaNumber IS NULL OR c.diploma_number LIKE CONCAT('%', :diplomaNumber, '%'))
-            ORDER BY c.updated_at DESC      
+            ORDER BY c.updated_at DESC
+            LIMIT :limit OFFSET :offset
             """, nativeQuery = true)
     List<Certificate> listCertificateOfUniversityAndStatus(@Param("universityId") Long universityId,
+                                                           @Param("departmentName") String departmentName,
+                                                           @Param("className") String className,
+                                                           @Param("studentCode") String studentCode,
+                                                           @Param("studentName") String studentName,
+                                                           @Param("diplomaNumber") String diplomaNumber,
+                                                           @Param("status") String status,
+                                                           @Param("limit") int limit,
+                                                           @Param("offset") int offset
+    );
+
+
+    //đếm sl ch chỉ của 1 truong status
+    @Query(value = """
+            SELECT COUNT(*) FROM certificates c
+            join students s on c.student_id = s.id
+            join student_class sc on s.student_class_id= sc.id
+            join departments d on sc.department_id = d.id
+            join universitys u on d.university_id =u.id
+            where u.id= :universityId
+            and s.status ='ACTIVE'
+            and sc.status ='ACTIVE'
+            and d.status ='ACTIVE'          
+            and c.status = :status
+            AND (:departmentName IS NULL OR d.name LIKE CONCAT('%', :departmentName, '%'))
+            AND (:className IS NULL OR sc.name LIKE CONCAT('%', :className, '%'))
+            AND (:studentCode IS NULL OR s.student_code LIKE CONCAT('%', :studentCode, '%'))
+            AND (:studentName IS NULL OR s.name LIKE CONCAT('%', :studentName, '%'))
+            AND (:diplomaNumber IS NULL OR c.diploma_number LIKE CONCAT('%', :diplomaNumber, '%'))
+            ORDER BY c.updated_at DESC      
+            """, nativeQuery = true)
+    long countCertificatesOfUniversityAndStatus(@Param("universityId") Long universityId,
                                                            @Param("departmentName") String departmentName,
                                                            @Param("className") String className,
                                                            @Param("studentCode") String studentCode,

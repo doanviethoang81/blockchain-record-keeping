@@ -33,7 +33,7 @@ public interface ICertificateService {
     Certificate save(Certificate certificate);
     List<Certificate> saveAll(List<Certificate> certificateList);
 
-    List<Certificate> listCertificateOfDepartment(Long departmentId,String className, String studentCode, String studentName, String diplomaNumber);
+    List<Certificate> listCertificateOfDepartment(Long departmentId,String className, String studentCode, String studentName, String diplomaNumber, int limit, int offset);
 
     Certificate findByIdAndStatus(Long id, Status status);
 
@@ -41,9 +41,9 @@ public interface ICertificateService {
 
     Certificate update(Certificate certificate, CertificateRequest certificateRequest);
 
-    List<Certificate> listCertificateOfUniversityAndStatus(Long universittyId, String departmentName, String className, String studentCode, String studentName,String diplomaNumber, String status);
+    List<Certificate> listCertificateOfUniversityAndStatus(Long universittyId, String departmentName, String className, String studentCode, String studentName,String diplomaNumber, String status, int limit, int offset);
 
-    List<Certificate> listCertificateOfDepartmentAndStatus(Long departmentId, String className, String studentCode, String studentName,String diplomaNumber, String status);
+    List<Certificate> listCertificateOfDepartmentAndStatus(Long departmentId, String className, String studentCode, String studentName,String diplomaNumber, String status, int limit, int offset);
 
     Certificate findByIpfsUrl(String ipfsUrl);
 
@@ -58,4 +58,9 @@ public interface ICertificateService {
     List<CountCertificateTypeResponse> countCertificateTypeOfDepartment(Long departmentId);
 
     long countCertificatesOfUniversity(Long universittyId, String departmentName, String className, String studentCode, String studentName,String diplomaNumber);
+
+    long countCertificatesOfUniversityAndStatus(Long universittyId, String departmentName, String className, String studentCode, String studentName,String diplomaNumber, String status);
+
+    long countCertificatesOfDepartment(Long departmentId, String className, String studentCode, String studentName,String diplomaNumber);
+    long countCertificatesOfDepartmentOfStatus(Long departmentId, String className, String studentCode, String studentName,String diplomaNumber, String status);
 }
