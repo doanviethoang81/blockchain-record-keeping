@@ -280,7 +280,18 @@ public interface DegreeRepository extends JpaRepository<Degree,Long> {
             LEFT JOIN student_class sc ON s.student_class_id = sc.id
             LEFT JOIN departments dp ON sc.department_id = dp.id And dp.id= :departmentId
             GROUP BY y.year
-            ORDER BY y.year;            
+            ORDER BY y.year;
             """,nativeQuery = true)
     List<Object[]> getDegreeClassificationByDepartmentAndLast5Years(@Param("departmentId") Long departmentId);
+
+    // văn bằng của sinh viên
+    @Query(value = """
+            SELECT d.*
+            FROM degrees d
+            join students s on d.student_id= s.id
+            WHERE d.status = 'APPROVED'
+            and s.id = :studentId
+            ORDER BY d.updated_at DESC
+            """,nativeQuery = true)
+    Optional<Degree> degreeOfStudent(@Param("studentId") Long studentId);
 }

@@ -123,7 +123,7 @@ public class CertificateController {
     }
 
     //chi tieets 1 chung chi
-    @PreAuthorize("(hasAnyRole('ADMIN', 'PDT', 'KHOA')) and hasAuthority('READ')")
+    @PreAuthorize("(hasAnyRole('ADMIN', 'PDT', 'KHOA','STUDENT')) and hasAuthority('READ')")
     @GetMapping("/certificate-detail/{id}")
     public ResponseEntity<?> getDetailCertificate(
             @PathVariable Long id

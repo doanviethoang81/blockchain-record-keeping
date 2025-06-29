@@ -8,10 +8,7 @@ import com.example.blockchain.record.keeping.repositorys.CertificateRepository;
 import com.example.blockchain.record.keeping.repositorys.DegreeRepository;
 import com.example.blockchain.record.keeping.repositorys.DegreeTitleRepository;
 import com.example.blockchain.record.keeping.repositorys.StudentRepository;
-import com.example.blockchain.record.keeping.response.DegreeClassificationByYearResponse;
-import com.example.blockchain.record.keeping.response.DegreeClassificationStatisticsResponse;
-import com.example.blockchain.record.keeping.response.FacultyDegreeStatisticResponse;
-import com.example.blockchain.record.keeping.response.MonthlyCertificateStatisticsResponse;
+import com.example.blockchain.record.keeping.response.*;
 import com.example.blockchain.record.keeping.utils.PinataUploader;
 import com.example.blockchain.record.keeping.utils.QrCodeUtil;
 import com.example.blockchain.record.keeping.utils.RSAUtil;
@@ -283,6 +280,28 @@ public class DegreeService implements IDegreeService{
         )).collect(Collectors.toList());
     }
 
+    public List<DegreeResponse> degreeOfStudent(Long studentId) {
+        Optional<Degree> degree = degreeRepository.degreeOfStudent(studentId);
+
+        if (degree.isEmpty()) {
+            return List.of();
+        }
+        Degree d = degree.get();
+        DegreeResponse response = new DegreeResponse(
+                d.getId(),
+                d.getStudent().getName(),
+                d.getStudent().getStudentClass().getName(),
+                d.getStudent().getStudentClass().getDepartment().getName(),
+                d.getIssueDate(),
+                convertStatusToDisplay(d.getStatus()),
+                d.getGraduationYear(),
+                d.getDiplomaNumber(),
+                d.getUpdatedAt()
+        );
+        return List.of(response);
+    }
+
+
     public Map<String, Boolean> checkStudentsGrantedDegree(Set<String> studentCodes) {
         List<String> existingCodes = degreeRepository.findStudentCodesWithDegree(studentCodes);
         Map<String, Boolean> result = new HashMap<>();
@@ -395,7 +414,14 @@ public class DegreeService implements IDegreeService{
         return response;
     }
 
-
+    private String convertStatusToDisplay(Status status) {
+        return switch (status) {
+            case PENDING -> "Chưa duyệt";
+            case APPROVED -> "Đã duyệt";
+            case REJECTED -> "Đã từ chối";
+            default -> "Không xác định";
+        };
+    }
 
 }
 

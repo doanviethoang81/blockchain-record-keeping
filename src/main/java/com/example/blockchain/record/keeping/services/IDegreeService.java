@@ -5,6 +5,7 @@ import com.example.blockchain.record.keeping.models.Degree;
 import com.example.blockchain.record.keeping.models.Student;
 import com.example.blockchain.record.keeping.response.DegreeClassificationByYearResponse;
 import com.example.blockchain.record.keeping.response.DegreeClassificationStatisticsResponse;
+import com.example.blockchain.record.keeping.response.DegreeResponse;
 
 import java.util.List;
 import java.util.Optional;
@@ -50,4 +51,6 @@ public interface IDegreeService {
     List<DegreeClassificationByYearResponse> getDegreeClassificationByUniversityAndLast5Years(Long universityId);
 
     List<DegreeClassificationByYearResponse> getDegreeClassificationByDepartmentAndLast5Years(Long departmentId);
+
+    List<DegreeResponse> degreeOfStudent(Long studentId);
 }

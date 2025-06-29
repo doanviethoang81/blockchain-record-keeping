@@ -26,6 +26,7 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -914,7 +915,7 @@ public class DegreeController {
     }
 
     // chi tiết 1 văn bằng
-    @PreAuthorize("(hasAnyRole('ADMIN', 'PDT', 'KHOA')) and hasAuthority('READ')")
+    @PreAuthorize("(hasAnyRole('ADMIN', 'PDT', 'KHOA','STUDENT')) and hasAuthority('READ')")
     @GetMapping("/degree-detail/{id}")
     public ResponseEntity<?> degreeDetail(@PathVariable Long id){
         Degree degree = degreeService.findById(id);
@@ -953,6 +954,29 @@ public class DegreeController {
         degreeDetailResponse.setLotteryNumber(degree.getLotteryNumber());
         degreeDetailResponse.setCreatedAt(degree.getUpdatedAt());
         return ApiResponseBuilder.success("thành công", degreeDetailResponse);
+    }
+
+    //văn bằng cua 1 sinh vien
+    @GetMapping("/student/degree")
+    public ResponseEntity<?> degreeOfStudent(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size
+    ){
+        try {
+            if (page < 1) page = 1;
+            if (size < 1) size = 10;
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String username = authentication.getName();
+            Student student = studentService.findByEmail(username);
+            List<DegreeResponse> degrees = degreeService.degreeOfStudent(student.getId());
+
+            if (degrees.isEmpty()) {
+                return ApiResponseBuilder.success("Sinh viên chưa có văn bằng!", degrees);
+            }
+            return ApiResponseBuilder.success("Văn bằng của sinh viên", degrees);
+        } catch (Exception e) {
+            return ApiResponseBuilder.internalError("Lỗi: " + e.getMessage());
+        }
     }
 
     private String convertStatusToDisplay(Status status) {
