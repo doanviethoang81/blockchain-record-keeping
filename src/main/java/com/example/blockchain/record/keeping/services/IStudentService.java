@@ -8,6 +8,8 @@ import com.example.blockchain.record.keeping.models.StudentClass;
 import com.example.blockchain.record.keeping.models.User;
 import jnr.ffi.Struct;
 
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -36,4 +38,6 @@ public interface IStudentService {
     List<Student> findByStudentCodesOfDepartment(Long departmentId, Set<String> allStudentCodes);
 
     Student findByEmail(String email);
+
+    boolean resetPassword(String email, String newPassword);
 }

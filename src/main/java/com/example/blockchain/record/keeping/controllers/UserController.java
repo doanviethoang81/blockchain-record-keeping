@@ -1,10 +1,7 @@
 package com.example.blockchain.record.keeping.controllers;
 
 import com.example.blockchain.record.keeping.dtos.request.*;
-import com.example.blockchain.record.keeping.models.Permission;
-import com.example.blockchain.record.keeping.models.University;
-import com.example.blockchain.record.keeping.models.User;
-import com.example.blockchain.record.keeping.models.UserPermission;
+import com.example.blockchain.record.keeping.models.*;
 import com.example.blockchain.record.keeping.response.*;
 import com.example.blockchain.record.keeping.services.*;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -35,9 +32,8 @@ public class UserController {
     private final UniversityService universityService;
     private final UserService userService;
     private final BrevoApiEmailService brevoApiEmailService;
-    private final DepartmentService departmentService;
     private final PasswordEncoder passwordEncoder;
-    private final OtpService otpService;
+    private final StudentService studentService;
 
     //---------------------------- ADMIN -------------------------------------------------------
     // khóa/Mở tài khoản của 1 trường
@@ -225,5 +221,57 @@ public class UserController {
         }
     }
 
+    //chi tiet tai khoan sinh viên dang nhap
+    @PreAuthorize("hasAuthority('READ')")
+    @GetMapping("/student/user-detail")
+    public ResponseEntity<?> userDetailStudent() {
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String username = authentication.getName();
+            Student student= studentService.findByEmail(username);
 
+            StudentDetailResponse studentResponse= new StudentDetailResponse(
+                        student.getName(),
+                student.getStudentCode(),
+                student.getEmail(),
+                student.getBirthDate(),
+                student.getCourse(),
+                student.getStudentClass().getId(),
+                student.getStudentClass().getName(),
+                student.getStudentClass().getDepartment().getId(),
+                student.getStudentClass().getDepartment().getName(),
+                student.getStudentClass().getDepartment().getUniversity().getName()
+            );
+            return ApiResponseBuilder.success("Thông tin chi tiết của sinh viên", studentResponse);
+        } catch (Exception e) {
+            return ApiResponseBuilder.internalError("Đã xảy ra lỗi!");
+        }
+    }
+
+    //sinh viên tự thay đổi mk
+    @PutMapping("/student/change-password")
+    public ResponseEntity<?> changePasswordStudent(
+            @RequestBody ChangePasswordRequest changePasswordRequest
+    ) {
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String username = authentication.getName();
+            if (changePasswordRequest == null || !StringUtils.hasText(changePasswordRequest.getOldPassword()) ||
+                    !StringUtils.hasText(changePasswordRequest.getNewPassword()) || !StringUtils.hasText(changePasswordRequest.getConfirmPassword())) {
+                return ApiResponseBuilder.badRequest("Vui lòng nhập đầy đủ thông tin!");
+            }
+            if (!changePasswordRequest.getNewPassword().equals(changePasswordRequest.getConfirmPassword())) {
+                return ApiResponseBuilder.badRequest("Mật khẩu mới không giống nhau!");
+            }
+            boolean isPasswordChanged = studentService.changePasswordOfStudent(username, changePasswordRequest);
+            if (isPasswordChanged) {
+                return ApiResponseBuilder.success("Mật khẩu đã được thay đổi thành công.",null);
+            }
+            else {
+                return ApiResponseBuilder.badRequest("Mật khẩu cũ không chính xác!");
+            }
+        } catch (Exception e) {
+            return ApiResponseBuilder.internalError("Lỗi: " + e.getMessage());
+        }
+    }
 }

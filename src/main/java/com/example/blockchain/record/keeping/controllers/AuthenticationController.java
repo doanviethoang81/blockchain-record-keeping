@@ -309,7 +309,7 @@ public class AuthenticationController {
 
     // xác minh otp quên mật khẩu
     @PostMapping("/api/auth/verify-otp-forgot-password")
-    public ResponseEntity<?> verifyOtpFgotPassword(@RequestBody VerifyOtpRequest request) throws NoSuchAlgorithmException {
+    public ResponseEntity<?> verifyOtpForgotPassword(@RequestBody VerifyOtpRequest request) throws NoSuchAlgorithmException {
         if(request.getEmail()== null || !StringUtils.hasText(request.getEmail()) ||
             request.getOtp()== null || !StringUtils.hasText(request.getOtp())
         ){
@@ -355,7 +355,6 @@ public class AuthenticationController {
     }
 
     //sinh viên login
-    //check status
     @PostMapping("/api/auth/student-login")
     public ResponseEntity<?> studentLogin(@RequestBody LoginRequest request) {
         try {
@@ -396,4 +395,70 @@ public class AuthenticationController {
         }
     }
 
+    //click quên mật khẩu cho sinh viên
+    @PostMapping("/api/auth/student/forgot-password")
+    public ResponseEntity<?> StudentForgotPassword(@RequestBody ForgotPasswordRequest request) {
+        try {
+            if(request.getEmail()== null || !StringUtils.hasText(request.getEmail())){
+                return ApiResponseBuilder.badRequest("Vui lòng nhập email!");
+            }
+            Student student = studentService.findByEmail(request.getEmail());
+            if (student == null) {
+                return ApiResponseBuilder.badRequest("Không tìm thấy tài khoản với email này!");
+            }
+            String otp = String.format("%06d", new Random().nextInt(999999));
+            otpService.saveOtp(request.getEmail(), otp);
+            brevoApiEmailService.sendOtpForgotPasswordEmail(request.getEmail(), otp);
+            return ApiResponseBuilder.success("Mã OTP đã được gửi tới email", null);
+        } catch (Exception e) {
+            return ApiResponseBuilder.badRequest(e.getMessage());
+        }
+    }
+
+    // xác minh otp quên mật khẩu sinh viên
+    @PostMapping("/api/auth/student/verify-otp-forgot-password")
+    public ResponseEntity<?> studentVerifyOtp(@RequestBody VerifyOtpRequest request) throws NoSuchAlgorithmException {
+        if(request.getEmail()== null || !StringUtils.hasText(request.getEmail()) ||
+                request.getOtp()== null || !StringUtils.hasText(request.getOtp())
+        ){
+            return ApiResponseBuilder.badRequest("Vui lòng đầy đủ thông tin!");
+        }
+        String email = request.getEmail();
+        String otp = request.getOtp();
+        boolean valid = otpService.verifyOtp(email, otp);
+        if(valid){
+            return ApiResponseBuilder.success("OTP hợp lệ!", null);
+        }
+        else{
+            return ApiResponseBuilder.badRequest("OTP sai hoặc đã hết hạn!");
+        }
+    }
+
+    // cấp lại mật khẩu khi quên
+    @PostMapping("/api/auth/student/reset-password")
+    public ResponseEntity<?> studentResetPassword(@RequestBody NewPasswordRequest request) throws NoSuchAlgorithmException {
+        try {
+            String email = request.getEmail();
+            String newPassword = request.getNewPassword();
+            String confirmPassword = request.getConfirmPassword();
+
+            if(email== null || !StringUtils.hasText(email) ||
+                    newPassword == null || !StringUtils.hasText(newPassword) ||
+                    confirmPassword == null || !StringUtils.hasText(confirmPassword)
+            ){
+                return ApiResponseBuilder.badRequest("Vui lòng đầy đủ thông tin!");
+            }
+            if (!newPassword.equals(confirmPassword)) {
+                return ApiResponseBuilder.badRequest("Mật khẩu mới không giống nhau!");
+            }
+            if (studentService.resetPassword(email, newPassword)) {
+                return ApiResponseBuilder.success("Cập nhật mật khẩu thành công", null);
+            }
+            else {
+                return ApiResponseBuilder.success("Cật nhật thất bại!", null);
+            }
+        } catch (Exception e) {
+            return ApiResponseBuilder.badRequest(e.getMessage());
+        }
+    }
 }

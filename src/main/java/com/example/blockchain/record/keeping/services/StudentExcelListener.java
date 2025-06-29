@@ -16,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
@@ -33,6 +34,7 @@ public class StudentExcelListener extends AnalysisEventListener<StudentExcelRowR
     private final UniversityService universityService;
     private final StudentClassService studentClassService;
     private final StudentService studentService;
+    private final PasswordEncoder passwordEncoder;
 
     private final List<StudentExcelRowRequest> rows = new ArrayList<>();
     @Override
@@ -173,6 +175,7 @@ public class StudentExcelListener extends AnalysisEventListener<StudentExcelRowR
             student.setBirthDate(dateOfBirth);
             student.setCourse(row.getCourse());
             student.setStatus(Status.ACTIVE);
+            student.setPassword(passwordEncoder.encode(row.getStudentCode()));
             student.setStudentClass(studentClass);
             student.setCreatedAt(now.toLocalDateTime());
             student.setUpdatedAt(now.toLocalDateTime());

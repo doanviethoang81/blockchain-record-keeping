@@ -1,5 +1,6 @@
 package com.example.blockchain.record.keeping.services;
 
+import com.example.blockchain.record.keeping.dtos.request.ChangePasswordRequest;
 import com.example.blockchain.record.keeping.dtos.request.StudentRequest;
 import com.example.blockchain.record.keeping.dtos.request.UpdateStudentRequest;
 import com.example.blockchain.record.keeping.enums.Status;
@@ -7,6 +8,7 @@ import com.example.blockchain.record.keeping.models.*;
 import com.example.blockchain.record.keeping.repositorys.StudentClassRepository;
 import com.example.blockchain.record.keeping.repositorys.StudentRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.ZoneId;
@@ -20,6 +22,7 @@ import java.util.Set;
 public class StudentService implements IStudentService{
     private final StudentRepository studentRepository;
     private final StudentClassRepository studentClassRepository;
+    private final PasswordEncoder passwordEncoder;
 
     // danh sách sv của các lớp của 1 khoa
     public List<Student> studentOfClassOfDepartmentList(Long idDepartment){
@@ -57,6 +60,7 @@ public class StudentService implements IStudentService{
         student.setBirthDate(studentRequest.getBirthDate());
         student.setCourse(studentRequest.getCourse());
         student.setStatus(Status.ACTIVE);
+        student.setPassword(passwordEncoder.encode(studentRequest.getStudentCode()));
         student.setCreatedAt(vietnamTime.toLocalDateTime());
         student.setUpdatedAt(vietnamTime.toLocalDateTime());
         return studentRepository.save(student);
@@ -121,7 +125,38 @@ public class StudentService implements IStudentService{
                 .orElse(null);
     }
 
+    @Override
+    public boolean resetPassword(String email, String newPassword) {
+        Student student= studentRepository.findByEmailAndStatus(email,Status.ACTIVE)
+                .orElseThrow(()-> new RuntimeException("Không tìm thấy tài khoản này!"));
+        ZonedDateTime vietnamTime = ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
+        student.setPassword(passwordEncoder.encode(newPassword));
+        student.setUpdatedAt(vietnamTime.toLocalDateTime());
+        studentRepository.save(student);
+        return true;
+    }
+
     public Student findById(Long id){
         return studentRepository.findByIdAndStatus(id, Status.ACTIVE).orElse(null);
+    }
+
+    public boolean changePasswordOfStudent(String email, ChangePasswordRequest changePasswordRequest) {
+        Optional<Student> studentOptional = studentRepository.findByEmailAndStatus(email, Status.ACTIVE);
+        ZonedDateTime vietnamTime = ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
+
+        if (studentOptional.isPresent()) {
+            Student student = studentOptional.get();
+
+            if (passwordEncoder.matches(changePasswordRequest.getOldPassword(), student.getPassword())) {
+
+                if (changePasswordRequest.getNewPassword().equals(changePasswordRequest.getConfirmPassword())) {
+                    student.setPassword(passwordEncoder.encode(changePasswordRequest.getNewPassword()));
+                    student.setUpdatedAt(vietnamTime.toLocalDateTime());
+                    studentRepository.save(student);
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }
