@@ -5,6 +5,7 @@ import com.example.blockchain.record.keeping.dtos.request.CountCertificateTypeRe
 import com.example.blockchain.record.keeping.enums.Status;
 import com.example.blockchain.record.keeping.models.Certificate;
 import com.example.blockchain.record.keeping.models.Student;
+import com.example.blockchain.record.keeping.response.CertificateOfStudentResponse;
 import com.example.blockchain.record.keeping.response.CountCertificateTypeResponse;
 import com.example.blockchain.record.keeping.response.MonthlyCertificateStatisticsResponse;
 
@@ -62,5 +63,10 @@ public interface ICertificateService {
     long countCertificatesOfUniversityAndStatus(Long universittyId, String departmentName, String className, String studentCode, String studentName,String diplomaNumber, String status);
 
     long countCertificatesOfDepartment(Long departmentId, String className, String studentCode, String studentName,String diplomaNumber);
+
     long countCertificatesOfDepartmentOfStatus(Long departmentId, String className, String studentCode, String studentName,String diplomaNumber, String status);
+
+    List<CertificateOfStudentResponse> certificateOfStudent(Long studentId, String diplomaNumber, int limit, int offset);
+
+    long countCertificateOfStudent(Long studentId, String diplomaNumber);
 }

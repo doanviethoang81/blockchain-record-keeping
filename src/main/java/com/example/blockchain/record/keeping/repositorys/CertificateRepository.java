@@ -364,4 +364,43 @@ public interface CertificateRepository extends JpaRepository<Certificate,Long> {
             """,nativeQuery = true)
     List<CountCertificateTypeRequest> countCertificateTypeOfDepartment(@Param("departmentId")Long departmentId);
 
+    //list chung chi cua student
+    @Query(value = """
+            select c.* from certificates c
+                        join students s on c.student_id = s.id
+                        join student_class sc on s.student_class_id= sc.id
+                        join departments d on sc.department_id = d.id
+                        join universitys u on d.university_id =u.id
+                        where s.id= :studentId
+                        and s.status ='ACTIVE'
+                        and sc.status ='ACTIVE'
+                        and d.status ='ACTIVE'         
+                        and c.status = 'APPROVED'
+                        AND (:diplomaNumber IS NULL OR c.diploma_number LIKE CONCAT('%', :diplomaNumber, '%'))
+                        ORDER BY c.updated_at DESC
+                        LIMIT :limit OFFSET :offset
+            """, nativeQuery = true)
+    List<Certificate> certificateOfStudent(@Param("studentId") Long studentId,
+                                                           @Param("diplomaNumber") String diplomaNumber,
+                                                           @Param("limit") int limit,
+                                                           @Param("offset") int offset
+    );
+
+    //dem sl ch ch cua sinh vien
+    @Query(value = """
+            SELECT COUNT(*) FROM certificates c
+                        join students s on c.student_id = s.id
+                        join student_class sc on s.student_class_id= sc.id
+                        join departments d on sc.department_id = d.id
+                        join universitys u on d.university_id =u.id
+                        where s.id= :studentId
+                        and s.status ='ACTIVE'
+                        and sc.status ='ACTIVE'
+                        and d.status ='ACTIVE'        
+                        and c.status = 'APPROVED'
+                        ORDER BY c.updated_at DESC
+            """, nativeQuery = true)
+    long countCertificateOfStudent(@Param("studentId") Long studentId,
+                                           @Param("diplomaNumber") String diplomaNumber
+    );
 }

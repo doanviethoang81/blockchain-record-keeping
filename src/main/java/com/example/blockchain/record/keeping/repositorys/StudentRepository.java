@@ -20,7 +20,7 @@ public interface StudentRepository extends JpaRepository<Student,Long> {
 
     Optional<Student> findByIdAndStatus(Long id, Status status);
 
-    Optional<Student> findByEmail(String email);
+    Optional<Student> findByEmailAndStatus(String email, Status status);
 
     boolean existsBystudentCode(String studentCode);
 

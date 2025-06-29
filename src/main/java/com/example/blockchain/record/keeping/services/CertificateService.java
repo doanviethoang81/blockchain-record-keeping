@@ -4,6 +4,8 @@ import com.example.blockchain.record.keeping.dtos.request.*;
 import com.example.blockchain.record.keeping.enums.Status;
 import com.example.blockchain.record.keeping.models.*;
 import com.example.blockchain.record.keeping.repositorys.*;
+import com.example.blockchain.record.keeping.response.CertificateOfStudentResponse;
+import com.example.blockchain.record.keeping.response.CertificateResponse;
 import com.example.blockchain.record.keeping.response.CountCertificateTypeResponse;
 import com.example.blockchain.record.keeping.response.MonthlyCertificateStatisticsResponse;
 import com.example.blockchain.record.keeping.utils.PinataUploader;
@@ -197,6 +199,32 @@ public class CertificateService implements ICertificateService{
     }
 
     @Override
+    public List<CertificateOfStudentResponse> certificateOfStudent(Long studentId, String diplomaNumber, int limit, int offset) {
+        List<CertificateOfStudentResponse> result = new ArrayList<>();
+        List<Certificate> certificateList = certificateRepository.certificateOfStudent(studentId,diplomaNumber,limit,offset);
+        for(Certificate certificate : certificateList){
+            CertificateOfStudentResponse response = new CertificateOfStudentResponse(
+                    certificate.getId(),
+                    certificate.getStudent().getName(),
+                    certificate.getStudent().getStudentClass().getName(),
+                    certificate.getStudent().getStudentClass().getDepartment().getName(),
+                    certificate.getIssueDate(),
+                    convertStatusToDisplay(certificate.getStatus()),
+                    certificate.getDiplomaNumber(),
+                    certificate.getDiplomaNumber(),
+                    certificate.getCreatedAt()
+            );
+            result.add(response);
+        }
+        return result;
+    }
+
+    @Override
+    public long countCertificateOfStudent(Long studentId, String diplomaNumber) {
+        return certificateRepository.countCertificateOfStudent(studentId,diplomaNumber);
+    }
+
+    @Override
     public List<Certificate> listCertificateOfUniversity(Long universittyId, String departmentName, String className, String studentCode, String studentName, String diplomaNumber, int limit, int offset){
         return certificateRepository.findPagedCertificates(universittyId,departmentName,className,studentCode,studentName, diplomaNumber, limit, offset);
     }
@@ -363,5 +391,14 @@ public class CertificateService implements ICertificateService{
 
     public Set<String> findAllDiplomaNumbers(Collection<String> diplomaNumbers) {
         return new HashSet<>(certificateRepository.findExistingDiplomaNumbers(diplomaNumbers));
+    }
+
+    private String convertStatusToDisplay(Status status) {
+        return switch (status) {
+            case PENDING -> "Chưa duyệt";
+            case APPROVED -> "Đã duyệt";
+            case REJECTED -> "Đã từ chối";
+            default -> "Không xác định";
+        };
     }
 }

@@ -355,6 +355,7 @@ public class AuthenticationController {
     }
 
     //sinh viên login
+    //check status
     @PostMapping("/api/auth/student-login")
     public ResponseEntity<?> studentLogin(@RequestBody LoginRequest request) {
         try {

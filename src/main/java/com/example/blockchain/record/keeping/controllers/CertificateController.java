@@ -131,7 +131,7 @@ public class CertificateController {
         try {
             Certificate certificate= certificateService.findById(id);
             String ipfsUrl = certificate.getIpfsUrl() != null ? Constants.IPFS_URL + certificate.getIpfsUrl() : null;
-                    CertificateDetailResponse certificateDetailResponse = new CertificateDetailResponse(
+            CertificateDetailResponse certificateDetailResponse = new CertificateDetailResponse(
                     certificate.getId(),
                     certificate.getStudent().getId(),
                     certificate.getStudent().getName(),
@@ -1121,6 +1121,46 @@ public class CertificateController {
                 certificateService.certificateRejected(university, id);
             }
             return ApiResponseBuilder.success("Từ chối xác nhận danh sách chứng chỉ thành công", null);
+        } catch (Exception e) {
+            return ApiResponseBuilder.internalError("Lỗi: " + e.getMessage());
+        }
+    }
+
+    //danh sách ch ch cua sinh vien
+    @GetMapping("/student/certificate-list")
+    public ResponseEntity<?> rejectAListOfStudent(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String diplomaNumber
+    ){
+        try {
+            if (page < 1) page = 1;
+            if (size < 1) size = 10;
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String username = authentication.getName();
+            Student student = studentService.findByEmail(username);
+
+            long totalItems = certificateService.countCertificateOfStudent(
+                    student.getId(),
+                    diplomaNumber == null ? null : diplomaNumber.trim()
+            );
+            if (totalItems == 0) {
+                PaginationMeta meta = new PaginationMeta(0, 0, size, page, 0);
+                PaginatedData<CertificateResponse> data = new PaginatedData<>(Collections.emptyList(), meta);
+                return ApiResponseBuilder.success("Không có chứng chỉ nào!", data);
+            }
+
+            int offset = (page - 1) * size;
+            if (offset >= totalItems && totalItems > 0) {
+                page = 1;
+                offset = 0;
+            }
+            int totalPages = (int) Math.ceil((double) totalItems / size);
+            List<CertificateOfStudentResponse> certificateResponseList = certificateService.certificateOfStudent(student.getId(),diplomaNumber,size,offset);
+            PaginationMeta meta = new PaginationMeta(totalItems, certificateResponseList.size(), size, page, totalPages);
+            PaginatedData<CertificateOfStudentResponse> data = new PaginatedData<>(certificateResponseList, meta);
+
+            return ApiResponseBuilder.success("Danh sách chứng chỉ của sinh viên", data);
         } catch (Exception e) {
             return ApiResponseBuilder.internalError("Lỗi: " + e.getMessage());
         }

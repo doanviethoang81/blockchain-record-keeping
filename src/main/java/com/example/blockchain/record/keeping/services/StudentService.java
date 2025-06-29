@@ -117,7 +117,7 @@ public class StudentService implements IStudentService{
 
     @Override
     public Student findByEmail(String email) {
-        return studentRepository.findByEmail(email)
+        return studentRepository.findByEmailAndStatus(email, Status.ACTIVE)
                 .orElse(null);
     }
 

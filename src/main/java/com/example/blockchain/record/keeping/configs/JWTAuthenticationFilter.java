@@ -1,7 +1,9 @@
 package com.example.blockchain.record.keeping.configs;
 
+import com.example.blockchain.record.keeping.models.Student;
 import com.example.blockchain.record.keeping.response.ApiResponseBuilder;
 import com.example.blockchain.record.keeping.services.CustomUserDetailService;
+import com.example.blockchain.record.keeping.services.StudentService;
 import com.example.blockchain.record.keeping.services.TokenBlacklistService;
 import com.example.blockchain.record.keeping.utils.JWTUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -11,6 +13,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
@@ -18,6 +21,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 @Component
@@ -26,10 +30,12 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter {
     private final JWTUtil jwtUtil;
     private final CustomUserDetailService customUserDetailService;
     private final TokenBlacklistService tokenBlacklistService;
-    public JWTAuthenticationFilter(JWTUtil jwtUtil, CustomUserDetailService customUserDetailService, TokenBlacklistService tokenBlacklistService) {
+    private final StudentService studentService;
+    public JWTAuthenticationFilter(JWTUtil jwtUtil, CustomUserDetailService customUserDetailService, TokenBlacklistService tokenBlacklistService, StudentService studentService) {
         this.jwtUtil = jwtUtil;
         this.customUserDetailService = customUserDetailService;
         this.tokenBlacklistService = tokenBlacklistService;
+        this.studentService = studentService;
     }
 
     @Override
@@ -59,6 +65,7 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter {
 
             String email = null;
             String jwt = null;
+            List<String> roles = new ArrayList<>();
             //Lấy token từ header: "Authorization: Bearer <token>"
             if (authHeader != null && authHeader.startsWith("Bearer ")) {
                 jwt = authHeader.substring(7); // Bỏ chữ "Bearer "
@@ -67,11 +74,29 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter {
                     throw new RuntimeException("Tài khoản đã đăng xuất");
                 }
                 email = jwtUtil.getEmailFromToken(jwt);
+                roles = jwtUtil.getRolesFromToken(jwt);
             }
 
             //Nếu có email và chưa đăng nhập (context chưa có user)
             if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                UserDetails userDetails = customUserDetailService.loadUserByUsername(email);
+                UserDetails userDetails = null;
+
+                if (roles.contains("STUDENT")) {
+                    Student student = studentService.findByEmail(email);
+                    if (student == null) {
+                        throw new RuntimeException("Không tìm thấy sinh viên!");
+                    }
+
+                    //tạo UserDetails thủ công cho sinh viên
+                    userDetails = new org.springframework.security.core.userdetails.User(
+                            student.getEmail(),
+                            student.getPassword(),
+                            List.of(new SimpleGrantedAuthority("STUDENT"))
+                    );
+
+                } else {
+                    userDetails = customUserDetailService.loadUserByUsername(email);
+                }
 
                 if (!jwtUtil.isTokenExpired(jwt)) {
                     List<GrantedAuthority> authorities = jwtUtil.getAuthoritiesFromToken(jwt);
@@ -80,16 +105,16 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter {
                             new UsernamePasswordAuthenticationToken(
                                     userDetails,
                                     null,
-                                    authorities //phân quyền từ token
+                                    authorities
                             );
 
                     authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(authToken);
-                }
-                else {
+                } else {
                     throw new RuntimeException("Token đã hết hạn");
                 }
             }
+
 
             filterChain.doFilter(request, response);
         } catch (Exception ex) {
