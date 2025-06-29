@@ -46,6 +46,9 @@ public class Student {
     @Enumerated(EnumType.STRING)
     private Status status;
 
+    @Column(name ="password")
+    private String password;
+
     @Column(name="created_at")
     private LocalDateTime createdAt;
 

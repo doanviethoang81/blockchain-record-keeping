@@ -16,6 +16,7 @@ import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -136,7 +137,7 @@ public class AuthenticationController {
         }
     }
 
-
+    //không đc để trống request
     @PostMapping("/api/auth/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request) {
         try {
@@ -352,4 +353,46 @@ public class AuthenticationController {
             return ApiResponseBuilder.badRequest(e.getMessage());
         }
     }
+
+    //sinh viên login
+    @PostMapping("/api/auth/student-login")
+    public ResponseEntity<?> studentLogin(@RequestBody LoginRequest request) {
+        try {
+            if(request== null || !StringUtils.hasText(request.getEmail())
+                || !StringUtils.hasText(request.getPassword())){
+                return ApiResponseBuilder.badRequest("Vui lòng nhập đầy đủ thông tin!");
+            }
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
+            );
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+
+            String email = authentication.getName();
+
+            Student student = studentService.findByEmail(email);
+            if (student == null) {
+                return ApiResponseBuilder.badRequest("Tài khoản sinh viên không tồn tại!");
+            }
+
+            List<String> permissions = List.of("READ");
+            String role = "STUDENT";
+            String token = jwtUtil.generateToken(student.getEmail(), List.of(role), permissions);
+            String redirectUrl = "/student/dashboard";
+
+            LoginResponse response = new LoginResponse(
+                    student.getName(),
+                    student.getEmail(),
+                    token,
+                    role,
+                    redirectUrl,
+                    permissions
+            );
+            return ApiResponseBuilder.success("Đăng nhập thành công!", response);
+        } catch (BadCredentialsException e) {
+            return ApiResponseBuilder.badRequest("Email hoặc mật khẩu không đúng!");
+        } catch (Exception e) {
+            return ApiResponseBuilder.internalError(e.getMessage());
+        }
+    }
+
 }

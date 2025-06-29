@@ -7,6 +7,7 @@ import com.example.blockchain.record.keeping.repositorys.UniversityRepository;
 import com.example.blockchain.record.keeping.response.ApiResponse;
 import com.example.blockchain.record.keeping.response.ApiResponseBuilder;
 import com.example.blockchain.record.keeping.services.CustomUserDetailService;
+import com.example.blockchain.record.keeping.services.StudentAuthenticationProvider;
 import com.example.blockchain.record.keeping.utils.JWTUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletResponse;
@@ -18,6 +19,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -58,21 +60,34 @@ public class SecurityConfigs {
     @Autowired
     private CustomUserDetailService customUserDetailsService;
 
+    @Autowired
+    private StudentAuthenticationProvider studentAuthenticationProvider;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
-        return authenticationConfiguration.getAuthenticationManager();
+    public DaoAuthenticationProvider daoAuthenticationProvider() {
+        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
+        provider.setUserDetailsService(customUserDetailsService);
+        provider.setPasswordEncoder(passwordEncoder);
+        return provider;
+    }
+
+    @Bean
+    public AuthenticationManager authenticationManager(HttpSecurity http) throws Exception {
+        AuthenticationManagerBuilder authBuilder = http.getSharedObject(AuthenticationManagerBuilder.class);
+
+        authBuilder.authenticationProvider(daoAuthenticationProvider()); // dùng cho admin/pdt/khoa
+        authBuilder.authenticationProvider(studentAuthenticationProvider); // dùng cho student
+
+        return authBuilder.build();
     }
 
     public SecurityConfigs(CustomUserDetailService customUserDetailService, JWTUtil jwtUtil) {
         this.customUserDetailService = customUserDetailService;
         this.jwtUtil = jwtUtil;
     }
-
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
-
 
 
     @Bean
@@ -85,19 +100,19 @@ public class SecurityConfigs {
                         .authenticationEntryPoint(new Http403ForbiddenEntryPoint()) // nếu không đăng nhập
                 )
                 .authorizeHttpRequests(auth -> auth
-                                .requestMatchers(
-                                        "/api/auth/**",
-                                        "/v3/api-docs/**",
-                                        "/swagger-ui/**",
-                                        "/swagger-ui.html",
-                                        "/api/v1/verify/**",
-                                        "/api/v1/verify"
-                                ).permitAll()
-                                .requestMatchers("/api/v1/check-role").permitAll()
-                                .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
+                        .requestMatchers(
+                                "/api/auth/**",
+                                "/v3/api-docs/**",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html",
+                                "/api/v1/verify/**",
+                                "/api/v1/verify"
+                        ).permitAll()
+                        .requestMatchers("/api/v1/check-role").permitAll()
+                        .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/v1/pdt/**").hasRole("PDT")
-                                .requestMatchers("/api/v1/khoa/**").hasRole("KHOA")
-                                .requestMatchers("/api/v1/pdt-khoa/**").hasAnyRole("PDT", "KHOA")
+                        .requestMatchers("/api/v1/khoa/**").hasRole("KHOA")
+                        .requestMatchers("/api/v1/student/**").hasAnyRole("STUDENT")
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtTokenFilter, UsernamePasswordAuthenticationFilter.class);
