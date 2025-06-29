@@ -33,21 +33,26 @@ public class AlchemyService {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    public PaginatedData<TransactionDTO> getAllTransactions(String walletAddress, String type, int offset, int limit) {
+    public PaginatedData<TransactionDTO> getAllTransactions(String walletAddress, String toContract, String type, int offset, int limit) {
         List<TransactionDTO> all = new ArrayList<>();
 
         try {
             HttpClient client = HttpClient.newHttpClient();
             List<JsonNode> transferNodes = new ArrayList<>();
 
-            // Duyệt theo type (in/out/all)
+            // Tăng desiredCount để đảm bảo lấy đủ dữ liệu
+            int desiredCount = offset + limit + 100; // Buffer thêm 100 để tránh bỏ sót
+
             if ("all".equalsIgnoreCase(type)) {
-                transferNodes.addAll(fetchAllTransfersWithPagination(client, walletAddress, "toAddress", offset + limit));
-                transferNodes.addAll(fetchAllTransfersWithPagination(client, walletAddress, "fromAddress", offset + limit));
+                transferNodes.addAll(fetchAllTransfersWithPagination(client, walletAddress, "toAddress", desiredCount));
+                transferNodes.addAll(fetchAllTransfersWithPagination(client, walletAddress, "fromAddress", desiredCount));
             } else if ("in".equalsIgnoreCase(type)) {
-                transferNodes.addAll(fetchAllTransfersWithPagination(client, walletAddress, "toAddress", offset + limit));
+                transferNodes.addAll(fetchAllTransfersWithPagination(client, walletAddress, "toAddress", desiredCount));
             } else if ("out".equalsIgnoreCase(type)) {
-                transferNodes.addAll(fetchAllTransfersWithPagination(client, walletAddress, "fromAddress", offset + limit));
+                transferNodes.addAll(fetchAllTransfersWithPagination(client, walletAddress, "fromAddress", desiredCount));
+                if (toContract != null && !toContract.isEmpty()) {
+                    transferNodes.removeIf(tx -> !toContract.equalsIgnoreCase(tx.path("to").asText().trim()));
+                }
             }
 
             Map<String, TransactionDTO> seenMap = new HashMap<>();
@@ -58,8 +63,8 @@ public class AlchemyService {
 
                 TransactionDTO dto = new TransactionDTO();
                 dto.setHash(hash);
-                dto.setFrom(tx.path("from").asText());
-                dto.setTo(tx.path("to").asText());
+                dto.setFrom(tx.path("from").asText().trim());
+                dto.setTo(tx.path("to").asText().trim());
                 dto.setValue(tx.path("value").asText());
                 dto.setAsset(tx.path("asset").asText());
                 dto.setBlockNum(tx.path("blockNum").asText());
@@ -84,7 +89,7 @@ public class AlchemyService {
 
                     JsonNode txDetail = objectMapper.readTree(client.send(txRequest, HttpResponse.BodyHandlers.ofString()).body())
                             .path("result");
-                    String gasPriceHex = txDetail.path("gasPrice").asText("0");
+                    String gasPriceHex = txDetail.path("gasPrice").asText("0x0");
 
                     String txReceiptReq = """
                 {
@@ -103,15 +108,18 @@ public class AlchemyService {
 
                     JsonNode txReceipt = objectMapper.readTree(client.send(receiptRequest, HttpResponse.BodyHandlers.ofString()).body())
                             .path("result");
-                    String gasUsedHex = txReceipt.path("gasUsed").asText("0");
+                    String gasUsedHex = txReceipt.path("gasUsed").asText("0x0");
 
                     BigInteger gasPrice = new BigInteger(gasPriceHex.substring(2), 16);
                     BigInteger gasUsed = new BigInteger(gasUsedHex.substring(2), 16);
 
                     dto.setGasPrice(gasPrice.toString());
                     dto.setGasUsed(gasUsed.toString());
-                    dto.setTransactionFee(gasPrice.multiply(gasUsed).toString());
+                    BigDecimal feeInWei = new BigDecimal(gasPrice).multiply(new BigDecimal(gasUsed));
+                    BigDecimal feeInEth = feeInWei.divide(new BigDecimal("1000000000000000000"), 18, RoundingMode.HALF_UP);
+                    dto.setTransactionFee(feeInEth.toPlainString());
                 } catch (Exception e) {
+                    System.err.println("Error fetching transaction details for hash: " + hash + " - " + e.getMessage());
                     dto.setGasPrice("0");
                     dto.setGasUsed("0");
                     dto.setTransactionFee("0");
@@ -152,29 +160,28 @@ public class AlchemyService {
         do {
             StringBuilder paramsBuilder = new StringBuilder();
             paramsBuilder.append("""
-          {
-            "fromBlock": "0x0",
-            "%s": "%s",
-            "category": ["external", "erc20", "erc721", "internal"],
-            "withMetadata": true,
-            "excludeZeroValue": false,
-            "maxCount": "%s"
-        """.formatted(addressType, walletAddress, "0x" + Integer.toHexString(maxPerCall)));
+      {
+        "fromBlock": "0x0",
+        "%s": "%s",
+        "category": ["external", "erc20", "erc721", "internal"],
+        "withMetadata": true,
+        "excludeZeroValue": false,
+        "maxCount": "%s"
+      }
+      """.formatted(addressType, walletAddress, "0x" + Integer.toHexString(maxPerCall)));
 
             if (pageKey != null) {
-                paramsBuilder.append(", " + pageKey+ ": \"%s\"".formatted(pageKey));
+                paramsBuilder.append(String.format(", \"pageKey\": \"%s\"", pageKey));
             }
 
-            paramsBuilder.append("}");
-
             String requestBody = """
-        {
-          "jsonrpc": "2.0",
-          "id": 1,
-          "method": "alchemy_getAssetTransfers",
-          "params": [%s]
-        }
-        """.formatted(paramsBuilder);
+    {
+      "jsonrpc": "2.0",
+      "id": 1,
+      "method": "alchemy_getAssetTransfers",
+      "params": [%s]
+    }
+    """.formatted(paramsBuilder);
 
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(ALCHEMY_BASE_URL))

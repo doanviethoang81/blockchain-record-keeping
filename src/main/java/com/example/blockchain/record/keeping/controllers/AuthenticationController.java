@@ -50,7 +50,8 @@ public class AuthenticationController {
     private final ImageUploadService imageUploadService;
     private final DepartmentService departmentService;
     private final TokenBlacklistService tokenBlacklistService;
-    private  final UniversityService universityService;
+    private final UniversityService universityService;
+    private final StudentService studentService;
 
     @PostMapping("/api/auth/register")
     public ResponseEntity<?> register(@Valid @ModelAttribute RegisterRequest request, BindingResult bindingResult) {

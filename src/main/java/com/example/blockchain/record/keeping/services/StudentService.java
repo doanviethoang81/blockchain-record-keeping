@@ -115,6 +115,11 @@ public class StudentService implements IStudentService{
         return studentRepository.findByStudentCodesOfDepartment(departmentId,allStudentCodes);
     }
 
+    @Override
+    public Student findByEmail(String email) {
+        return studentRepository.findByEmail(email).orElse(null);
+    }
+
     public Student findById(Long id){
         return studentRepository.findByIdAndStatus(id, Status.ACTIVE).orElse(null);
     }

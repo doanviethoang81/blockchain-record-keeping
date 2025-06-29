@@ -24,13 +24,11 @@ public class JWTUtil {
         return Jwts.builder()
                 .setClaims(claims)
                 .setSubject(email)
-//                .claim("roles", roles)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME)) // 1 ngày
                 .signWith(SECRET_KEY, SignatureAlgorithm.HS256)
                 .compact();
     }
-
 
     public Claims getAllClaimsFromToken(String token) {
         try {

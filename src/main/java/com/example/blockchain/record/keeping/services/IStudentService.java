@@ -34,4 +34,6 @@ public interface IStudentService {
     Optional<Student> findByOneStudentOfDepartment(Long departmentId, String studentCode);
 
     List<Student> findByStudentCodesOfDepartment(Long departmentId, Set<String> allStudentCodes);
+
+    Student findByEmail(String email);
 }

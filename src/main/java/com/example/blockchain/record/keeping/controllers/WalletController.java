@@ -29,6 +29,7 @@ public class WalletController {
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size)
     {
+        String toContract = EnvUtil.get("SMART_CONTRACT_CERTIFICATE_ADDRESS");
         String address = EnvUtil.get("METAMASK_ADDRESS");
         if (address == null || address.isBlank()) {
             return ApiResponseBuilder.badRequest("Địa chỉ ví không hợp lệ!");
@@ -40,7 +41,7 @@ public class WalletController {
 
         int offset = (page - 1) * size;
 
-        PaginatedData<TransactionDTO> data = alchemyService.getAllTransactions(address, type, offset, size);
+        PaginatedData<TransactionDTO> data = alchemyService.getAllTransactions(address,toContract, type, offset, size);
         return ApiResponseBuilder.success("Lấy thành công lịch sử giao dịch", data);
     }
 

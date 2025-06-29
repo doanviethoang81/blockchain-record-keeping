@@ -94,7 +94,6 @@ public class SecurityConfigs {
                                         "/api/v1/verify"
                                 ).permitAll()
                                 .requestMatchers("/api/v1/check-role").permitAll()
-////                    .requestMatchers("/images/**").permitAll()
                                 .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/v1/pdt/**").hasRole("PDT")
                                 .requestMatchers("/api/v1/khoa/**").hasRole("KHOA")
