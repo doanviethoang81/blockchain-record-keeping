@@ -339,28 +339,48 @@ public interface CertificateRepository extends JpaRepository<Certificate,Long> {
 
     //thống kê sl từng loại chung chi theo tr
     @Query(value = """
-            SELECT
-            ct.name, COUNT(CASE WHEN c.status ='APPROVED' THEN 1 END) AS approved
-            from university_certificate_types uct
-            left JOIN certificate_types ct on uct.certificate_type_id = ct.id
-            left join universitys u on uct.university_id = u.id and u.id = :universityId
-            left join certificates c on uct.id = c.university_certificate_type_id
-            where ct.status = 'ACTIVE'
-            GROUP by ct.name
+           SELECT
+                ct.name AS name,
+                COUNT(DISTINCT c.student_id) AS approved,
+                ROUND(COUNT(DISTINCT c.student_id) * 100.0 / total.total_students, 2) AS percentage
+            FROM university_certificate_types uct
+            JOIN certificate_types ct ON uct.certificate_type_id = ct.id
+            JOIN universitys u ON uct.university_id = u.id
+            LEFT JOIN certificates c ON uct.id = c.university_certificate_type_id AND c.status = 'APPROVED'
+            JOIN (
+                SELECT u.id AS university_id, COUNT(DISTINCT s.id) AS total_students
+                FROM universitys u
+                JOIN departments d ON u.id = d.university_id
+                JOIN student_class sc ON d.id = sc.department_id
+                JOIN students s ON sc.id = s.student_class_id
+                WHERE u.id = :universityId
+                and s.status ='ACTIVE'
+            ) total ON total.university_id = u.id
+            WHERE u.id = :universityId AND ct.status = 'ACTIVE'
+            GROUP BY ct.name, total.total_students;
             """,nativeQuery = true)
     List<CountCertificateTypeRequest> countCertificateTypeOfUniversity(@Param("universityId")Long universityId);
 
     //thống kê sl từng loại chung chi theo khoa
     @Query(value = """
             SELECT
-            ct.name, COUNT(CASE WHEN c.status ='APPROVED' THEN 1 END) AS approved
-            from university_certificate_types uct
-            left JOIN certificate_types ct on uct.certificate_type_id = ct.id
-            left join universitys u on uct.university_id = u.id
-            left join departments d on u.id = d.university_id
-            left join certificates c on uct.id = c.university_certificate_type_id
-            where ct.status = 'ACTIVE' and d.id = :departmentId
-            GROUP by ct.name
+                ct.name,
+                COUNT(DISTINCT c.student_id) AS approved,
+                ROUND(COUNT(DISTINCT c.student_id) * 100.0 / total.total_students, 2) AS percentage
+            FROM university_certificate_types uct
+            JOIN certificate_types ct ON uct.certificate_type_id = ct.id
+            JOIN universitys u ON uct.university_id = u.id
+            JOIN departments d ON u.id = d.university_id
+            LEFT JOIN certificates c ON uct.id = c.university_certificate_type_id AND c.status = 'APPROVED'
+            JOIN (
+                SELECT d.id AS department_id, COUNT(DISTINCT s.id) AS total_students
+                FROM departments d
+                JOIN student_class sc ON d.id = sc.department_id
+                JOIN students s ON sc.id = s.student_class_id
+                WHERE d.id = :departmentId AND s.status = 'ACTIVE'
+            ) total ON total.department_id = d.id
+            WHERE ct.status = 'ACTIVE' AND d.id = :departmentId
+            GROUP BY ct.name, total.total_students;
             """,nativeQuery = true)
     List<CountCertificateTypeRequest> countCertificateTypeOfDepartment(@Param("departmentId")Long departmentId);
 

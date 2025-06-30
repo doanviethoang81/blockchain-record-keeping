@@ -157,7 +157,8 @@ public class CertificateService implements ICertificateService{
         for (CountCertificateTypeRequest request : count){
             CountCertificateTypeResponse response = new CountCertificateTypeResponse(
                     request.getName(),
-                    request.getApproved()
+                    request.getApproved(),
+                    request.getPercentage()
             );
             responseList.add(response);
         }
@@ -171,7 +172,8 @@ public class CertificateService implements ICertificateService{
         for (CountCertificateTypeRequest request : count){
             CountCertificateTypeResponse response = new CountCertificateTypeResponse(
                     request.getName(),
-                    request.getApproved()
+                    request.getApproved(),
+                    request.getPercentage()
             );
             responseList.add(response);
         }

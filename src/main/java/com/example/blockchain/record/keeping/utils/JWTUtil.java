@@ -16,7 +16,6 @@ public class JWTUtil {
 
     String jwtSecret  = EnvUtil.get("JWT_SECRET_KEY");
     private final Key SECRET_KEY = Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
-//    private final Key SECRET_KEY = Keys.hmacShaKeyFor("6ce90e09a30b372bbaae83da5f825d3751978d7111fe88aea06452ca1dd5ec73".getBytes());
 
     private final long EXPIRATION_TIME = 1000 * 60 * 60 * 10; // 10 tiếng
     // Tạo token

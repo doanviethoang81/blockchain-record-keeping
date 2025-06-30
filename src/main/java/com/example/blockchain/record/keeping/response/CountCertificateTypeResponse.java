@@ -12,4 +12,5 @@ import lombok.Setter;
 public class CountCertificateTypeResponse {
     private String name;
     private Long approved;
+    private Double percentage;
 }
