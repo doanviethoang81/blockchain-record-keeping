@@ -8,13 +8,14 @@ import com.example.blockchain.record.keeping.dtos.request.DecryptRequest;
 import com.example.blockchain.record.keeping.dtos.request.ListValidationRequest;
 import com.example.blockchain.record.keeping.enums.Status;
 import com.example.blockchain.record.keeping.models.*;
-import com.example.blockchain.record.keeping.repositorys.CertificateRepository;
+import com.example.blockchain.record.keeping.repositorys.LogRepository;
 import com.example.blockchain.record.keeping.response.*;
 import com.example.blockchain.record.keeping.services.*;
 import com.example.blockchain.record.keeping.utils.RSAUtil;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -54,7 +55,9 @@ public class CertificateController {
     private final RSAUtil rsaUtil;
     private final BlockChainService blockChainService;
     private final DegreeService degreeService;
-    private final CertificateRepository certificateRepository;
+    private final AuditLogService auditLogService;
+    private final LogRepository logRepository;
+    private final HttpServletRequest httpServletRequest;
 
     //---------------------------- ADMIN -------------------------------------------------------
     // xem all chứng chỉ
@@ -97,7 +100,7 @@ public class CertificateController {
                             s.getStudent().getStudentClass().getName(),
                             s.getStudent().getStudentClass().getDepartment().getName(),
                             s.getIssueDate(),
-                            convertStatusToDisplay(s.getStatus()),
+                             s.getStatus().getLabel(),
                             s.getDiplomaNumber(),
                             s.getUniversityCertificateType().getCertificateType().getName(),
                             s.getCreatedAt()
@@ -148,7 +151,7 @@ public class CertificateController {
                     certificate.getStudent().getCourse(),
                     certificate.getGrantor(),
                     certificate.getSigner(),
-                    convertStatusToDisplay(certificate.getStatus()),
+                    certificate.getStatus().getLabel(),
                     certificate.getImageUrl(),
                     ipfsUrl,
                     certificate.getQrCodeUrl(),
@@ -222,7 +225,7 @@ public class CertificateController {
                     s.getStudent().getStudentClass().getName(),
                     s.getStudent().getStudentClass().getDepartment().getName(),
                     s.getIssueDate(),
-                    convertStatusToDisplay(s.getStatus()),
+                     s.getStatus().getLabel(),
                     s.getDiplomaNumber(),
                     s.getUniversityCertificateType().getCertificateType().getName(),
                     s.getCreatedAt()
@@ -298,7 +301,7 @@ public class CertificateController {
                     s.getStudent().getStudentClass().getName(),
                     s.getStudent().getStudentClass().getDepartment().getName(),
                     s.getIssueDate(),
-                    convertStatusToDisplay(s.getStatus()),
+                     s.getStatus().getLabel(),
                     s.getDiplomaNumber(),
                     s.getUniversityCertificateType().getCertificateType().getName(),
                     s.getCreatedAt()
@@ -374,7 +377,7 @@ public class CertificateController {
                     s.getStudent().getStudentClass().getName(),
                     s.getStudent().getStudentClass().getDepartment().getName(),
                     s.getIssueDate(),
-                    convertStatusToDisplay(s.getStatus()),
+                     s.getStatus().getLabel(),
                     s.getDiplomaNumber(),
                     s.getUniversityCertificateType().getCertificateType().getName(),
                     s.getCreatedAt()
@@ -450,7 +453,7 @@ public class CertificateController {
                     s.getStudent().getStudentClass().getName(),
                     s.getStudent().getStudentClass().getDepartment().getName(),
                     s.getIssueDate(),
-                    convertStatusToDisplay(s.getStatus()),
+                     s.getStatus().getLabel(),
                     s.getDiplomaNumber(),
                     s.getUniversityCertificateType().getCertificateType().getName(),
                     s.getCreatedAt()
@@ -516,10 +519,11 @@ public class CertificateController {
                 );
             }
 
-            for (Long id : ids) {
-                certificateService.certificateValidation(university, id);
-            }
-            return ApiResponseBuilder.success("Xác nhận tất cả chứng chỉ thành công", null);
+//            for (Long id : ids) {
+//                certificateService.certificateValidation(university, id);
+//            }
+            certificateService.confirmCertificates(ids, university, httpServletRequest);
+            return ApiResponseBuilder.success("Xác nhận list chứng chỉ thành công", null);
         } catch (Exception e) {
             return ApiResponseBuilder.internalError("Lỗi: " + e.getMessage());
         }
@@ -584,7 +588,7 @@ public class CertificateController {
                             certificate.getStudent().getCourse(),
                             certificate.getGrantor(),
                             certificate.getSigner(),
-                            convertStatusToDisplay(certificate.getStatus()),
+                            certificate.getStatus().getLabel(),
                             certificate.getImageUrl(),
                             Constants.IPFS_URL + ipfsUrl,
                             certificate.getQrCodeUrl(),
@@ -675,7 +679,7 @@ public class CertificateController {
                     s.getStudent().getStudentClass().getName(),
                     s.getStudent().getStudentClass().getDepartment().getName(),
                     s.getIssueDate(),
-                    convertStatusToDisplay(s.getStatus()),
+                     s.getStatus().getLabel(),
                     s.getDiplomaNumber(),
                     s.getUniversityCertificateType().getCertificateType().getName(),
                     s.getCreatedAt()
@@ -747,7 +751,7 @@ public class CertificateController {
                     s.getStudent().getStudentClass().getName(),
                     s.getStudent().getStudentClass().getDepartment().getName(),
                     s.getIssueDate(),
-                    convertStatusToDisplay(s.getStatus()),
+                     s.getStatus().getLabel(),
                     s.getDiplomaNumber(),
                     s.getUniversityCertificateType().getCertificateType().getName(),
                     s.getCreatedAt()
@@ -819,7 +823,7 @@ public class CertificateController {
                     s.getStudent().getStudentClass().getName(),
                     s.getStudent().getStudentClass().getDepartment().getName(),
                     s.getIssueDate(),
-                    convertStatusToDisplay(s.getStatus()),
+                     s.getStatus().getLabel(),
                     s.getDiplomaNumber(),
                     s.getUniversityCertificateType().getCertificateType().getName(),
                     s.getCreatedAt()
@@ -891,7 +895,7 @@ public class CertificateController {
                     s.getStudent().getStudentClass().getName(),
                     s.getStudent().getStudentClass().getDepartment().getName(),
                     s.getIssueDate(),
-                    convertStatusToDisplay(s.getStatus()),
+                     s.getStatus().getLabel(),
                     s.getDiplomaNumber(),
                     s.getUniversityCertificateType().getCertificateType().getName(),
                     s.getCreatedAt()
@@ -939,7 +943,7 @@ public class CertificateController {
         }
     }
 
-    //tao chung chi
+    //tạo chung chi
     @PreAuthorize("hasAuthority('WRITE')")
     @PostMapping("/khoa/create-certificate")
     public ResponseEntity<?> createCertificate(
@@ -947,12 +951,17 @@ public class CertificateController {
             @RequestParam(required = false) Long studentId
     ) {
         try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String username = authentication.getName();
+            User user =userService.findByUser(username);
+
             Student student = studentService.findById(studentId);
             if(student == null){
                 return ApiResponseBuilder.badRequest("Không tìm thấy sinh viên!");
             }
             ObjectMapper mapper = new ObjectMapper();
             JsonNode jsonNode = mapper.readTree(dataJson);
+            String diplomaNumber = jsonNode.get("diplomaNumber").asText();
 
             Long certificateTypeId = Long.valueOf(jsonNode.get("certificateTypeId").asText());
             Optional<Certificate> certificate = certificateService.existingStudentOfCertificate(studentId,certificateTypeId);
@@ -973,13 +982,16 @@ public class CertificateController {
             } catch (DateTimeParseException e) {
                 return ApiResponseBuilder.badRequest("Ngày cấp chứng chỉ không đúng định dạng dd/MM/yyyy");
             }
+            if(certificateService.existByDiplomaNumber(user.getUniversity().getId(),diplomaNumber.trim())){
+                return ApiResponseBuilder.badRequest("Số hiệu bàng chứng chỉ này đã tồn tại!");
+            }
 
             certificateService.createCertificate(student, jsonNode );
             return ApiResponseBuilder.success("Tạo chứng chỉ thành công, chờ PDT duyệt ", null);
         } catch (IllegalArgumentException e) {
             return ApiResponseBuilder.badRequest(e.getMessage());
         } catch (Exception e) {
-            return ApiResponseBuilder.internalError("Lỗi!");
+            return ApiResponseBuilder.internalError(e.getMessage());
         }
     }
 
@@ -1017,7 +1029,10 @@ public class CertificateController {
                         user.getDepartment().getId(),
                         universityCertificateType,
                         certificateService,
-                        graphicsTextWriter
+                        graphicsTextWriter,
+                        auditLogService,
+                        logRepository,
+                        httpServletRequest
                 )
         ).sheet().doRead();
 
@@ -1053,15 +1068,17 @@ public class CertificateController {
             } catch (DateTimeParseException e) {
                 return ApiResponseBuilder.badRequest("Ngày cấp chứng chỉ không đúng định dạng dd/MM/yyyy");
             }
-
-            Certificate certificate = certificateService.findByIdAndStatus(id, Status.PENDING);
-
-            if(certificate == null){
-                return ApiResponseBuilder.badRequest("Chứng chỉ này đã được duyệt không chỉnh sửa được!");
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String username = authentication.getName();
+            User user =userService.findByUser(username);
+            if(certificateService.existByDiplomaNumberIgnoreId(user.getUniversity().getId(),request.getDiplomaNumber().trim(),id)){
+                return ApiResponseBuilder.badRequest("Số hiệu bằng chứng chỉ này đã tồn tại!");
             }
 
-            certificateService.update(certificate, request);
-            return ApiResponseBuilder.success("Sửa thông tin loại chứng chỉ thành công", null);
+            if(certificateService.update(id, request)){
+                return ApiResponseBuilder.success("Sửa thông tin loại chứng chỉ thành công", null);
+            }
+            return ApiResponseBuilder.badRequest("Sửa thông tin loại chứng chỉ thát bại!");
         } catch (Exception e) {
             return ApiResponseBuilder.badRequest(e.getMessage());
         }
@@ -1072,15 +1089,12 @@ public class CertificateController {
     @PostMapping("/pdt/certificate-rejected/{id}")
     public ResponseEntity<?> certificateRejected(@PathVariable("id") Long id){
         try{
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            String username = authentication.getName();
-            University university = universityService.getUniversityByEmail(username);
             Certificate certificate = certificateService.findByIdAndStatus(id, Status.APPROVED);
 
             if(certificate != null){
                 return ApiResponseBuilder.badRequest("Chứng chỉ này đã được xác nhận rồi!");
             }
-            certificateService.certificateRejected(university,id);
+            certificateService.certificateRejected(id);
             return ApiResponseBuilder.success("Từ chối xác nhận thành công ", null);
         } catch (Exception e) {
             return ApiResponseBuilder.internalError("Lỗi " + e.getMessage());
@@ -1095,12 +1109,7 @@ public class CertificateController {
             if (request == null || request.getIds() == null || request.getIds().isEmpty()) {
                 return ApiResponseBuilder.badRequest("Vui lòng chọn chứng chỉ cần từ chối xác nhận!");
             }
-
             List<Long> ids = request.getIds();
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            String username = authentication.getName();
-            University university = universityService.getUniversityByEmail(username);
-
             List<String> alreadyValidated = new ArrayList<>();
 
             for (Long id : ids) {
@@ -1116,10 +1125,7 @@ public class CertificateController {
                         alreadyValidated
                 );
             }
-
-            for (Long id : ids) {
-                certificateService.certificateRejected(university, id);
-            }
+            certificateService.rejectCertificates(ids);
             return ApiResponseBuilder.success("Từ chối xác nhận danh sách chứng chỉ thành công", null);
         } catch (Exception e) {
             return ApiResponseBuilder.internalError("Lỗi: " + e.getMessage());
@@ -1149,7 +1155,6 @@ public class CertificateController {
                 PaginatedData<CertificateResponse> data = new PaginatedData<>(Collections.emptyList(), meta);
                 return ApiResponseBuilder.success("Không có chứng chỉ nào!", data);
             }
-
             int offset = (page - 1) * size;
             if (offset >= totalItems && totalItems > 0) {
                 page = 1;
@@ -1164,14 +1169,5 @@ public class CertificateController {
         } catch (Exception e) {
             return ApiResponseBuilder.internalError("Lỗi: " + e.getMessage());
         }
-    }
-
-    private String convertStatusToDisplay(Status status) {
-        return switch (status) {
-            case PENDING -> "Chưa duyệt";
-            case APPROVED -> "Đã duyệt";
-            case REJECTED -> "Đã từ chối";
-            default -> "Không xác định";
-        };
     }
 }

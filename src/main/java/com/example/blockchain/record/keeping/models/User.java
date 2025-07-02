@@ -49,4 +49,11 @@ public class User {
     @Column(name="updated_at")
     private LocalDateTime updatedAt;
 
+    public boolean isLocked() {
+        return isLocked;
+    }
+
+    public void setLocked(boolean locked) {
+        this.isLocked = locked;
+    }
 }

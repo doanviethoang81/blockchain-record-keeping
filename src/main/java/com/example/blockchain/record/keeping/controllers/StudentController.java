@@ -5,10 +5,12 @@ import com.example.blockchain.record.keeping.dtos.request.StudentExcelRowRequest
 import com.example.blockchain.record.keeping.dtos.request.StudentRequest;
 import com.example.blockchain.record.keeping.dtos.request.UpdateStudentRequest;
 import com.example.blockchain.record.keeping.models.*;
+import com.example.blockchain.record.keeping.repositorys.LogRepository;
 import com.example.blockchain.record.keeping.repositorys.StudentRepository;
 import com.example.blockchain.record.keeping.response.*;
 import com.example.blockchain.record.keeping.services.*;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -21,6 +23,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.time.LocalDate;
+import java.time.Period;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -37,6 +41,9 @@ public class StudentController {
     private final StudentClassService studentClassService;
     private final StudentRepository studentRepository;
     private final PasswordEncoder passwordEncoder;
+    private final AuditLogService auditLogService;
+    private final HttpServletRequest httpServletRequest;
+    private final LogRepository logRepository;
 
     //---------------------------- PDT -------------------------------------------------------
     //danh sách sinh viên của 1 trường
@@ -192,6 +199,14 @@ public class StudentController {
             if(checkEmialStudent !=null){
                 return ApiResponseBuilder.badRequest("Email sinh viên đã tồn tại trong khoa này!");
             }
+            LocalDate birthDate = studentRequest.getBirthDate();
+            if (birthDate != null) {
+                LocalDate today = LocalDate.now();
+                int age = Period.between(birthDate, today).getYears();
+                if (age < 18) {
+                    return ApiResponseBuilder.badRequest("Sinh viên phải từ 18 tuổi trở lên!");
+                }
+            }
             studentService.createStudent(studentRequest);
             return ApiResponseBuilder.success("Thêm sinh viên thành công", null);
         } catch (Exception e) {
@@ -225,7 +240,10 @@ public class StudentController {
                         universityService,
                         studentClassService,
                         studentService,
-                        passwordEncoder
+                        passwordEncoder,
+                        auditLogService,
+                        httpServletRequest,
+                        logRepository
                 )
         ).sheet().doRead();
         return ApiResponseBuilder.success("Thêm sinh viên thành công", null);

@@ -7,9 +7,11 @@ import com.example.blockchain.record.keeping.dtos.request.ListValidationRequest;
 import com.example.blockchain.record.keeping.dtos.request.DegreeRequest;
 import com.example.blockchain.record.keeping.enums.Status;
 import com.example.blockchain.record.keeping.models.*;
+import com.example.blockchain.record.keeping.repositorys.LogRepository;
 import com.example.blockchain.record.keeping.response.*;
 import com.example.blockchain.record.keeping.services.*;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -43,6 +45,9 @@ public class DegreeController {
     private final DegreeTitleSevice degreeTitleSevice;
     private final StudentService studentService;
     private final GraphicsTextWriter graphicsTextWriter;
+    private final AuditLogService auditLogService;
+    private final HttpServletRequest httpServletRequest;
+    private final LogRepository logRepository;
 
     //---------------------------- KHOA -------------------------------------------------------
     // cấp văn bằng
@@ -81,6 +86,16 @@ public class DegreeController {
             }
             if(degreeService.existsByStudent(student)){
                 return ApiResponseBuilder.badRequest("Sinh viên này đã được cấp văn bằng!");
+            }
+            Authentication authentication= SecurityContextHolder.getContext().getAuthentication();
+            String username = authentication.getName();
+            User user = userService.findByUser(username);
+
+            if(degreeService.existByDiplomanumber(user.getUniversity().getId(), request.getDiplomaNumber())){
+                return ApiResponseBuilder.badRequest("Số hiệu văn bằng đã tồn tại!");
+            }
+            if(degreeService.existByLotteryNumber(user.getUniversity().getId(), request.getLotteryNumber())){
+                return ApiResponseBuilder.badRequest("Số vào sổ văn bằng đã tồn tại!");
             }
             degreeService.createDegree(request);
             return ApiResponseBuilder.success("Tạo văn bằng thành công", null);
@@ -127,7 +142,10 @@ public class DegreeController {
                         degreeService,
                         studentService,
                         graphicsTextWriter,
-                        ida
+                        ida,
+                        auditLogService,
+                        httpServletRequest,
+                        logRepository
                 )
         ).sheet().doRead();
 
@@ -169,6 +187,16 @@ public class DegreeController {
             ZonedDateTime oneYearLater = now.plusYears(1);
             if (issueDate.isBefore(oneYearAgo) || issueDate.isAfter(oneYearLater)) {
                 return ApiResponseBuilder.badRequest("Ngày cấp văn bằng phải trong vòng 1 năm trước và 1 năm sau kể từ hôm nay");
+            }
+            Authentication authentication= SecurityContextHolder.getContext().getAuthentication();
+            String username = authentication.getName();
+            User user = userService.findByUser(username);
+
+            if(degreeService.existByDiplomanumberIngnoreId(user.getUniversity().getId(), request.getDiplomaNumber(),id)){
+                return ApiResponseBuilder.badRequest("Số hiệu văn bằng đã tồn tại!");
+            }
+            if(degreeService.existByLotteryNumberIngnoreId(user.getUniversity().getId(), request.getLotteryNumber(),id)){
+                return ApiResponseBuilder.badRequest("Số vào sổ văn bằng đã tồn tại!");
             }
             degreeService.updateDegree(id,request);
             return ApiResponseBuilder.success("Sửa văn bằng thành công", null);
@@ -223,7 +251,7 @@ public class DegreeController {
                             s.getStudent().getStudentClass().getName(),
                             s.getStudent().getStudentClass().getDepartment().getName(),
                             s.getIssueDate(),
-                            convertStatusToDisplay(s.getStatus()),
+                            s.getStatus().getLabel(),
                             s.getGraduationYear(),
                             s.getDiplomaNumber(),
                             s.getCreatedAt()
@@ -292,7 +320,7 @@ public class DegreeController {
                             s.getStudent().getStudentClass().getName(),
                             s.getStudent().getStudentClass().getDepartment().getName(),
                             s.getIssueDate(),
-                            convertStatusToDisplay(s.getStatus()),
+                            s.getStatus().getLabel(),
                             s.getGraduationYear(),
                             s.getDiplomaNumber(),
                             s.getCreatedAt()
@@ -362,7 +390,7 @@ public class DegreeController {
                             s.getStudent().getStudentClass().getName(),
                             s.getStudent().getStudentClass().getDepartment().getName(),
                             s.getIssueDate(),
-                            convertStatusToDisplay(s.getStatus()),
+                            s.getStatus().getLabel(),
                             s.getGraduationYear(),
                             s.getDiplomaNumber(),
                             s.getCreatedAt()
@@ -432,7 +460,7 @@ public class DegreeController {
                             s.getStudent().getStudentClass().getName(),
                             s.getStudent().getStudentClass().getDepartment().getName(),
                             s.getIssueDate(),
-                            convertStatusToDisplay(s.getStatus()),
+                            s.getStatus().getLabel(),
                             s.getGraduationYear(),
                             s.getDiplomaNumber(),
                             s.getCreatedAt()
@@ -502,7 +530,7 @@ public class DegreeController {
                             s.getStudent().getStudentClass().getName(),
                             s.getStudent().getStudentClass().getDepartment().getName(),
                             s.getIssueDate(),
-                            convertStatusToDisplay(s.getStatus()),
+                            s.getStatus().getLabel(),
                             s.getGraduationYear(),
                             s.getDiplomaNumber(),
                             s.getCreatedAt()
@@ -570,7 +598,7 @@ public class DegreeController {
                             s.getStudent().getStudentClass().getName(),
                             s.getStudent().getStudentClass().getDepartment().getName(),
                             s.getIssueDate(),
-                            convertStatusToDisplay(s.getStatus()),
+                            s.getStatus().getLabel(),
                             s.getGraduationYear(),
                             s.getDiplomaNumber(),
                             s.getCreatedAt()
@@ -639,7 +667,7 @@ public class DegreeController {
                             s.getStudent().getStudentClass().getName(),
                             s.getStudent().getStudentClass().getDepartment().getName(),
                             s.getIssueDate(),
-                            convertStatusToDisplay(s.getStatus()),
+                            s.getStatus().getLabel(),
                             s.getGraduationYear(),
                             s.getDiplomaNumber(),
                             s.getCreatedAt()
@@ -706,7 +734,7 @@ public class DegreeController {
                             s.getStudent().getStudentClass().getName(),
                             s.getStudent().getStudentClass().getDepartment().getName(),
                             s.getIssueDate(),
-                            convertStatusToDisplay(s.getStatus()),
+                            s.getStatus().getLabel(),
                             s.getGraduationYear(),
                             s.getDiplomaNumber(),
                             s.getCreatedAt()
@@ -775,7 +803,7 @@ public class DegreeController {
                             s.getStudent().getStudentClass().getName(),
                             s.getStudent().getStudentClass().getDepartment().getName(),
                             s.getIssueDate(),
-                            convertStatusToDisplay(s.getStatus()),
+                            s.getStatus().getLabel(),
                             s.getGraduationYear(),
                             s.getDiplomaNumber(),
                             s.getCreatedAt()
@@ -824,14 +852,11 @@ public class DegreeController {
     @PostMapping("/pdt/degree-rejected/{id}")
     public ResponseEntity<?> degreeRejected(@PathVariable("id") Long id){
         try{
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            String username = authentication.getName();
-            University university = universityService.getUniversityByEmail(username);
             Degree degree = degreeService.findByIdAndStatus(id);
             if(degree != null){
                 return ApiResponseBuilder.badRequest("Văn bằng này đã được xác nhận rồi!");
             }
-            degreeService.degreeRejected(university,id);
+            degreeService.degreeRejected(id);
             return ApiResponseBuilder.success("Từ chối Xác nhận thành công ", null);
         } catch (Exception e) {
             return ApiResponseBuilder.internalError("Lỗi " + e.getMessage());
@@ -868,9 +893,7 @@ public class DegreeController {
                 );
             }
 
-            for (Long id : ids) {
-                degreeService.degreeValidation(university, id);
-            }
+            degreeService.approveDegreeList(ids, university, httpServletRequest);
             return ApiResponseBuilder.success("Xác nhận tất cả văn bằng thành công", null);
         } catch (Exception e) {
             return ApiResponseBuilder.internalError("Lỗi: " + e.getMessage());
@@ -885,12 +908,7 @@ public class DegreeController {
             if (request == null || request.getIds() == null || request.getIds().isEmpty()) {
                 return ApiResponseBuilder.badRequest("Vui lòng chọn văn bằng cần từ chối xác nhận!");
             }
-
             List<Long> ids = request.getIds();
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            String username = authentication.getName();
-            University university = universityService.getUniversityByEmail(username);
-
             List<String> alreadyValidated = new ArrayList<>();
 
             for (Long id : ids) {
@@ -904,10 +922,7 @@ public class DegreeController {
                 return ApiResponseBuilder.listBadRequest("Không thể xác nhận vì có văn bằng đã được xác nhận.",alreadyValidated
                 );
             }
-
-            for (Long id : ids) {
-                degreeService.degreeRejected(university, id);
-            }
+            degreeService.rejectDegreeList(ids);
             return ApiResponseBuilder.success("Từ chối xác nhận danh sách văn bằng thành công", null);
         } catch (Exception e) {
             return ApiResponseBuilder.internalError("Lỗi: " + e.getMessage());
@@ -973,18 +988,22 @@ public class DegreeController {
             if (degrees.isEmpty()) {
                 return ApiResponseBuilder.success("Sinh viên chưa có văn bằng!", degrees);
             }
-            return ApiResponseBuilder.success("Văn bằng của sinh viên", degrees);
+            int start = (page - 1) * size;
+            int end = Math.min(start + size, degrees.size());
+            if (start >= degrees.size()) {
+                return ApiResponseBuilder.success("Không có văn bằng nào!", degrees);
+            }
+
+
+            List<DegreeResponse> pagedResult = degrees.subList(start, end);
+            PaginatedData<DegreeResponse> data = new PaginatedData<>(pagedResult,
+                    new PaginationMeta(degrees.size(), pagedResult.size(), size, page ,
+                            (int) Math.ceil((double) degrees.size() / size)));
+
+
+            return ApiResponseBuilder.success("Văn bằng của sinh viên", data);
         } catch (Exception e) {
             return ApiResponseBuilder.internalError("Lỗi: " + e.getMessage());
         }
-    }
-
-    private String convertStatusToDisplay(Status status) {
-        return switch (status) {
-            case PENDING -> "Chưa duyệt";
-            case APPROVED -> "Đã duyệt";
-            case REJECTED -> "Đã từ chối";
-            default -> "Không xác định";
-        };
     }
 }

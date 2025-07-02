@@ -78,7 +78,6 @@ public class StudentClassController {
     public ResponseEntity<?> createClassOfDepartment(
             HttpServletRequest request) {
         try{
-            ZonedDateTime vietnamTime = ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
             String id = request.getParameter("id");
             User user = userService.finbById(Long.valueOf(id));
             String name = request.getParameter("name").trim();
@@ -91,15 +90,7 @@ public class StudentClassController {
             if (studentClassService.existsByNameAndDepartmentIdAndStatus(name,department)){
                 return ApiResponseBuilder.badRequest("Tên lớp đã tồn tại trong khoa này!");
             }
-            StudentClass studentClass= new StudentClass();
-            studentClass.setDepartment(department);
-            studentClass.setName(name);
-            studentClass.setStatus(Status.ACTIVE);
-            studentClass.setCreatedAt(vietnamTime.toLocalDateTime());
-            studentClass.setUpdatedAt(vietnamTime.toLocalDateTime());
-
-            studentClassService.save(studentClass);
-
+            studentClassService.create(name,department);
             return ApiResponseBuilder.success("Tạo lớp học thành công", null);
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -111,22 +102,15 @@ public class StudentClassController {
     @PutMapping("/pdt/update-class/{id}")
     public ResponseEntity<?> updateClass(@PathVariable Long id, HttpServletRequest request){
         try {
-            ZonedDateTime vietnamTime = ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
-
             String name = request.getParameter("name");
-
             StudentClass studentClass = studentClassService.findById(id);
-
             if(!StringUtils.hasText(name)){
                 return ApiResponseBuilder.badRequest("Vui lòng nhập đầy đủ thông tin!");
             }
             if (studentClassService.existsByNameAndDepartmentIdAndStatus(name,studentClass.getDepartment())){
                 return ApiResponseBuilder.badRequest("Tên lớp đã tồn tại trong khoa này!");
             }
-
-            studentClass.setName(name);
-            studentClass.setUpdatedAt(vietnamTime.toLocalDateTime());
-            studentClassService.save(studentClass);
+            studentClassService.update(studentClass,name);
             return ApiResponseBuilder.success("Cập nhật thông tin lớp thành công", null);
         } catch (Exception e) {
             return ApiResponseBuilder.internalError("Đã xảy ra lỗi: " + e.getMessage());
@@ -221,9 +205,4 @@ public class StudentClassController {
             return ApiResponseBuilder.internalError("Đã xảy ra lỗi: " + e.getMessage());
         }
     }
-
-
-
-
-
 }

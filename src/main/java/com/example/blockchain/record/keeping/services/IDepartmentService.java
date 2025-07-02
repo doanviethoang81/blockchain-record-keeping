@@ -1,5 +1,7 @@
 package com.example.blockchain.record.keeping.services;
 
+import com.example.blockchain.record.keeping.dtos.request.DepartmentRequest;
+import com.example.blockchain.record.keeping.dtos.request.UserDepartmentRequest;
 import com.example.blockchain.record.keeping.enums.Status;
 import com.example.blockchain.record.keeping.models.Department;
 import com.example.blockchain.record.keeping.models.University;
@@ -15,7 +17,7 @@ public interface IDepartmentService {
 
     List<Department> listDepartmentOfUniversity(University university);
 
-    Department updateDepartment(Long id, String name,String email);
+    Department updateDepartment(Long id,  DepartmentRequest request);
 
     Department deleteDepartment(Long id);
 
@@ -23,5 +25,5 @@ public interface IDepartmentService {
 
     Optional<Department> findByDepartmentNameOfUniversity(Long universityId, String name);
 
-
+    Department create(UserDepartmentRequest request, University university);
 }

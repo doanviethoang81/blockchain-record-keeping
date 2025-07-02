@@ -2,6 +2,7 @@ package com.example.blockchain.record.keeping.services;
 
 import com.example.blockchain.record.keeping.enums.Status;
 import com.example.blockchain.record.keeping.models.Department;
+import com.example.blockchain.record.keeping.models.Student;
 import com.example.blockchain.record.keeping.models.StudentClass;
 import org.springframework.data.repository.query.Param;
 
@@ -27,4 +28,8 @@ public interface IStudentClassService {
     Optional<StudentClass> findByClassNameAndDepartmentId(Long departmentId,String className);
 
     boolean existsByIdAndDepartmentId(Long classId, Long departmentId);
+
+    StudentClass create(String name, Department department);
+
+    StudentClass update(StudentClass studentClass,String name);
 }

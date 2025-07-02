@@ -21,10 +21,6 @@ public class UniversityController {
     private final PasswordEncoder passwordEncoder;
     private final UniversityService universityService;
     private final UserService userService;
-    private final DepartmentService departmentService;
-    private final RoleService roleService;
-    private final PermissionService permissionService;
-    private final UserPermissionService userPermissionService;
 
     //---------------------------- ADMIN -------------------------------------------------------
     //danh sách university

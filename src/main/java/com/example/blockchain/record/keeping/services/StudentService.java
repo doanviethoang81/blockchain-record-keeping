@@ -1,12 +1,19 @@
 package com.example.blockchain.record.keeping.services;
 
+import com.example.blockchain.record.keeping.annotation.Auditable;
 import com.example.blockchain.record.keeping.dtos.request.ChangePasswordRequest;
 import com.example.blockchain.record.keeping.dtos.request.StudentRequest;
 import com.example.blockchain.record.keeping.dtos.request.UpdateStudentRequest;
+import com.example.blockchain.record.keeping.enums.ActionType;
+import com.example.blockchain.record.keeping.enums.Entity;
+import com.example.blockchain.record.keeping.enums.LogTemplate;
 import com.example.blockchain.record.keeping.enums.Status;
 import com.example.blockchain.record.keeping.models.*;
+import com.example.blockchain.record.keeping.repositorys.ActionChangeRepository;
+import com.example.blockchain.record.keeping.repositorys.LogRepository;
 import com.example.blockchain.record.keeping.repositorys.StudentClassRepository;
 import com.example.blockchain.record.keeping.repositorys.StudentRepository;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -23,6 +30,10 @@ public class StudentService implements IStudentService{
     private final StudentRepository studentRepository;
     private final StudentClassRepository studentClassRepository;
     private final PasswordEncoder passwordEncoder;
+    private final AuditLogService auditLogService;
+    private final HttpServletRequest httpServletRequest;
+    private final LogRepository logRepository;
+    private final ActionChangeRepository actionChangeRepository;
 
     // danh sách sv của các lớp của 1 khoa
     public List<Student> studentOfClassOfDepartmentList(Long idDepartment){
@@ -47,6 +58,7 @@ public class StudentService implements IStudentService{
     }
 
     @Override
+    @Auditable(action = ActionType.CREATED, entity = Entity.students)
     public Student createStudent(StudentRequest studentRequest) {
         ZonedDateTime vietnamTime = ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
 
@@ -76,6 +88,7 @@ public class StudentService implements IStudentService{
         ZonedDateTime vietnamTime = ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
         Student student = studentRepository.findById(id)
                 .orElseThrow(()-> new RuntimeException("Không tìm thấy sinh viên với id "+ id));
+        Student studentOld = auditLogService.cloneStudent(student);
         StudentClass studentClass = studentClassRepository.findById(updateStudentRequest.getClassId())
                 .orElseThrow(()-> new RuntimeException("Không tìm lớp với id "+ updateStudentRequest.getClassId()));
         student.setStudentClass(studentClass);
@@ -85,10 +98,34 @@ public class StudentService implements IStudentService{
         student.setBirthDate(updateStudentRequest.getBirthDate());
         student.setCourse(updateStudentRequest.getCourse());
         student.setUpdatedAt(vietnamTime.toLocalDateTime());
-        return studentRepository.save(student);
+        studentRepository.save(student);
+
+
+        String ipAdress = auditLogService.getClientIp(httpServletRequest);
+        List<ActionChange> changes = auditLogService.compareObjects(null, studentOld, student);
+        if (!changes.isEmpty()) {// nếu khác old mới lưu
+            Log log = new Log();
+            log.setUser(auditLogService.getCurrentUser());
+            log.setActionType(ActionType.UPDATED);
+            log.setEntityName(Entity.students);
+            log.setEntityId(id);
+            log.setDescription(LogTemplate.UPDATE_STUDENT.getName());
+            log.setIpAddress(ipAdress);
+            log.setCreatedAt(vietnamTime.toLocalDateTime());
+
+            log = logRepository.save(log);
+
+            for (ActionChange change : changes) {
+                change.setLog(log);
+            }
+            actionChangeRepository.saveAll(changes);
+        }
+
+        return student;
     }
 
     @Override
+    @Auditable(action = ActionType.DELETED, entity = Entity.students)
     public Student delete(Long id) {
         ZonedDateTime vietnamTime = ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
 

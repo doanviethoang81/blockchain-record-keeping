@@ -26,6 +26,7 @@ public interface CertificateRepository extends JpaRepository<Certificate,Long> {
             WHERE  c.student_id = :studentId
             and ct.id = :certificateTypeId
             and ct.status ='ACTIVE'
+            and (c.status ='PENDING' OR c.status ='APPROVED')
             """,nativeQuery = true)
     Optional<Certificate> existingStudentOfCertificate(@Param("studentId") Long studentId,
                                                        @Param("certificateTypeId") Long certificateTypeId);
@@ -423,4 +424,35 @@ public interface CertificateRepository extends JpaRepository<Certificate,Long> {
     long countCertificateOfStudent(@Param("studentId") Long studentId,
                                            @Param("diplomaNumber") String diplomaNumber
     );
+
+    //kiem tra số hiệu bằng chứng chỉ
+    @Query(value = """
+        SELECT c.*
+        FROM certificates c
+        JOIN university_certificate_types uct ON c.university_certificate_type_id = uct.id
+        JOIN universitys u ON uct.university_id = u.id
+        WHERE u.id = :universityId
+        AND c.diploma_number = :diplomaNumber
+        AND (c.status LIKE 'APPROVED' OR c.status LIKE 'PENDING');
+        """,nativeQuery = true)
+    Certificate existByDiplomaNumber(@Param("universityId") Long universityId,
+                                     @Param("diplomaNumber") String diplomaNumber
+    );
+
+    @Query(value = """
+    SELECT c.*
+    FROM certificates c
+    JOIN university_certificate_types uct ON c.university_certificate_type_id = uct.id
+    JOIN universitys u ON uct.university_id = u.id
+    WHERE u.id = :universityId
+      AND c.diploma_number = :diplomaNumber
+      AND c.id != :certificateId
+      AND (c.status = 'APPROVED' OR c.status = 'PENDING')
+    """, nativeQuery = true)
+    Certificate existByDiplomaNumberIgnoreId(
+            @Param("universityId") Long universityId,
+            @Param("diplomaNumber") String diplomaNumber,
+            @Param("certificateId") Long certificateId
+    );
+
 }

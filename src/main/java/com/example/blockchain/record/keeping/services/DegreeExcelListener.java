@@ -5,11 +5,16 @@ import com.alibaba.excel.event.AnalysisEventListener;
 import com.alibaba.excel.metadata.CellExtra;
 import com.example.blockchain.record.keeping.dtos.request.DegreeExcelRowRequest;
 import com.example.blockchain.record.keeping.dtos.request.DegreePrintData;
+import com.example.blockchain.record.keeping.enums.ActionType;
+import com.example.blockchain.record.keeping.enums.Entity;
+import com.example.blockchain.record.keeping.enums.LogTemplate;
 import com.example.blockchain.record.keeping.enums.Status;
 import com.example.blockchain.record.keeping.exceptions.BadRequestException;
 import com.example.blockchain.record.keeping.exceptions.ListBadRequestException;
 import com.example.blockchain.record.keeping.models.*;
-import lombok.RequiredArgsConstructor;
+import com.example.blockchain.record.keeping.repositorys.ActionChangeRepository;
+import com.example.blockchain.record.keeping.repositorys.LogRepository;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
@@ -33,6 +38,9 @@ public class DegreeExcelListener extends AnalysisEventListener<DegreeExcelRowReq
     private final StudentService studentService;
     private Long departmentId = 0L;
     private final GraphicsTextWriter graphicsTextWriter;
+    private final AuditLogService auditLogService;
+    private final HttpServletRequest httpServletRequest;
+    private final LogRepository logRepository;
 
     public DegreeExcelListener(RatingService ratingService,
                                EducationModelSevice educationModelSevice,
@@ -40,7 +48,7 @@ public class DegreeExcelListener extends AnalysisEventListener<DegreeExcelRowReq
                                DegreeService degreeService,
                                StudentService studentService,
                                GraphicsTextWriter graphicsTextWriter,
-                               Long departmentId
+                               Long departmentId, AuditLogService auditLogService, HttpServletRequest httpServletRequest, LogRepository logRepository
     ) {
         this.ratingService = ratingService;
         this.educationModelSevice = educationModelSevice;
@@ -49,6 +57,9 @@ public class DegreeExcelListener extends AnalysisEventListener<DegreeExcelRowReq
         this.studentService = studentService;
         this.graphicsTextWriter = graphicsTextWriter;
         this.departmentId = departmentId;
+        this.auditLogService = auditLogService;
+        this.httpServletRequest = httpServletRequest;
+        this.logRepository = logRepository;
     }
 
     @Override
@@ -285,6 +296,18 @@ public class DegreeExcelListener extends AnalysisEventListener<DegreeExcelRowReq
 
         executor.shutdown();
         degreeService.saveAll(degreeList);
+
+        //log
+        String ipAdress = auditLogService.getClientIp(httpServletRequest);
+        Log log = new Log();
+        log.setUser(auditLogService.getCurrentUser());
+        log.setActionType(ActionType.CREATED);
+        log.setEntityName(Entity.degrees);
+        log.setEntityId(null);
+        log.setDescription(LogTemplate.IMPORT_DEGREES.format(rows.size()));
+        log.setIpAddress(ipAdress);
+        log.setCreatedAt(now.toLocalDateTime());
+        logRepository.save(log);
     }
 
     @Override

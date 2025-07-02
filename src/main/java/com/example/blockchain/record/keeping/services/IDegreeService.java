@@ -53,4 +53,12 @@ public interface IDegreeService {
     List<DegreeClassificationByYearResponse> getDegreeClassificationByDepartmentAndLast5Years(Long departmentId);
 
     List<DegreeResponse> degreeOfStudent(Long studentId);
+
+    boolean existByDiplomanumber(Long universityId, String diplomaNumber);
+
+    boolean existByLotteryNumber(Long universityId, String lotteryNumber);
+
+    boolean existByDiplomanumberIngnoreId(Long universityId, String diplomaNumber, Long degreeId);
+
+    boolean existByLotteryNumberIngnoreId(Long universityId, String lotteryNumber, Long degreeId);
 }

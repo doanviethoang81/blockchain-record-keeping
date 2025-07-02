@@ -10,7 +10,7 @@ import java.util.Arrays;
 import java.util.Collections;
 
 public class CertificateStorage extends Contract {
-    private static final String BINARY = ""; // Thay bằng bytecode của hợp đồng (thường để trống nếu đã triển khai)
+    private static final String BINARY = "";
 
     public CertificateStorage(String contractAddress, Web3j web3j, Credentials credentials) {
         super(BINARY, contractAddress, web3j, credentials, new DefaultGasProvider());

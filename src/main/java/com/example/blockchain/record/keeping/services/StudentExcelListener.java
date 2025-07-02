@@ -4,14 +4,17 @@ import com.alibaba.excel.context.AnalysisContext;
 import com.alibaba.excel.event.AnalysisEventListener;
 import com.alibaba.excel.metadata.CellExtra;
 import com.example.blockchain.record.keeping.dtos.request.StudentExcelRowRequest;
+import com.example.blockchain.record.keeping.enums.ActionType;
+import com.example.blockchain.record.keeping.enums.Entity;
+import com.example.blockchain.record.keeping.enums.LogTemplate;
 import com.example.blockchain.record.keeping.enums.Status;
 import com.example.blockchain.record.keeping.exceptions.BadRequestException;
 import com.example.blockchain.record.keeping.exceptions.ListBadRequestException;
-import com.example.blockchain.record.keeping.models.Department;
-import com.example.blockchain.record.keeping.models.Student;
-import com.example.blockchain.record.keeping.models.StudentClass;
-import com.example.blockchain.record.keeping.models.University;
+import com.example.blockchain.record.keeping.models.*;
+import com.example.blockchain.record.keeping.repositorys.ActionChangeRepository;
+import com.example.blockchain.record.keeping.repositorys.LogRepository;
 import com.example.blockchain.record.keeping.repositorys.StudentRepository;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
@@ -35,6 +38,9 @@ public class StudentExcelListener extends AnalysisEventListener<StudentExcelRowR
     private final StudentClassService studentClassService;
     private final StudentService studentService;
     private final PasswordEncoder passwordEncoder;
+    private final AuditLogService auditLogService;
+    private final HttpServletRequest httpServletRequest;
+    private final LogRepository logRepository;
 
     private final List<StudentExcelRowRequest> rows = new ArrayList<>();
     @Override
@@ -58,6 +64,7 @@ public class StudentExcelListener extends AnalysisEventListener<StudentExcelRowR
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
         University university = universityService.getUniversityByEmail(username);
+        ZonedDateTime now = ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
 
         List<String> errors = new ArrayList<>();
 
@@ -167,7 +174,6 @@ public class StudentExcelListener extends AnalysisEventListener<StudentExcelRowR
             StudentClass studentClass = classCache.get(row.getClassName() + "_" + department.getId());
 
             LocalDate dateOfBirth = LocalDate.parse(row.getDateOfBirth(), formatter);
-            ZonedDateTime now = ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
             Student student = new Student();
             student.setName(row.getName());
             student.setStudentCode(row.getStudentCode());
@@ -181,6 +187,18 @@ public class StudentExcelListener extends AnalysisEventListener<StudentExcelRowR
             student.setUpdatedAt(now.toLocalDateTime());
             studentRepository.save(student);
         }
+
+        //log
+        String ipAdress = auditLogService.getClientIp(httpServletRequest);
+        Log log = new Log();
+        log.setUser(auditLogService.getCurrentUser());
+        log.setActionType(ActionType.CREATED);
+        log.setEntityName(Entity.students);
+        log.setEntityId(null);
+        log.setDescription(LogTemplate.IMPORT_STUDENT.format(rows.size()));
+        log.setIpAddress(ipAdress);
+        log.setCreatedAt(now.toLocalDateTime());
+        logRepository.save(log);
     }
 
     @Override

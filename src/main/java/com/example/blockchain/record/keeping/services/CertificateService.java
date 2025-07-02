@@ -1,23 +1,27 @@
 package com.example.blockchain.record.keeping.services;
+import com.example.blockchain.record.keeping.annotation.Auditable;
 import com.example.blockchain.record.keeping.configs.Constants;
 import com.example.blockchain.record.keeping.dtos.request.*;
+import com.example.blockchain.record.keeping.enums.ActionType;
+import com.example.blockchain.record.keeping.enums.Entity;
+import com.example.blockchain.record.keeping.enums.LogTemplate;
 import com.example.blockchain.record.keeping.enums.Status;
+import com.example.blockchain.record.keeping.exceptions.BadRequestException;
 import com.example.blockchain.record.keeping.models.*;
 import com.example.blockchain.record.keeping.repositorys.*;
-import com.example.blockchain.record.keeping.response.CertificateOfStudentResponse;
-import com.example.blockchain.record.keeping.response.CertificateResponse;
-import com.example.blockchain.record.keeping.response.CountCertificateTypeResponse;
-import com.example.blockchain.record.keeping.response.MonthlyCertificateStatisticsResponse;
+import com.example.blockchain.record.keeping.response.*;
 import com.example.blockchain.record.keeping.utils.PinataUploader;
 import com.example.blockchain.record.keeping.utils.QrCodeUtil;
 import com.example.blockchain.record.keeping.utils.RSAUtil;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.web3j.protocol.Web3j;
+
 import java.security.PrivateKey;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -38,6 +42,10 @@ public class CertificateService implements ICertificateService{
     private final QrCodeUtil qrCodeUtil;
     private final StudentRepository studentRepository;
     private final BlockChainService blockChainService;
+    private final AuditLogService auditLogService;
+    private final HttpServletRequest httpServletRequest;
+    private final LogRepository logRepository;
+    private final ActionChangeRepository actionChangeRepository;
 
     @Autowired
     private Web3j web3j;
@@ -211,9 +219,9 @@ public class CertificateService implements ICertificateService{
                     certificate.getStudent().getStudentClass().getName(),
                     certificate.getStudent().getStudentClass().getDepartment().getName(),
                     certificate.getIssueDate(),
-                    convertStatusToDisplay(certificate.getStatus()),
+                    certificate.getStatus().getLabel(),
                     certificate.getDiplomaNumber(),
-                    certificate.getDiplomaNumber(),
+                    certificate.getUniversityCertificateType().getCertificateType().getName(),
                     certificate.getCreatedAt()
             );
             result.add(response);
@@ -227,12 +235,37 @@ public class CertificateService implements ICertificateService{
     }
 
     @Override
+    public boolean existByDiplomaNumber(Long universityId, String diplomaNumber) {
+        Certificate certificate = certificateRepository.existByDiplomaNumber(universityId,diplomaNumber);
+        if(certificate == null){
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public boolean existByDiplomaNumberIgnoreId(Long universityId, String diplomaNumber, Long certificateId) {
+        Certificate certificate = certificateRepository.existByDiplomaNumberIgnoreId(universityId,diplomaNumber, certificateId);
+        if(certificate == null){
+            return false;
+        }
+        return true;
+    }
+
+    @Override
     public List<Certificate> listCertificateOfUniversity(Long universittyId, String departmentName, String className, String studentCode, String studentName, String diplomaNumber, int limit, int offset){
         return certificateRepository.findPagedCertificates(universittyId,departmentName,className,studentCode,studentName, diplomaNumber, limit, offset);
     }
 
     @Override
-    public Certificate update(Certificate certificate, CertificateRequest request) {
+    public boolean update(Long certificateId, CertificateRequest request) {
+        Certificate certificate = certificateRepository.findByIdAndStatus(certificateId,Status.PENDING);
+
+        if(certificate == null){
+            throw  new BadRequestException("Chứng chỉ này đã được duyệt không chỉnh sửa được!");
+        }
+        Certificate certificateOld = auditLogService.cloneCertificate(certificate);
+
         ZonedDateTime vietnamTime = ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
@@ -258,7 +291,29 @@ public class CertificateService implements ICertificateService{
 
         String image = graphicsTextWriter.drawCertificateText(printData);
         certificate.setImageUrl(image);
-        return certificateRepository.save(certificate);
+        certificateRepository.save(certificate);
+        Certificate certificateNew = certificate;
+
+        String ipAdress = auditLogService.getClientIp(httpServletRequest);
+        List<ActionChange> changes = auditLogService.compareObjects(null, certificateOld, certificateNew);
+        if (!changes.isEmpty()) {// nếu khác old mới lưu
+            Log log = new Log();
+            log.setUser(auditLogService.getCurrentUser());
+            log.setActionType(ActionType.UPDATED);
+            log.setEntityName(Entity.certificates);
+            log.setEntityId(certificateId);
+            log.setDescription(LogTemplate.UPDATE_CERTIFICATE.getName());
+            log.setIpAddress(ipAdress);
+            log.setCreatedAt(vietnamTime.toLocalDateTime());
+
+            log = logRepository.save(log);
+
+            for (ActionChange change : changes) {
+                change.setLog(log);
+            }
+            actionChangeRepository.saveAll(changes);
+        }
+        return true;
     }
 
     @Override
@@ -314,12 +369,24 @@ public class CertificateService implements ICertificateService{
         certificate.setStatus(Status.PENDING);
         certificate.setCreatedAt(vietnamTime.toLocalDateTime());
         certificate.setUpdatedAt(vietnamTime.toLocalDateTime());
-        // Lưu certificate
         certificateRepository.save(certificate);
+
+        //log
+        String ipAdress = auditLogService.getClientIp(httpServletRequest);
+        Log log = new Log();
+        log.setUser(auditLogService.getCurrentUser());
+        log.setActionType(ActionType.CREATED);
+        log.setEntityName(Entity.certificates);
+        log.setEntityId(certificate.getId());
+        log.setDescription("Tạo chứng chỉ cho một sinh viên");
+        log.setIpAddress(ipAdress);
+        log.setCreatedAt(vietnamTime.toLocalDateTime());
+        logRepository.save(log);
     }
 
-    // them dau moc ch ch
+    // them dau moc 1 ch ch
     @Transactional
+    @Auditable(action = ActionType.VERIFIED, entity = Entity.certificates)
     public void certificateValidation (University university,Long idCertificate) throws Exception {
         try {
             ZonedDateTime vietnamTime = ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
@@ -343,12 +410,6 @@ public class CertificateService implements ICertificateService{
 
             certificate.setStatus(Status.APPROVED);
             certificate.setUpdatedAt(vietnamTime.toLocalDateTime());
-            brevoApiEmailService.sendEmailsToStudentsExcel(
-                    certificate.getStudent().getEmail(),
-                    certificate.getStudent().getName(),
-                    university.getName(),
-                    certificateUrl,
-                    "Chứng chỉ");
 
             CertificateBlockchainRequest request = new CertificateBlockchainRequest(
                     certificate.getStudent().getName(),
@@ -362,45 +423,128 @@ public class CertificateService implements ICertificateService{
             String json = objectMapper.writeValueAsString(request);
             String encryptedHex = rsaUtil.encryptWithPrivateKeyToHex(json, privateKey);
 
-            //gửi blockchain và lấy txHash naof goij thi mo
             String txHash = blockChainService.issue(encryptedHex);
-
-//            String txHash = "123"; //sua
             certificate.setBlockchainTxHash(txHash);
+
+            brevoApiEmailService.sendEmailsToStudentsExcel(
+                    certificate.getStudent().getEmail(),
+                    certificate.getStudent().getName(),
+                    university.getName(),
+                    certificateUrl,
+                    "Chứng chỉ");
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
+    // xác nhận 1 list ch ch
+    @Transactional
+    public void confirmCertificates(List<Long> ids, University university, HttpServletRequest request) throws Exception {
+        ZonedDateTime vietnamTime = ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+
+        for (Long id : ids) {
+            Certificate certificate = certificateRepository.findById(id)
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy chứng chỉ có id " + id));
+
+            String imageUrl = graphicsTextWriter.certificateValidation(certificate.getImageUrl(), university.getSealImageUrl());
+            certificate.setImageUrl(imageUrl);
+
+            String ipfsUrl = PinataUploader.uploadFromUrlToPinata(imageUrl);
+            certificate.setIpfsUrl(ipfsUrl);
+
+            String certificateUrl = Constants.VERIFY_URL + ipfsUrl + "&type=certificate";
+            String qrBase64 = qrCodeUtil.generateQRCodeBase64(certificateUrl, 250, 250);
+            certificate.setQrCodeUrl(qrBase64);
+
+            certificate.setStatus(Status.APPROVED);
+            certificate.setUpdatedAt(vietnamTime.toLocalDateTime());
+
+            CertificateBlockchainRequest bcRequest = new CertificateBlockchainRequest(
+                    certificate.getStudent().getName(),
+                    university.getName(),
+                    certificate.getIssueDate().format(formatter),
+                    certificate.getDiplomaNumber(),
+                    ipfsUrl
+            );
+            String privateKeyBase64 = university.getPrivateKey();
+            PrivateKey privateKey = RSAKeyPairGenerator.getPrivateKeyFromBase64(privateKeyBase64);
+            String json = objectMapper.writeValueAsString(bcRequest);
+            String encryptedHex = rsaUtil.encryptWithPrivateKeyToHex(json, privateKey);
+            String txHash = blockChainService.issue(encryptedHex);
+            certificate.setBlockchainTxHash(txHash);
+
+            brevoApiEmailService.sendEmailsToStudentsExcel(
+                    certificate.getStudent().getEmail(),
+                    certificate.getStudent().getName(),
+                    university.getName(),
+                    certificateUrl,
+                    "Chứng chỉ"
+            );
+        }
+
+        List<Certificate> certificates = certificateRepository.findAllById(ids);
+        certificateRepository.saveAll(certificates);
+
+        // ghi log
+        String ipAdress = auditLogService.getClientIp(httpServletRequest);
+        Log log = new Log();
+        log.setUser(auditLogService.getCurrentUser());
+        log.setActionType(ActionType.VERIFIED);
+        log.setEntityName(Entity.certificates);
+        log.setEntityId(null);
+        log.setDescription(LogTemplate.VERIFIED_CERTIFICATE.format(ids.size()));
+        log.setCreatedAt(vietnamTime.toLocalDateTime());
+        log.setIpAddress(ipAdress);
+        logRepository.save(log);
+    }
+
     // từ chối xác nhận chứng chỉ
     @Transactional
-    public void certificateRejected (University university,Long idCertificate) throws Exception {
+    @Auditable(action = ActionType.REJECTED, entity = Entity.certificates)
+    public Certificate certificateRejected (Long idCertificate) throws Exception {
         try {
             ZonedDateTime vietnamTime = ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
-
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
             Certificate certificate = certificateRepository.findById(idCertificate)
                     .orElseThrow(() -> new RuntimeException("Không tìm thấy chứng chỉ có id " + idCertificate));
 
             certificate.setStatus(Status.REJECTED);
             certificate.setUpdatedAt(vietnamTime.toLocalDateTime());
+            return certificate;
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
+    // từ chối 1 list
+    @Transactional
+    public void rejectCertificates(List<Long> ids) {
+        ZonedDateTime vietnamTime = ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
+
+        List<Certificate> certificates = certificateRepository.findAllById(ids);
+        for (Certificate cert : certificates) {
+            cert.setStatus(Status.REJECTED);
+            cert.setUpdatedAt(vietnamTime.toLocalDateTime());
+        }
+
+        certificateRepository.saveAll(certificates);
+
+        // ghi log
+        String ipAdress = auditLogService.getClientIp(httpServletRequest);
+        Log log = new Log();
+        log.setUser(auditLogService.getCurrentUser());
+        log.setActionType(ActionType.VERIFIED);
+        log.setEntityName(Entity.certificates);
+        log.setEntityId(null);
+        log.setDescription(LogTemplate.REJECTED_CERTIFICATE.format(ids.size()));
+        log.setCreatedAt(vietnamTime.toLocalDateTime());
+        log.setIpAddress(ipAdress);
+        logRepository.save(log);
+    }
+
 
     public Set<String> findAllDiplomaNumbers(Collection<String> diplomaNumbers) {
         return new HashSet<>(certificateRepository.findExistingDiplomaNumbers(diplomaNumbers));
-    }
-
-    private String convertStatusToDisplay(Status status) {
-        return switch (status) {
-            case PENDING -> "Chưa duyệt";
-            case APPROVED -> "Đã duyệt";
-            case REJECTED -> "Đã từ chối";
-            default -> "Không xác định";
-        };
     }
 }

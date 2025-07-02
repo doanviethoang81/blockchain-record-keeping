@@ -1,19 +1,21 @@
 package com.example.blockchain.record.keeping.services;
 
+import com.example.blockchain.record.keeping.annotation.Auditable;
 import com.example.blockchain.record.keeping.configs.Constants;
 import com.example.blockchain.record.keeping.dtos.request.*;
+import com.example.blockchain.record.keeping.enums.ActionType;
+import com.example.blockchain.record.keeping.enums.Entity;
+import com.example.blockchain.record.keeping.enums.LogTemplate;
 import com.example.blockchain.record.keeping.enums.Status;
 import com.example.blockchain.record.keeping.models.*;
-import com.example.blockchain.record.keeping.repositorys.CertificateRepository;
-import com.example.blockchain.record.keeping.repositorys.DegreeRepository;
-import com.example.blockchain.record.keeping.repositorys.DegreeTitleRepository;
-import com.example.blockchain.record.keeping.repositorys.StudentRepository;
+import com.example.blockchain.record.keeping.repositorys.*;
 import com.example.blockchain.record.keeping.response.*;
 import com.example.blockchain.record.keeping.utils.PinataUploader;
 import com.example.blockchain.record.keeping.utils.QrCodeUtil;
 import com.example.blockchain.record.keeping.utils.RSAUtil;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,6 +46,10 @@ public class DegreeService implements IDegreeService{
     private final QrCodeUtil qrCodeUtil;
     private final BlockChainService blockChainService;
     private final BrevoApiEmailService brevoApiEmailService;
+    private final AuditLogService auditLogService;
+    private final ActionChangeRepository actionChangeRepository;
+    private final LogRepository logRepository;
+    private final HttpServletRequest httpServletRequest;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -52,7 +58,8 @@ public class DegreeService implements IDegreeService{
     private RSAUtil rsaUtil;
 
     @Transactional
-    public void createDegree(DegreeRequest request) {
+    @Auditable(action = ActionType.CREATED, entity = Entity.degrees)
+    public Degree createDegree(DegreeRequest request) {
         ZonedDateTime vietnamTime = ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
         Student student = studentService.findById(request.getStudentId());
@@ -101,9 +108,8 @@ public class DegreeService implements IDegreeService{
 
         String image_url = graphicsTextWriter.drawDegreeText(degreePrintData);
 
-
         degree.setImageUrl(image_url);
-        degreeRepository.save(degree);
+        return degreeRepository.save(degree);
     }
 
 
@@ -140,6 +146,8 @@ public class DegreeService implements IDegreeService{
         LocalDate issueDate = LocalDate.parse(request.getIssueDate(), formatter);
 
         Degree degree = findById(id);
+        Degree degreeOld = auditLogService.cloneDegree(degree);
+
         degree.setRating(rating);
         degree.setDegreeTitle(degreeTitle);
         degree.setEducationMode(educationMode);
@@ -172,7 +180,29 @@ public class DegreeService implements IDegreeService{
         String image_url = graphicsTextWriter.drawDegreeText(degreePrintData);
 
         degree.setImageUrl(image_url);
-        return degreeRepository.save(degree);
+        Degree degreeNew = degreeRepository.save(degree);
+
+        String ipAdress = auditLogService.getClientIp(httpServletRequest);
+        List<ActionChange> changes = auditLogService.compareObjects(null, degreeOld, degreeNew);
+        if (!changes.isEmpty()) {// nếu khác old mới lưu
+            Log log = new Log();
+            log.setUser(auditLogService.getCurrentUser());
+            log.setActionType(ActionType.UPDATED);
+            log.setEntityName(Entity.degrees);
+            log.setEntityId(id);
+            log.setDescription(LogTemplate.UPDATE_DEGREES.getName());
+            log.setIpAddress(ipAdress);
+            log.setCreatedAt(vietnamTime.toLocalDateTime());
+
+            log = logRepository.save(log);
+
+            for (ActionChange change : changes) {
+                change.setLog(log);
+            }
+            actionChangeRepository.saveAll(changes);
+        }
+
+        return degreeNew;
     }
 
     @Override
@@ -293,12 +323,48 @@ public class DegreeService implements IDegreeService{
                 d.getStudent().getStudentClass().getName(),
                 d.getStudent().getStudentClass().getDepartment().getName(),
                 d.getIssueDate(),
-                convertStatusToDisplay(d.getStatus()),
+                d.getStatus().getLabel(),
                 d.getGraduationYear(),
                 d.getDiplomaNumber(),
                 d.getUpdatedAt()
         );
         return List.of(response);
+    }
+
+    @Override
+    public boolean existByDiplomanumber(Long universityId, String diplomaNumber) {
+        Degree degree = degreeRepository.existByDiplomaNumber(universityId,diplomaNumber);
+        if(degree == null){
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public boolean existByLotteryNumber(Long universityId, String lotteryNumber) {
+        Degree degree = degreeRepository.existByLotteryNumber(universityId,lotteryNumber);
+        if(degree == null){
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public boolean existByDiplomanumberIngnoreId(Long universityId, String diplomaNumber, Long degreeId) {
+        Degree degree = degreeRepository.existByDiplomaNumberIgnoreId(universityId,diplomaNumber,degreeId);
+        if(degree == null){
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public boolean existByLotteryNumberIngnoreId(Long universityId, String lotteryNumber, Long degreeId) {
+        Degree degree = degreeRepository.existByLotteryNumberIgnoreId(universityId,lotteryNumber,degreeId);
+        if(degree == null){
+            return false;
+        }
+        return true;
     }
 
 
@@ -321,6 +387,7 @@ public class DegreeService implements IDegreeService{
 
     // xác nhận them dau moc van bang
     @Transactional
+    @Auditable(action = ActionType.VERIFIED, entity = Entity.degrees)
     public void degreeValidation (University university,Long degreeId) throws Exception {
         try {
             ZonedDateTime vietnamTime = ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
@@ -341,16 +408,8 @@ public class DegreeService implements IDegreeService{
 
             String qrBase64 = qrCodeUtil.generateQRCodeBase64(certificateUrl, 250, 250);
             degree.setQrCode(qrBase64);
-
             degree.setStatus(Status.APPROVED);
             degree.setUpdatedAt(vietnamTime.toLocalDateTime());
-            // gửi emial
-            brevoApiEmailService.sendEmailsToStudentsExcel(
-                    degree.getStudent().getEmail(),
-                    degree.getStudent().getName(),
-                    university.getName(),
-                    certificateUrl,
-                    "Văn bằng");
 
             // lấy thông tin vb lưu block
             DegreeBlockchainRequest request = new DegreeBlockchainRequest(
@@ -368,17 +427,86 @@ public class DegreeService implements IDegreeService{
 
             //gửi blockchain và lấy txHash naof goij thi mo
             String txHash = blockChainService.issue(encryptedHex);
-
-//            String txHash = "123"; //sua
             degree.setBlockchainTxHash(txHash);
+
+            // gửi emial
+            brevoApiEmailService.sendEmailsToStudentsExcel(
+                    degree.getStudent().getEmail(),
+                    degree.getStudent().getName(),
+                    university.getName(),
+                    certificateUrl,
+                    "Văn bằng");
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
+    // xác nhận 1 list
+    @Transactional
+    public void approveDegreeList(List<Long> ids, University university, HttpServletRequest request) throws Exception {
+        ZonedDateTime vietnamTime = ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+
+        for (Long id : ids) {
+            Degree degree = degreeRepository.findById(id)
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy văn bằng có id " + id));
+
+            String imageUrl = graphicsTextWriter.degreeValidation(degree.getImageUrl(), university.getSealImageUrl());
+            degree.setImageUrl(imageUrl);
+
+            //IPFS & QR
+            String ipfsUrl = PinataUploader.uploadFromUrlToPinata(imageUrl);
+            degree.setIpfsUrl(ipfsUrl);
+            String verifyUrl = Constants.VERIFY_URL + ipfsUrl + "&type=degree";
+            String qrBase64 = qrCodeUtil.generateQRCodeBase64(verifyUrl, 250, 250);
+            degree.setQrCode(qrBase64);
+            degree.setStatus(Status.APPROVED);
+            degree.setUpdatedAt(vietnamTime.toLocalDateTime());
+
+            DegreeBlockchainRequest bcRequest = new DegreeBlockchainRequest(
+                    degree.getStudent().getName(),
+                    university.getName(),
+                    degree.getIssueDate().format(formatter),
+                    degree.getDiplomaNumber(),
+                    degree.getLotteryNumber(),
+                    ipfsUrl
+            );
+            String privateKeyBase64 = university.getPrivateKey();
+            PrivateKey privateKey = RSAKeyPairGenerator.getPrivateKeyFromBase64(privateKeyBase64);
+            String json = objectMapper.writeValueAsString(bcRequest);
+            String encryptedHex = rsaUtil.encryptWithPrivateKeyToHex(json, privateKey);
+
+            String txHash = blockChainService.issue(encryptedHex);
+            degree.setBlockchainTxHash(txHash);
+
+            //email
+            brevoApiEmailService.sendEmailsToStudentsExcel(
+                    degree.getStudent().getEmail(),
+                    degree.getStudent().getName(),
+                    university.getName(),
+                    verifyUrl,
+                    "Văn bằng");
+        }
+        List<Degree> degrees = degreeRepository.findAllById(ids);
+        degreeRepository.saveAll(degrees);
+
+        //log
+        String ipAdress = auditLogService.getClientIp(httpServletRequest);
+        Log log = new Log();
+        log.setUser(auditLogService.getCurrentUser());
+        log.setActionType(ActionType.VERIFIED);
+        log.setEntityName(Entity.degrees);
+        log.setEntityId(null);
+        log.setDescription(LogTemplate.VERIFIED_DEGREE.format(ids.size()));
+        log.setIpAddress(ipAdress);
+        log.setCreatedAt(vietnamTime.toLocalDateTime());
+        logRepository.save(log);
+    }
+
     //từ chối xác nhận van bang
     @Transactional
-    public void degreeRejected (University university,Long degreeId) throws Exception {
+    @Auditable(action = ActionType.REJECTED, entity = Entity.degrees)
+    public Degree degreeRejected (Long degreeId) throws Exception {
         try {
             ZonedDateTime vietnamTime = ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
 
@@ -387,11 +515,37 @@ public class DegreeService implements IDegreeService{
 
             degree.setStatus(Status.REJECTED);
             degree.setUpdatedAt(vietnamTime.toLocalDateTime());
+            return degree;
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
+    //từ chối 1 list van bang
+    @Transactional
+    public void rejectDegreeList(List<Long> ids) {
+        ZonedDateTime vietnamTime = ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
+
+        List<Degree> degrees = degreeRepository.findAllById(ids);
+        for (Degree degree : degrees) {
+            degree.setStatus(Status.REJECTED);
+            degree.setUpdatedAt(vietnamTime.toLocalDateTime());
+        }
+
+        degreeRepository.saveAll(degrees);
+
+        //log
+        String ipAdress = auditLogService.getClientIp(httpServletRequest);
+        Log log = new Log();
+        log.setUser(auditLogService.getCurrentUser());
+        log.setActionType(ActionType.REJECTED);
+        log.setEntityName(Entity.degrees);
+        log.setEntityId(null);
+        log.setDescription(LogTemplate.REJECTED_DEGREES.format(ids.size()));
+        log.setIpAddress(ipAdress);
+        log.setCreatedAt(vietnamTime.toLocalDateTime());
+        logRepository.save(log);
+    }
 
 
     public List<FacultyDegreeStatisticResponse> getFacultyDegreeStatistics(Long universityId) {
@@ -413,15 +567,5 @@ public class DegreeService implements IDegreeService{
 
         return response;
     }
-
-    private String convertStatusToDisplay(Status status) {
-        return switch (status) {
-            case PENDING -> "Chưa duyệt";
-            case APPROVED -> "Đã duyệt";
-            case REJECTED -> "Đã từ chối";
-            default -> "Không xác định";
-        };
-    }
-
 }
 

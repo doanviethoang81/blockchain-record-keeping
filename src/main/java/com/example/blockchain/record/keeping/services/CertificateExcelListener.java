@@ -6,10 +6,16 @@ import com.alibaba.excel.metadata.CellExtra;
 import com.example.blockchain.record.keeping.dtos.CertificateExcelRowDTO;
 import com.example.blockchain.record.keeping.dtos.request.CertificatePrintData;
 import com.example.blockchain.record.keeping.dtos.request.DegreeExcelRowRequest;
+import com.example.blockchain.record.keeping.enums.ActionType;
+import com.example.blockchain.record.keeping.enums.Entity;
+import com.example.blockchain.record.keeping.enums.LogTemplate;
 import com.example.blockchain.record.keeping.enums.Status;
 import com.example.blockchain.record.keeping.exceptions.BadRequestException;
 import com.example.blockchain.record.keeping.exceptions.ListBadRequestException;
 import com.example.blockchain.record.keeping.models.*;
+import com.example.blockchain.record.keeping.repositorys.ActionChangeRepository;
+import com.example.blockchain.record.keeping.repositorys.LogRepository;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
@@ -33,17 +39,23 @@ public class CertificateExcelListener extends AnalysisEventListener<CertificateE
     private final UniversityCertificateType universityCertificateType;
     private final CertificateService certificateService;
     private final GraphicsTextWriter graphicsTextWriter;
+    private final AuditLogService auditLogService;
+    private final LogRepository logRepository;
+    private final HttpServletRequest httpServletRequest;
 
     public CertificateExcelListener(
             StudentService studentService,
             Long departmentId,
             UniversityCertificateType universityCertificateType,
-            CertificateService certificateService, GraphicsTextWriter graphicsTextWriter) {
+            CertificateService certificateService, GraphicsTextWriter graphicsTextWriter, AuditLogService auditLogService, LogRepository logRepository, HttpServletRequest httpServletRequest) {
         this.studentService = studentService;
         this.departmentId = departmentId;
         this.universityCertificateType = universityCertificateType;
         this.certificateService = certificateService;
         this.graphicsTextWriter = graphicsTextWriter;
+        this.auditLogService = auditLogService;
+        this.logRepository = logRepository;
+        this.httpServletRequest = httpServletRequest;
     }
 
     private final List<CertificateExcelRowDTO> rows = new ArrayList<>();
@@ -225,9 +237,19 @@ public class CertificateExcelListener extends AnalysisEventListener<CertificateE
                 throw new RuntimeException("Lỗi tạo ảnh cho chứng chỉ", e);
             }
         }
-
         executor.shutdown();
         certificateService.saveAll(certificatesToSave);
-    }
 
+        //log
+        String ipAdress = auditLogService.getClientIp(httpServletRequest);
+        Log log = new Log();
+        log.setUser(auditLogService.getCurrentUser());
+        log.setActionType(ActionType.CREATED);
+        log.setEntityName(Entity.certificates);
+        log.setEntityId(null);
+        log.setDescription(LogTemplate.IMPORT_CERTIFICATE.format(rows.size()));
+        log.setIpAddress(ipAdress);
+        log.setCreatedAt(now.toLocalDateTime());
+        logRepository.save(log);
+    }
 }

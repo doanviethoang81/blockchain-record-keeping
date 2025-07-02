@@ -40,7 +40,7 @@ public interface ICertificateService {
 
     List<Certificate> listCertificateOfUniversity(Long universittyId, String departmentName,String className, String studentCode, String studentName, String diplomaNumber, int limit, int offset);
 
-    Certificate update(Certificate certificate, CertificateRequest certificateRequest);
+    boolean update(Long certificateId, CertificateRequest certificateRequest);
 
     List<Certificate> listCertificateOfUniversityAndStatus(Long universittyId, String departmentName, String className, String studentCode, String studentName,String diplomaNumber, String status, int limit, int offset);
 
@@ -69,4 +69,8 @@ public interface ICertificateService {
     List<CertificateOfStudentResponse> certificateOfStudent(Long studentId, String diplomaNumber, int limit, int offset);
 
     long countCertificateOfStudent(Long studentId, String diplomaNumber);
+
+    boolean existByDiplomaNumber(Long universityId, String diplomaNumber);
+
+    boolean existByDiplomaNumberIgnoreId(Long universityId, String diplomaNumber, Long certificateId);
 }

@@ -5,11 +5,15 @@ import com.example.blockchain.record.keeping.dtos.StatisticsDepartmentDTO;
 import com.example.blockchain.record.keeping.dtos.StatisticsUniversityDTO;
 import com.example.blockchain.record.keeping.dtos.request.ChangePasswordDepartmentRequest;
 import com.example.blockchain.record.keeping.dtos.request.ChangePasswordRequest;
+import com.example.blockchain.record.keeping.enums.ActionType;
+import com.example.blockchain.record.keeping.enums.Entity;
+import com.example.blockchain.record.keeping.enums.LogTemplate;
 import com.example.blockchain.record.keeping.enums.Status;
 import com.example.blockchain.record.keeping.exceptions.BadRequestException;
 import com.example.blockchain.record.keeping.models.*;
 import com.example.blockchain.record.keeping.repositorys.*;
 import com.example.blockchain.record.keeping.response.UserResponse;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -32,7 +36,10 @@ public class UserService implements IUserService{
     private final PermissionRepository permissionRepository;
     private final UserPermissionRepository userPermissionRepository;
     private final DepartmentRepository departmentRepository;
-
+    private final AuditLogService auditLogService;
+    private final HttpServletRequest httpServletRequest;
+    private final LogRepository logRepository;
+    private final ActionChangeRepository actionChangeRepository;
 
     @Override
     public User findByUser(String email) {
@@ -113,6 +120,9 @@ public class UserService implements IUserService{
         Optional<User> userOptional = userRepository.findById(id);
         Department department = departmentRepository.findById(userOptional.get().getDepartment().getId())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy khoa") );
+
+        User userOld = auditLogService.cloneUser(userOptional);
+
         if (userOptional.isPresent()) {
             User user = userOptional.get();
             user.setPassword(passwordEncoder.encode(changePasswordDepartmentRequest.getNewPassword()));
@@ -121,6 +131,25 @@ public class UserService implements IUserService{
 
             department.setUpdatedAt(vietnamTime.toLocalDateTime());
             departmentRepository.save(department);
+
+            String ipAdress = auditLogService.getClientIp(httpServletRequest);
+            Log log = new Log();
+            log.setUser(auditLogService.getCurrentUser());
+            log.setActionType(ActionType.CHANGE_PASSWORD_DEPARTMENT);
+            log.setEntityName(Entity.departments);
+            log.setEntityId(department.getId());
+            log.setDescription(LogTemplate.CHANGE_PASSWORD_DEPARTMENT.getName());
+            log.setIpAddress(ipAdress);
+            log.setCreatedAt(vietnamTime.toLocalDateTime());
+            log = logRepository.save(log);
+
+            User userNew = user;
+
+            List<ActionChange> changes = auditLogService.compareObjects(log, userOld, userNew);
+            if (!changes.isEmpty()) {
+                actionChangeRepository.saveAll(changes);
+                logRepository.save(log);
+            }
             return true;
         }
         return false;

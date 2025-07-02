@@ -3,6 +3,7 @@ package com.example.blockchain.record.keeping.repositorys;
 import com.example.blockchain.record.keeping.dtos.request.DegreeClassificationStatisticsRequest;
 import com.example.blockchain.record.keeping.dtos.request.FacultyDegreeStatisticRequest;
 import com.example.blockchain.record.keeping.enums.Status;
+import com.example.blockchain.record.keeping.models.Certificate;
 import com.example.blockchain.record.keeping.models.Degree;
 import com.example.blockchain.record.keeping.models.Student;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -294,4 +295,71 @@ public interface DegreeRepository extends JpaRepository<Degree,Long> {
             ORDER BY d.updated_at DESC
             """,nativeQuery = true)
     Optional<Degree> degreeOfStudent(@Param("studentId") Long studentId);
+
+    //kiem tra số hiệu bằng văn bằng
+    @Query(value = """
+        SELECT d.*
+        FROM degrees d
+        JOIN students s on d.student_id = s.id
+        Join student_class sc on s.student_class_id = sc.id
+        join departments dp on sc.department_id = dp.id
+        join universitys u ON dp.university_id = u.id
+        WHERE u.id = :universityId
+        AND d.diploma_number = :diplomaNumber
+        AND (d.status LIKE 'APPROVED' OR d.status LIKE 'PENDING');
+        """,nativeQuery = true)
+    Degree existByDiplomaNumber(@Param("universityId") Long universityId,
+                                     @Param("diplomaNumber") String diplomaNumber
+    );
+
+    //kiem tra số vào sổ văn bằng
+    @Query(value = """
+        SELECT d.*
+        FROM degrees d
+        JOIN students s on d.student_id = s.id
+        Join student_class sc on s.student_class_id = sc.id
+        join departments dp on sc.department_id = dp.id
+        join universitys u ON dp.university_id = u.id
+        WHERE u.id = :universityId
+        AND d.lottery_number = :lotteryNumber
+        AND (d.status LIKE 'APPROVED' OR d.status LIKE 'PENDING');
+        """,nativeQuery = true)
+    Degree existByLotteryNumber(@Param("universityId") Long universityId,
+                                @Param("lotteryNumber") String lotteryNumber
+    );
+
+    //kiem tra de update k lấy id
+    @Query(value = """
+    SELECT d.*
+    FROM degrees d
+    JOIN students s ON d.student_id = s.id
+    JOIN student_class sc ON s.student_class_id = sc.id
+    JOIN departments dp ON sc.department_id = dp.id
+    JOIN universitys u ON dp.university_id = u.id
+    WHERE u.id = :universityId
+      AND d.diploma_number = :diplomaNumber
+      AND d.id != :degreeId
+      AND (d.status = 'APPROVED' OR d.status = 'PENDING')
+    """, nativeQuery = true)
+    Degree existByDiplomaNumberIgnoreId(@Param("universityId") Long universityId,
+                                @Param("diplomaNumber") String diplomaNumber,
+                                @Param("degreeId") Long degreeId);
+
+    //kiem tra de update k lấy id
+    @Query(value = """
+    SELECT d.*
+    FROM degrees d
+    JOIN students s ON d.student_id = s.id
+    JOIN student_class sc ON s.student_class_id = sc.id
+    JOIN departments dp ON sc.department_id = dp.id
+    JOIN universitys u ON dp.university_id = u.id
+    WHERE u.id = :universityId
+      AND d.lottery_number = :lotteryNumber
+      AND d.id != :degreeId
+      AND (d.status = 'APPROVED' OR d.status = 'PENDING')
+    """, nativeQuery = true)
+    Degree existByLotteryNumberIgnoreId(@Param("universityId") Long universityId,
+                                @Param("lotteryNumber") String lotteryNumber,
+                                @Param("degreeId") Long degreeId);
+
 }
