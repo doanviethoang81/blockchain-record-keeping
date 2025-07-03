@@ -47,9 +47,11 @@ public class AuditAspect {
         String ipAdress = getClientIp(request);
         ZonedDateTime vietnamTime = ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
 
-        String description = LogMessageTemplate.getMessage(auditable.entity(),auditable.action());
+        String dynamicDescription = AuditingContext.getDescription();
+        String description = (dynamicDescription != null && !dynamicDescription.isBlank())
+                ? dynamicDescription
+                : LogMessageTemplate.getMessage(auditable.entity(), auditable.action());
 
-        // Ghi log
         Log log = new Log();
         log.setUser(getCurrentUser());
         log.setActionType(auditable.action());
@@ -61,6 +63,9 @@ public class AuditAspect {
         log.setCreatedAt(vietnamTime.toLocalDateTime());
 
         logRepository.save(log);
+
+        AuditingContext.clear();
+
         return result;
     }
 

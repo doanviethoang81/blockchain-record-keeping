@@ -1,6 +1,7 @@
 package com.example.blockchain.record.keeping.services;
 
 import com.example.blockchain.record.keeping.annotation.Auditable;
+import com.example.blockchain.record.keeping.aspect.AuditingContext;
 import com.example.blockchain.record.keeping.dtos.CertificateTypeDTO;
 import com.example.blockchain.record.keeping.enums.ActionType;
 import com.example.blockchain.record.keeping.enums.Entity;
@@ -39,6 +40,7 @@ public class CertificateTypeService implements ICertificateTypeService{
     @Override
     @Auditable(action = ActionType.CREATED, entity = Entity.certificate_types )
     public CertificateType createCertificateType(CertificateType certificateType) {
+        AuditingContext.setDescription("Tạo loại chứng chỉ tên: " + certificateType.getCreatedAt());
         return certificateTypeRepository.save(certificateType);
     }
 
@@ -79,7 +81,7 @@ public class CertificateTypeService implements ICertificateTypeService{
             log.setActionType(ActionType.UPDATED);
             log.setEntityName(Entity.certificate_types);
             log.setEntityId(id);
-            log.setDescription(LogTemplate.UPDATE_CERTIFICATE_TYPE.getName());
+            log.setDescription(LogTemplate.UPDATE_CERTIFICATE_TYPE.format(certificateType.getName()));
             log.setIpAddress(ipAdress);
             log.setCreatedAt(vietnamTime.toLocalDateTime());
 
@@ -101,6 +103,7 @@ public class CertificateTypeService implements ICertificateTypeService{
 
         certificateType.setStatus(Status.DELETED);
         certificateType.setUpdatedAt(vietnamTime.toLocalDateTime());
+        AuditingContext.setDescription("Xóa loại chứng chỉ:" + certificateType.getName());
         return certificateTypeRepository.save(certificateType);
     }
 

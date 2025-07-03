@@ -1,6 +1,7 @@
 package com.example.blockchain.record.keeping.services;
 
 import com.example.blockchain.record.keeping.annotation.Auditable;
+import com.example.blockchain.record.keeping.aspect.AuditingContext;
 import com.example.blockchain.record.keeping.enums.ActionType;
 import com.example.blockchain.record.keeping.enums.Entity;
 import com.example.blockchain.record.keeping.enums.LogTemplate;
@@ -73,6 +74,7 @@ public class StudentClassService implements IStudentClassService{
         StudentClass studentClass = findById(id);
         studentClass.setStatus(Status.DELETED);
         studentClass.setUpdatedAt(vietnamTime.toLocalDateTime());
+        AuditingContext.setDescription("Xóa lớp tên: " + studentClass.getName());
         return studentClassRepository.save(studentClass);
     }
 
@@ -103,6 +105,8 @@ public class StudentClassService implements IStudentClassService{
         studentClass.setCreatedAt(vietnamTime.toLocalDateTime());
         studentClass.setUpdatedAt(vietnamTime.toLocalDateTime());
 
+        AuditingContext.setDescription("Tạo lớp tên: " + name);
+
         return studentClassRepository.save(studentClass);
     }
 
@@ -123,7 +127,7 @@ public class StudentClassService implements IStudentClassService{
             log.setActionType(ActionType.UPDATED);
             log.setEntityName(Entity.student_class);
             log.setEntityId(studentClass.getId());
-            log.setDescription(LogTemplate.UPDATE_STUDENT_CLASS.getName());
+            log.setDescription(LogTemplate.UPDATE_STUDENT_CLASS.format(studentClass.getName()));
             log.setIpAddress(ipAdress);
             log.setCreatedAt(vietnamTime.toLocalDateTime());
 

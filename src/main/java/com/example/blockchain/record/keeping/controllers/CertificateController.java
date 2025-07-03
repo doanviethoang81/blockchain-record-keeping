@@ -983,7 +983,7 @@ public class CertificateController {
                 return ApiResponseBuilder.badRequest("Ngày cấp chứng chỉ không đúng định dạng dd/MM/yyyy");
             }
             if(certificateService.existByDiplomaNumber(user.getUniversity().getId(),diplomaNumber.trim())){
-                return ApiResponseBuilder.badRequest("Số hiệu bàng chứng chỉ này đã tồn tại!");
+                return ApiResponseBuilder.badRequest("Số hiệu bằng chứng chỉ này đã tồn tại!");
             }
 
             certificateService.createCertificate(student, jsonNode );

@@ -13,4 +13,5 @@ import java.lang.annotation.Target;
 public @interface Auditable {
     ActionType action();
     Entity entity();
+    String description() default "";
 }

@@ -1,5 +1,6 @@
 package com.example.blockchain.record.keeping.services;
 import com.example.blockchain.record.keeping.annotation.Auditable;
+import com.example.blockchain.record.keeping.aspect.AuditingContext;
 import com.example.blockchain.record.keeping.configs.Constants;
 import com.example.blockchain.record.keeping.dtos.request.*;
 import com.example.blockchain.record.keeping.enums.ActionType;
@@ -302,7 +303,7 @@ public class CertificateService implements ICertificateService{
             log.setActionType(ActionType.UPDATED);
             log.setEntityName(Entity.certificates);
             log.setEntityId(certificateId);
-            log.setDescription(LogTemplate.UPDATE_CERTIFICATE.getName());
+            log.setDescription(LogTemplate.UPDATE_CERTIFICATE.format(certificateNew.getDiplomaNumber()));
             log.setIpAddress(ipAdress);
             log.setCreatedAt(vietnamTime.toLocalDateTime());
 
@@ -378,7 +379,7 @@ public class CertificateService implements ICertificateService{
         log.setActionType(ActionType.CREATED);
         log.setEntityName(Entity.certificates);
         log.setEntityId(certificate.getId());
-        log.setDescription("Tạo chứng chỉ cho một sinh viên");
+        log.setDescription(LogTemplate.CREATE_CERTIFICATE.format(certificate.getDiplomaNumber()));
         log.setIpAddress(ipAdress);
         log.setCreatedAt(vietnamTime.toLocalDateTime());
         logRepository.save(log);
@@ -432,6 +433,7 @@ public class CertificateService implements ICertificateService{
                     university.getName(),
                     certificateUrl,
                     "Chứng chỉ");
+            AuditingContext.setDescription("Xác thực chứng chỉ số hiệu bằng: " + certificate.getDiplomaNumber());
             return certificate;
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -512,6 +514,7 @@ public class CertificateService implements ICertificateService{
 
             certificate.setStatus(Status.REJECTED);
             certificate.setUpdatedAt(vietnamTime.toLocalDateTime());
+            AuditingContext.setDescription("Từ chối xác thực chứng chỉ số hiệu bằng: " + certificate.getDiplomaNumber());
             return certificate;
         } catch (Exception e) {
             throw new RuntimeException(e);

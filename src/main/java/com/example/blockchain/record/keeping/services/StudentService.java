@@ -1,6 +1,7 @@
 package com.example.blockchain.record.keeping.services;
 
 import com.example.blockchain.record.keeping.annotation.Auditable;
+import com.example.blockchain.record.keeping.aspect.AuditingContext;
 import com.example.blockchain.record.keeping.dtos.request.ChangePasswordRequest;
 import com.example.blockchain.record.keeping.dtos.request.StudentRequest;
 import com.example.blockchain.record.keeping.dtos.request.UpdateStudentRequest;
@@ -75,6 +76,9 @@ public class StudentService implements IStudentService{
         student.setPassword(passwordEncoder.encode(studentRequest.getStudentCode()));
         student.setCreatedAt(vietnamTime.toLocalDateTime());
         student.setUpdatedAt(vietnamTime.toLocalDateTime());
+
+        AuditingContext.setDescription("Tạo sinh viên có mã số sinh viên: " + student.getStudentCode());
+
         return studentRepository.save(student);
     }
 
@@ -109,7 +113,7 @@ public class StudentService implements IStudentService{
             log.setActionType(ActionType.UPDATED);
             log.setEntityName(Entity.students);
             log.setEntityId(id);
-            log.setDescription(LogTemplate.UPDATE_STUDENT.getName());
+            log.setDescription(LogTemplate.UPDATE_STUDENT.format(student.getStudentCode()));
             log.setIpAddress(ipAdress);
             log.setCreatedAt(vietnamTime.toLocalDateTime());
 
@@ -133,6 +137,7 @@ public class StudentService implements IStudentService{
                 .orElseThrow(()-> new RuntimeException("Không tìm thấy sinh viên với id "+ id));
         student.setStatus(Status.DELETED);
         student.setUpdatedAt(vietnamTime.toLocalDateTime());
+        AuditingContext.setDescription("Xóa sinh viên có mã số sinh viên: " + student.getStudentCode());
         return studentRepository.save(student);
     }
 

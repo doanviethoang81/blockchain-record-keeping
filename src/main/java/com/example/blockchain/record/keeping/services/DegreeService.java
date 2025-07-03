@@ -1,6 +1,7 @@
 package com.example.blockchain.record.keeping.services;
 
 import com.example.blockchain.record.keeping.annotation.Auditable;
+import com.example.blockchain.record.keeping.aspect.AuditingContext;
 import com.example.blockchain.record.keeping.configs.Constants;
 import com.example.blockchain.record.keeping.dtos.request.*;
 import com.example.blockchain.record.keeping.enums.ActionType;
@@ -109,6 +110,8 @@ public class DegreeService implements IDegreeService{
         String image_url = graphicsTextWriter.drawDegreeText(degreePrintData);
 
         degree.setImageUrl(image_url);
+
+        AuditingContext.setDescription("Tạo văn bằng cho một sinh viên, số hiệu bằng: " + degree.getDiplomaNumber());
         return degreeRepository.save(degree);
     }
 
@@ -190,7 +193,7 @@ public class DegreeService implements IDegreeService{
             log.setActionType(ActionType.UPDATED);
             log.setEntityName(Entity.degrees);
             log.setEntityId(id);
-            log.setDescription(LogTemplate.UPDATE_DEGREES.getName());
+            log.setDescription(LogTemplate.UPDATE_DEGREES.format(degree.getDiplomaNumber()));
             log.setIpAddress(ipAdress);
             log.setCreatedAt(vietnamTime.toLocalDateTime());
 
@@ -436,6 +439,8 @@ public class DegreeService implements IDegreeService{
                     university.getName(),
                     certificateUrl,
                     "Văn bằng");
+
+            AuditingContext.setDescription("Xác thực văn bằng số hiệu bằng: " + degree.getDiplomaNumber());
             return degree;
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -516,6 +521,7 @@ public class DegreeService implements IDegreeService{
 
             degree.setStatus(Status.REJECTED);
             degree.setUpdatedAt(vietnamTime.toLocalDateTime());
+            AuditingContext.setDescription("Từ chối xác thực văn bằng số hiệu văn bằng: " + degree.getDiplomaNumber());
             return degree;
         } catch (Exception e) {
             throw new RuntimeException(e);

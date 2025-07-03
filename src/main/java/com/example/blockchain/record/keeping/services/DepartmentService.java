@@ -1,6 +1,7 @@
 package com.example.blockchain.record.keeping.services;
 
 import com.example.blockchain.record.keeping.annotation.Auditable;
+import com.example.blockchain.record.keeping.aspect.AuditingContext;
 import com.example.blockchain.record.keeping.dtos.request.DepartmentRequest;
 import com.example.blockchain.record.keeping.dtos.request.UserDepartmentRequest;
 import com.example.blockchain.record.keeping.enums.ActionType;
@@ -86,7 +87,7 @@ public class DepartmentService  implements IDepartmentService{
             log.setActionType(ActionType.UPDATED);
             log.setEntityName(Entity.departments);
             log.setEntityId(department.getId());
-            log.setDescription(LogTemplate.UPDATE_DEPARTMENT.getName()+": "+ department.getName());
+            log.setDescription(LogTemplate.UPDATE_DEPARTMENT.format(department.getName()));
             log.setIpAddress(ipAdress);
             log.setCreatedAt(vietnamTime.toLocalDateTime());
             log = logRepository.save(log);
@@ -112,7 +113,10 @@ public class DepartmentService  implements IDepartmentService{
 
         User user = userRepository.findByDepartment(departmentIsDelete)
                 .orElseThrow(()-> new RuntimeException("Không tìm thấy thông tin khoa"));
-        userRepository.delete(user);// xem lại nếu lỗi
+        userRepository.delete(user);
+
+        AuditingContext.setDescription("Xóa khoa: " + departmentIsDelete.getName());
+
         return departmentRepository.save(departmentIsDelete);
     }
 
@@ -159,6 +163,7 @@ public class DepartmentService  implements IDepartmentService{
             userPermission.setPermission(permission);
             userPermissionService.save(userPermission);
         }
+        AuditingContext.setDescription("Tạo khoa có tên: " + department.getName());
         return department;
     }
 }
