@@ -56,7 +56,7 @@ public class LogController {
 
             if (totalItems == 0) {
                 PaginationMeta meta = new PaginationMeta(0, 0, size, page, 0);
-                PaginatedData<CertificateResponse> data = new PaginatedData<>(Collections.emptyList(), meta);
+                PaginatedData<LogResponse> data = new PaginatedData<>(Collections.emptyList(), meta);
                 return ApiResponseBuilder.success("Không có lịch sử nào!", data);
             }
 
@@ -109,7 +109,7 @@ public class LogController {
 
             if (totalItems == 0) {
                 PaginationMeta meta = new PaginationMeta(0, 0, size, page, 0);
-                PaginatedData<CertificateResponse> data = new PaginatedData<>(Collections.emptyList(), meta);
+                PaginatedData<LogResponse> data = new PaginatedData<>(Collections.emptyList(), meta);
                 return ApiResponseBuilder.success("Không có lịch sử nào!", data);
             }
 
@@ -161,7 +161,7 @@ public class LogController {
 
             if (totalItems == 0) {
                 PaginationMeta meta = new PaginationMeta(0, 0, size, page, 0);
-                PaginatedData<CertificateResponse> data = new PaginatedData<>(Collections.emptyList(), meta);
+                PaginatedData<LogResponse> data = new PaginatedData<>(Collections.emptyList(), meta);
                 return ApiResponseBuilder.success("Không có lịch sử nào!", data);
             }
 

@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Setter
@@ -19,5 +20,6 @@ public class LogResponse {
     private Long entityId;
     private String description;
     private String ipAddress;
+    private LocalDateTime createdAt;
     private List<ActionChangeResponse> actionChange;
 }

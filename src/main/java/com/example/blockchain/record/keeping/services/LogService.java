@@ -40,6 +40,7 @@ public class LogService implements ILogService{
                     log.getEntityId(),
                     log.getDescription(),
                     log.getIpAddress(),
+                    log.getCreatedAt(),
                     actionChangeList
             );
             logResponseList.add(logResponse);
@@ -67,6 +68,7 @@ public class LogService implements ILogService{
                     log.getEntityId(),
                     log.getDescription(),
                     log.getIpAddress(),
+                    log.getCreatedAt(),
                     actionChangeList
             );
             logResponseList.add(logResponse);
