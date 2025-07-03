@@ -303,7 +303,7 @@ public class CertificateService implements ICertificateService{
             log.setActionType(ActionType.UPDATED);
             log.setEntityName(Entity.certificates);
             log.setEntityId(certificateId);
-            log.setDescription(LogTemplate.UPDATE_CERTIFICATE.format(certificateNew.getDiplomaNumber()));
+            log.setDescription(LogTemplate.UPDATE_CERTIFICATE.format(certificate.getDiplomaNumber()));
             log.setIpAddress(ipAdress);
             log.setCreatedAt(vietnamTime.toLocalDateTime());
 

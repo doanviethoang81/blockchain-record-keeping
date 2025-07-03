@@ -163,12 +163,12 @@ public class DepartmentController {
             log.setActionType(newLockStatus ? ActionType.LOCKED : ActionType.UNLOCKED);
             log.setEntityName(Entity.departments);
             log.setEntityId(id);
-            log.setDescription((newLockStatus ? ActionType.LOCKED.getLabel() : ActionType.UNLOCKED.getLabel()) + " khoa: " + user.getDepartment().getName());
+            log.setDescription((newLockStatus ? ActionType.LOCKED.getLabel() : ActionType.UNLOCKED.getLabel())+ user.getDepartment().getName());
             log.setIpAddress(ipAdress);
             log.setCreatedAt(vietnamTime.toLocalDateTime());
             logRepository.save(log);
 
-            //thiếu gửi gmail
+            brevoApiEmailService.sendPermissionToDepartment(id, message);
             return ApiResponseBuilder.success(message, null);
         } catch (Exception e) {
             return ApiResponseBuilder.internalError("Lỗi "+ e.getMessage());

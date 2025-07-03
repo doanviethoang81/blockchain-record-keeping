@@ -141,28 +141,28 @@ public class UserController {
         }
     }
 
-    // khóa/Mở tài khoản của 1 khoa PDT
-    @PutMapping("/pdt/unlock-department/{id}")
-    public ResponseEntity<?> lockDepartment(@PathVariable("id") Long id) {
-        try {
-            ZonedDateTime vietnamTime = ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
-
-            User user = userService.finbById(id);
-            boolean isLocked = user.isLocked();
-
-            user.setLocked(!isLocked);
-            user.setUpdatedAt(vietnamTime.toLocalDateTime());
-            userService.save(user);
-
-            String actionType = isLocked ? "được mở khóa tài khoản" : "bị khóa tài khoản";
-            brevoApiEmailService.sendPermissionToDepartment(id, actionType);
-
-            String message = isLocked ? "Mở khóa tài khoản thành công!" : "Khóa tài khoản thành công!";
-            return ApiResponseBuilder.success(message, null);
-        } catch (Exception e) {
-            return ApiResponseBuilder.internalError("Lỗi " + e.getMessage());
-        }
-    }
+//    // khóa/Mở tài khoản của 1 khoa PDT
+//    @PutMapping("/pdt/unlock-department/{id}")
+//    public ResponseEntity<?> lockDepartment(@PathVariable("id") Long id) {
+//        try {
+//            ZonedDateTime vietnamTime = ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
+//
+//            User user = userService.finbById(id);
+//            boolean isLocked = user.isLocked();
+//
+//            user.setLocked(!isLocked);
+//            user.setUpdatedAt(vietnamTime.toLocalDateTime());
+//            userService.save(user);
+//
+//            String actionType = isLocked ? "được mở khóa tài khoản" : "bị khóa tài khoản";
+//            brevoApiEmailService.sendPermissionToDepartment(id, actionType);
+//
+//            String message = isLocked ? "Mở khóa tài khoản thành công!" : "Khóa tài khoản thành công!";
+//            return ApiResponseBuilder.success(message, null);
+//        } catch (Exception e) {
+//            return ApiResponseBuilder.internalError("Lỗi " + e.getMessage());
+//        }
+//    }
 
     //chi tiet tai khoan khoa dang nhap
     @PreAuthorize("hasAuthority('READ')")

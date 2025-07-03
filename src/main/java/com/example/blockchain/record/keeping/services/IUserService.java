@@ -35,4 +35,5 @@ public interface IUserService {
     User findByDepartment(Department department);
 
     boolean resetPassword(String email, String newPassword);
+
 }

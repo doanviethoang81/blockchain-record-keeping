@@ -1,5 +1,6 @@
 package com.example.blockchain.record.keeping.services;
 
+import com.example.blockchain.record.keeping.annotation.Auditable;
 import com.example.blockchain.record.keeping.dtos.StatisticsAdminDTO;
 import com.example.blockchain.record.keeping.dtos.StatisticsDepartmentDTO;
 import com.example.blockchain.record.keeping.dtos.StatisticsUniversityDTO;
@@ -121,7 +122,7 @@ public class UserService implements IUserService{
         Department department = departmentRepository.findById(userOptional.get().getDepartment().getId())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy khoa") );
 
-        User userOld = auditLogService.cloneUser(userOptional);
+//        User userOld = auditLogService.cloneUser(userOptional);
 
         if (userOptional.isPresent()) {
             User user = userOptional.get();
@@ -145,11 +146,11 @@ public class UserService implements IUserService{
 
             User userNew = user;
 
-            List<ActionChange> changes = auditLogService.compareObjects(log, userOld, userNew);
-            if (!changes.isEmpty()) {
-                actionChangeRepository.saveAll(changes);
-                logRepository.save(log);
-            }
+//            List<ActionChange> changes = auditLogService.compareObjects(log, userOld, userNew);
+//            if (!changes.isEmpty()) {
+//                actionChangeRepository.saveAll(changes);
+//                logRepository.save(log);
+//            }
             return true;
         }
         return false;
