@@ -387,7 +387,7 @@ public class CertificateService implements ICertificateService{
     // them dau moc 1 ch ch
     @Transactional
     @Auditable(action = ActionType.VERIFIED, entity = Entity.certificates)
-    public void certificateValidation (University university,Long idCertificate) throws Exception {
+    public Certificate certificateValidation (University university,Long idCertificate) throws Exception {
         try {
             ZonedDateTime vietnamTime = ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
 
@@ -432,6 +432,7 @@ public class CertificateService implements ICertificateService{
                     university.getName(),
                     certificateUrl,
                     "Chứng chỉ");
+            return certificate;
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

@@ -49,7 +49,6 @@ public class AuditAspect {
 
         String description = LogMessageTemplate.getMessage(auditable.entity(),auditable.action());
 
-
         // Ghi log
         Log log = new Log();
         log.setUser(getCurrentUser());

@@ -388,7 +388,7 @@ public class DegreeService implements IDegreeService{
     // xác nhận them dau moc van bang
     @Transactional
     @Auditable(action = ActionType.VERIFIED, entity = Entity.degrees)
-    public void degreeValidation (University university,Long degreeId) throws Exception {
+    public Degree degreeValidation (University university,Long degreeId) throws Exception {
         try {
             ZonedDateTime vietnamTime = ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
 
@@ -436,6 +436,7 @@ public class DegreeService implements IDegreeService{
                     university.getName(),
                     certificateUrl,
                     "Văn bằng");
+            return degree;
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
