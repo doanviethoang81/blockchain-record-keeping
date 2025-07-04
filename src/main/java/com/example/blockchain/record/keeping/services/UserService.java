@@ -139,7 +139,7 @@ public class UserService implements IUserService{
             log.setActionType(ActionType.CHANGE_PASSWORD_DEPARTMENT);
             log.setEntityName(Entity.departments);
             log.setEntityId(department.getId());
-            log.setDescription(LogTemplate.CHANGE_PASSWORD_DEPARTMENT.getName());
+            log.setDescription(LogTemplate.CHANGE_PASSWORD_DEPARTMENT.format(department.getName()));
             log.setIpAddress(ipAdress);
             log.setCreatedAt(vietnamTime.toLocalDateTime());
             log = logRepository.save(log);
