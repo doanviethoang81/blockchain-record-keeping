@@ -40,7 +40,7 @@ public class UserService implements IUserService{
     private final AuditLogService auditLogService;
     private final HttpServletRequest httpServletRequest;
     private final LogRepository logRepository;
-    private final ActionChangeRepository actionChangeRepository;
+    private final UniversityService universityService;
 
     @Override
     public User findByUser(String email) {

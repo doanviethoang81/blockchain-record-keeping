@@ -287,8 +287,9 @@ public class DepartmentController {
         try{
             if (page < 1) page = 1;
             if (size < 1) size = 10;
+            User user = userService.finbById(id);
 
-            List<UserResponse> userRepons = userService.getDepartmentDetailOfUniversity(id,name);
+            List<UserResponse> userRepons = userService.getDepartmentDetailOfUniversity(user.getUniversity().getId(),name);
 
             if (name != null && !name.isEmpty()) {
                 if (userRepons.isEmpty()) {
