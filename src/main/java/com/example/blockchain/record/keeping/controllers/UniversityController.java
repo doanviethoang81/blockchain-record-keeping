@@ -41,7 +41,8 @@ public class UniversityController {
                             u.getUniversity().getAddress(),
                             u.getUniversity().getTaxCode(),
                             u.getUniversity().getWebsite(),
-                            u.getUniversity().getLogo()
+                            u.getUniversity().getLogo(),
+                            u.isLocked()
                     ))
                     .collect(Collectors.toList());
 

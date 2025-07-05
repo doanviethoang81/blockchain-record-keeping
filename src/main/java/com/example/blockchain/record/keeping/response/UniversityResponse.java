@@ -17,4 +17,5 @@ public class UniversityResponse {
     private String taxCode;
     private String website;
     private String logo;
+    private boolean isLocked;
 }
