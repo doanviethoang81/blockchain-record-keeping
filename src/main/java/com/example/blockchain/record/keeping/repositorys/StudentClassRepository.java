@@ -41,7 +41,7 @@ public interface StudentClassRepository extends JpaRepository<StudentClass,Long>
     @Query(value = """
         SELECT sc.* FROM student_class sc
         JOIN departments d ON sc.department_id = d.id
-        WHERE d.id = :departmentId 
+        WHERE d.id = :departmentId
         and sc.status='ACTIVE'
         AND (:className IS NULL OR LOWER(sc.name) LIKE LOWER(CONCAT('%', :className, '%')))
         ORDER BY sc.created_at DESC

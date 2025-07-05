@@ -182,8 +182,8 @@ public class StudentClassController {
         try {
             if (page < 1) page = 1;
             if (size < 1) size = 10;
-            List<StudentClassResponse> studentClassResponseList =
-                    studentClassService.listClassOfDepartmentId(id, name);
+            User user = userService.finbById(id);
+            List<StudentClassResponse> studentClassResponseList =studentClassService.listClassOfDepartmentId(user.getDepartment().getId(), name);
             if(name!= null && !name.isEmpty()){
                 if(studentClassResponseList.isEmpty()){
                     return ApiResponseBuilder.success("Không tìm thấy lớp!",studentClassResponseList);
