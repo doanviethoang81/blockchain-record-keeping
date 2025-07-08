@@ -3,6 +3,8 @@ package com.example.blockchain.record.keeping.services;
 import com.example.blockchain.record.keeping.annotation.Auditable;
 import com.example.blockchain.record.keeping.aspect.AuditingContext;
 import com.example.blockchain.record.keeping.configs.Constants;
+import com.example.blockchain.record.keeping.dtos.CertificateExcelDTO;
+import com.example.blockchain.record.keeping.dtos.DegreeExcelDTO;
 import com.example.blockchain.record.keeping.dtos.request.*;
 import com.example.blockchain.record.keeping.enums.ActionType;
 import com.example.blockchain.record.keeping.enums.Entity;
@@ -32,6 +34,7 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 @Service
@@ -573,6 +576,37 @@ public class DegreeService implements IDegreeService{
         }
 
         return response;
+    }
+
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
+    public List<DegreeExcelDTO> getAllDegreeDTOs(String type) {
+        List<Degree> degreeList = degreeRepository.findByStatus(type);
+        AtomicInteger counter = new AtomicInteger(1);
+        return degreeList.stream()
+                .map(certificate -> {
+                    DegreeExcelDTO dto = convertToDTO(certificate);
+                    dto.setStt(counter.getAndIncrement());
+                    return dto;
+                })
+                .toList();
+    }
+
+    public DegreeExcelDTO convertToDTO(Degree entity) {
+        DegreeExcelDTO dto = new DegreeExcelDTO();
+        dto.setStudentCode(entity.getStudent().getStudentCode());
+        dto.setStudentName(entity.getStudent().getName());
+        dto.setStudentClass(entity.getStudent().getStudentClass().getName());
+        dto.setDepartmentName(entity.getStudent().getStudentClass().getDepartment().getName());
+        dto.setIssueDate(entity.getIssueDate());
+        dto.setGraduationYear(entity.getGraduationYear());
+        dto.setRating(entity.getRating().getName());
+        dto.setDegreeTitle(entity.getDegreeTitle().getName());
+        dto.setEducationMode(entity.getEducationMode().getName());
+        dto.setSigner(entity.getSigner());
+        dto.setDiplomaNumber(entity.getDiplomaNumber());
+        dto.setLotteryNumber(entity.getLotteryNumber());
+        dto.setStatus(entity.getStatus().getLabel());
+        return dto;
     }
 }
 

@@ -457,9 +457,10 @@ public interface CertificateRepository extends JpaRepository<Certificate,Long> {
     );
 
     @Query(value = """
-        SELECT *
-        FROM certificates c
-        WHERE (:status IS NULL OR c.status = :status)
-        """,nativeQuery = true)
-    List<Certificate> findByStatus(Status status);
+    SELECT *
+    FROM certificates c
+    WHERE (:status IS NULL OR c.status = :status)
+    """, nativeQuery = true)
+    List<Certificate> findByStatus(@Param("status") String status);
+
 }

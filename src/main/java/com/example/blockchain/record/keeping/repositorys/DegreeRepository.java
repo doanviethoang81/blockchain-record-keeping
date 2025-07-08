@@ -362,4 +362,11 @@ public interface DegreeRepository extends JpaRepository<Degree,Long> {
                                 @Param("lotteryNumber") String lotteryNumber,
                                 @Param("degreeId") Long degreeId);
 
+    //xuat excel
+    @Query(value = """
+    SELECT *
+    FROM degrees d
+    WHERE (:status IS NULL OR d.status = :status)
+    """, nativeQuery = true)
+    List<Degree> findByStatus(@Param("status") String status);
 }

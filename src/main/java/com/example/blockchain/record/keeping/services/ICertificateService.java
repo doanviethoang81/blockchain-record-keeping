@@ -74,6 +74,6 @@ public interface ICertificateService {
 
     boolean existByDiplomaNumberIgnoreId(Long universityId, String diplomaNumber, Long certificateId);
 
-    List<Certificate> findByStatus(Status status);
+    List<Certificate> findByStatus(String status);
 
 }

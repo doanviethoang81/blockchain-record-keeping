@@ -2,6 +2,8 @@ package com.example.blockchain.record.keeping.controllers;
 
 import com.alibaba.excel.EasyExcel;
 import com.example.blockchain.record.keeping.configs.Constants;
+import com.example.blockchain.record.keeping.dtos.CertificateExcelDTO;
+import com.example.blockchain.record.keeping.dtos.DegreeExcelDTO;
 import com.example.blockchain.record.keeping.dtos.request.DegreeExcelRowRequest;
 import com.example.blockchain.record.keeping.dtos.request.ListValidationRequest;
 import com.example.blockchain.record.keeping.dtos.request.DegreeRequest;
@@ -10,8 +12,10 @@ import com.example.blockchain.record.keeping.models.*;
 import com.example.blockchain.record.keeping.repositorys.LogRepository;
 import com.example.blockchain.record.keeping.response.*;
 import com.example.blockchain.record.keeping.services.*;
+import com.example.blockchain.record.keeping.utils.ExcelStyleUtil;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -22,6 +26,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -1005,5 +1011,35 @@ public class DegreeController {
         } catch (Exception e) {
             return ApiResponseBuilder.internalError("Lỗi: " + e.getMessage());
         }
+    }
+
+    //xuat excel
+    @GetMapping("/pdt/export-degree")
+    public void exportDegree(
+            @RequestParam(name = "type", required = false) String type,
+            HttpServletResponse response) throws IOException
+    {
+        String status = null;
+        if (type != null) {
+            try {
+                status =type;
+            } catch (IllegalArgumentException e) {
+                response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Type không đúng định dạng!");
+                return;
+            }
+        }
+        response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        response.setCharacterEncoding("UTF-8");
+
+        String fileName = URLEncoder.encode("van_bang_" + (type == null ? "all" : type) , StandardCharsets.UTF_8)
+                .replaceAll("\\+", "%20");
+        response.setHeader("Content-Disposition", "attachment; filename=" + fileName + ".xlsx");
+
+        List<DegreeExcelDTO> data = degreeService.getAllDegreeDTOs(status);
+
+        EasyExcel.write(response.getOutputStream(), DegreeExcelDTO.class)
+                .registerWriteHandler(ExcelStyleUtil.certificateStyleStrategy())
+                .sheet("Danh sách văn bằng " + type)
+                .doWrite(data);
     }
 }

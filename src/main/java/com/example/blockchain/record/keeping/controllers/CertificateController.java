@@ -1,10 +1,6 @@
 package com.example.blockchain.record.keeping.controllers;
 
 import com.alibaba.excel.EasyExcel;
-import com.alibaba.excel.write.handler.CellWriteHandler;
-import com.alibaba.excel.write.metadata.style.WriteCellStyle;
-import com.alibaba.excel.write.metadata.style.WriteFont;
-import com.alibaba.excel.write.style.HorizontalCellStyleStrategy;
 import com.example.blockchain.record.keeping.configs.Constants;
 import com.example.blockchain.record.keeping.dtos.CertificateExcelDTO;
 import com.example.blockchain.record.keeping.dtos.CertificateExcelRowDTO;
@@ -21,17 +17,13 @@ import com.example.blockchain.record.keeping.utils.RSAUtil;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
-import jakarta.servlet.ServletOutputStream;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.apache.poi.ss.usermodel.CellStyle;
-import org.apache.poi.ss.usermodel.HorizontalAlignment;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -47,7 +39,6 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 @RestController
 @RequestMapping("${api.prefix:/api/v1}")
@@ -69,6 +60,7 @@ public class CertificateController {
     private final AuditLogService auditLogService;
     private final LogRepository logRepository;
     private final HttpServletRequest httpServletRequest;
+    private final NotificateService notificateService;
 
     //---------------------------- ADMIN -------------------------------------------------------
     // xem all chứng chỉ
@@ -480,7 +472,7 @@ public class CertificateController {
         }
     }
 
-    //xác nhận 1 chứng chỉ
+    // xác nhận 1 chứng chỉ
     @PreAuthorize("hasAuthority('READ')")
     @PostMapping("/pdt/certificate-validation/{id}")
     public ResponseEntity<?> certificateValidation(@PathVariable("id") Long id){
@@ -530,9 +522,6 @@ public class CertificateController {
                 );
             }
 
-//            for (Long id : ids) {
-//                certificateService.certificateValidation(university, id);
-//            }
             certificateService.confirmCertificates(ids, university, httpServletRequest);
             return ApiResponseBuilder.success("Xác nhận list chứng chỉ thành công", null);
         } catch (Exception e) {
@@ -617,7 +606,7 @@ public class CertificateController {
         }
     }
 
-    // xac nhan chung chi
+    // xác nhan chung chi
     @PostMapping("/verify/decrypt")
     public ResponseEntity<?> decryptData(@RequestBody DecryptRequest request) {
         try {
@@ -1100,12 +1089,15 @@ public class CertificateController {
     @PostMapping("/pdt/certificate-rejected/{id}")
     public ResponseEntity<?> certificateRejected(@PathVariable("id") Long id){
         try{
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String username = authentication.getName();
+            User user = userService.findByUser(username);
             Certificate certificate = certificateService.findByIdAndStatus(id, Status.APPROVED);
 
             if(certificate != null){
                 return ApiResponseBuilder.badRequest("Chứng chỉ này đã được xác nhận rồi!");
             }
-            certificateService.certificateRejected(id);
+            certificateService.certificateRejected(id, user);
             return ApiResponseBuilder.success("Từ chối xác nhận thành công ", null);
         } catch (Exception e) {
             return ApiResponseBuilder.internalError("Lỗi " + e.getMessage());
@@ -1187,10 +1179,10 @@ public class CertificateController {
             @RequestParam(name = "type", required = false) String type,
             HttpServletResponse response) throws IOException
     {
-        Status status = null;
+        String status = null;
         if (type != null) {
             try {
-                status = Status.valueOf(type.toUpperCase());
+                status = type;
             } catch (IllegalArgumentException e) {
                 response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Type không đúng định dạng!");
                 return;

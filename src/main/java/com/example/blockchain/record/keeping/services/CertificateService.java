@@ -5,10 +5,7 @@ import com.example.blockchain.record.keeping.aspect.AuditingContext;
 import com.example.blockchain.record.keeping.configs.Constants;
 import com.example.blockchain.record.keeping.dtos.CertificateExcelDTO;
 import com.example.blockchain.record.keeping.dtos.request.*;
-import com.example.blockchain.record.keeping.enums.ActionType;
-import com.example.blockchain.record.keeping.enums.Entity;
-import com.example.blockchain.record.keeping.enums.LogTemplate;
-import com.example.blockchain.record.keeping.enums.Status;
+import com.example.blockchain.record.keeping.enums.*;
 import com.example.blockchain.record.keeping.exceptions.BadRequestException;
 import com.example.blockchain.record.keeping.models.*;
 import com.example.blockchain.record.keeping.repositorys.*;
@@ -19,7 +16,6 @@ import com.example.blockchain.record.keeping.utils.RSAUtil;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,7 +30,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
@@ -52,6 +47,9 @@ public class CertificateService implements ICertificateService{
     private final HttpServletRequest httpServletRequest;
     private final LogRepository logRepository;
     private final ActionChangeRepository actionChangeRepository;
+    private final UserService userService;
+    private final NotificateService notificateService;
+    private final NotificationReceiverService notificationReceiverService;
 
     @Autowired
     private Web3j web3j;
@@ -259,7 +257,7 @@ public class CertificateService implements ICertificateService{
     }
 
     @Override
-    public List<Certificate> findByStatus(Status status) {
+    public List<Certificate> findByStatus(String status) {
         return certificateRepository.findByStatus(status);
     }
 
@@ -444,6 +442,22 @@ public class CertificateService implements ICertificateService{
                     certificateUrl,
                     "Chứng chỉ");
             AuditingContext.setDescription("Xác thực chứng chỉ số hiệu bằng: " + certificate.getDiplomaNumber());
+
+            User user = userService.findByUser(university.getEmail());
+
+            Notifications notifications = new Notifications();
+            notifications.setUser(user);
+            notifications.setTitle(NotificationType.CERTIFICATE_APPROVED.getName());
+            notifications.setContent("Phòng đào tạo đã xác nhận chứng chỉ có số hiệu: "+ certificate.getDiplomaNumber());
+            notifications.setType(NotificationType.CERTIFICATE_APPROVED);
+            notifications.setCreatedAt(vietnamTime.toLocalDateTime());
+            notificateService.save(notifications);
+
+            NotificationReceivers notificationReceivers = new NotificationReceivers();
+            notificationReceivers.setNotification(notifications);
+            notificationReceivers.setReceiverId(certificate.getStudent().getStudentClass().getDepartment().getId());
+            notificationReceiverService.save(notificationReceivers);
+
             return certificate;
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -515,7 +529,7 @@ public class CertificateService implements ICertificateService{
     // từ chối xác nhận chứng chỉ
     @Transactional
     @Auditable(action = ActionType.REJECTED, entity = Entity.certificates)
-    public Certificate certificateRejected (Long idCertificate) throws Exception {
+    public Certificate certificateRejected (Long idCertificate, User user) throws Exception {
         try {
             ZonedDateTime vietnamTime = ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
 
@@ -525,6 +539,20 @@ public class CertificateService implements ICertificateService{
             certificate.setStatus(Status.REJECTED);
             certificate.setUpdatedAt(vietnamTime.toLocalDateTime());
             AuditingContext.setDescription("Từ chối xác thực chứng chỉ số hiệu bằng: " + certificate.getDiplomaNumber());
+
+            Notifications notifications = new Notifications();
+            notifications.setUser(user);
+            notifications.setTitle(NotificationType.CERTIFICATE_REJECTED.getName());
+            notifications.setContent("Phòng đào tạo đã từ chối xác nhận chứng chỉ có số hiệu: "+ certificate.getDiplomaNumber());
+            notifications.setType(NotificationType.CERTIFICATE_REJECTED);
+            notifications.setCreatedAt(vietnamTime.toLocalDateTime());
+            notificateService.save(notifications);
+
+            NotificationReceivers notificationReceivers = new NotificationReceivers();
+            notificationReceivers.setNotification(notifications);
+            notificationReceivers.setReceiverId(certificate.getStudent().getStudentClass().getDepartment().getId());
+            notificationReceiverService.save(notificationReceivers);
+
             return certificate;
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -563,7 +591,7 @@ public class CertificateService implements ICertificateService{
     }
 
     @org.springframework.transaction.annotation.Transactional(readOnly = true)
-    public List<CertificateExcelDTO> getAllCertificateDTOs(Status type) {
+    public List<CertificateExcelDTO> getAllCertificateDTOs(String type) {
         List<Certificate> certificates = certificateRepository.findByStatus(type);
         AtomicInteger counter = new AtomicInteger(1);
         return certificates.stream()
