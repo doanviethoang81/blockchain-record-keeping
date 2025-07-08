@@ -1,7 +1,9 @@
 package com.example.blockchain.record.keeping.services;
+import com.alibaba.excel.EasyExcel;
 import com.example.blockchain.record.keeping.annotation.Auditable;
 import com.example.blockchain.record.keeping.aspect.AuditingContext;
 import com.example.blockchain.record.keeping.configs.Constants;
+import com.example.blockchain.record.keeping.dtos.CertificateExcelDTO;
 import com.example.blockchain.record.keeping.dtos.request.*;
 import com.example.blockchain.record.keeping.enums.ActionType;
 import com.example.blockchain.record.keeping.enums.Entity;
@@ -17,6 +19,7 @@ import com.example.blockchain.record.keeping.utils.RSAUtil;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,7 +32,9 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
@@ -251,6 +256,11 @@ public class CertificateService implements ICertificateService{
             return false;
         }
         return true;
+    }
+
+    @Override
+    public List<Certificate> findByStatus(Status status) {
+        return certificateRepository.findByStatus(status);
     }
 
     @Override
@@ -551,4 +561,32 @@ public class CertificateService implements ICertificateService{
     public Set<String> findAllDiplomaNumbers(Collection<String> diplomaNumbers) {
         return new HashSet<>(certificateRepository.findExistingDiplomaNumbers(diplomaNumbers));
     }
+
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
+    public List<CertificateExcelDTO> getAllCertificateDTOs(Status type) {
+        List<Certificate> certificates = certificateRepository.findByStatus(type);
+        AtomicInteger counter = new AtomicInteger(1);
+        return certificates.stream()
+                .map(certificate -> {
+                    CertificateExcelDTO dto = convertToDTO(certificate);
+                    dto.setStt(counter.getAndIncrement());
+                    return dto;
+                })
+                .toList();
+    }
+
+    public CertificateExcelDTO convertToDTO(Certificate entity) {
+        CertificateExcelDTO dto = new CertificateExcelDTO();
+        dto.setStudentCode(entity.getStudent().getStudentCode());
+        dto.setStudentName(entity.getStudent().getName());
+        dto.setStudentClass(entity.getStudent().getStudentClass().getName());
+        dto.setDepartmentName(entity.getStudent().getStudentClass().getDepartment().getName());
+        dto.setIssueDate(entity.getIssueDate());
+        dto.setGrantor(entity.getGrantor());
+        dto.setSigner(entity.getSigner());
+        dto.setDiplomaNumber(entity.getDiplomaNumber());
+        dto.setStatus(entity.getStatus().getLabel());
+        return dto;
+    }
+
 }

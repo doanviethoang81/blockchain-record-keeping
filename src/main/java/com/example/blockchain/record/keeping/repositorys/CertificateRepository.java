@@ -13,6 +13,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Stream;
 
 @Repository
 public interface CertificateRepository extends JpaRepository<Certificate,Long> {
@@ -455,4 +456,10 @@ public interface CertificateRepository extends JpaRepository<Certificate,Long> {
             @Param("certificateId") Long certificateId
     );
 
+    @Query(value = """
+        SELECT *
+        FROM certificates c
+        WHERE (:status IS NULL OR c.status = :status)
+        """,nativeQuery = true)
+    List<Certificate> findByStatus(Status status);
 }

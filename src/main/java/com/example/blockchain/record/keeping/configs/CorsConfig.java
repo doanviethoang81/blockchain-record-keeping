@@ -22,6 +22,7 @@ public class CorsConfig {
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                         .allowedHeaders("*")
                         .allowCredentials(true)
+                        .exposedHeaders("Content-Disposition")
                         .exposedHeaders("Location", "Access-Control-Allow-Origin")
                         .maxAge(3600);
             }
