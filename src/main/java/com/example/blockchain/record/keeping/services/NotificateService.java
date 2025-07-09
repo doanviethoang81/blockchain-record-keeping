@@ -23,4 +23,5 @@ public class NotificateService implements INotificateService{
     public List<Notifications> saveAll(List<Notifications> list) {
         return notificationRepository.saveAll(list);
     }
+
 }

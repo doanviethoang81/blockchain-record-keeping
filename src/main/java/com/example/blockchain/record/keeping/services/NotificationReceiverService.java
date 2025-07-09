@@ -1,6 +1,7 @@
 package com.example.blockchain.record.keeping.services;
 
 import com.example.blockchain.record.keeping.models.NotificationReceivers;
+import com.example.blockchain.record.keeping.models.Notifications;
 import com.example.blockchain.record.keeping.repositorys.NotificationReceiverRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -32,5 +33,16 @@ public class NotificationReceiverService implements INotificationReceiverService
     @Override
     public List<NotificationReceivers> notificationList(Long userId, Boolean isRead,LocalDateTime startDate,LocalDateTime endDate, int limit, int offset) {
         return notificationReceiverRepository.notificationList(userId,isRead, startDate, endDate, limit, offset);
+    }
+
+    @Override
+    public NotificationReceivers isRead(NotificationReceivers notification) {
+        notification.setRead(true);
+        return notificationReceiverRepository.save(notification);
+    }
+
+    @Override
+    public NotificationReceivers findById(Long id) {
+        return notificationReceiverRepository.findById(id).orElse(null);
     }
 }

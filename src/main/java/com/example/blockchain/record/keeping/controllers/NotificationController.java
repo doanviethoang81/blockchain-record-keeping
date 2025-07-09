@@ -1,10 +1,7 @@
 package com.example.blockchain.record.keeping.controllers;
 
 import com.example.blockchain.record.keeping.configs.Constants;
-import com.example.blockchain.record.keeping.models.Certificate;
-import com.example.blockchain.record.keeping.models.Degree;
-import com.example.blockchain.record.keeping.models.NotificationReceivers;
-import com.example.blockchain.record.keeping.models.User;
+import com.example.blockchain.record.keeping.models.*;
 import com.example.blockchain.record.keeping.response.*;
 import com.example.blockchain.record.keeping.services.*;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -88,7 +85,7 @@ public class NotificationController {
             );
 
             List<NotificationResponse> notificationResponses = notifications.stream().map(s -> new NotificationResponse(
-                    s.getNotification().getId(),
+                    s.getId(),
                     s.getNotification().getTitle(),
                     s.getNotification().getContent(),
                     s.getNotification().getType(),
@@ -110,10 +107,13 @@ public class NotificationController {
     @PreAuthorize("(hasAnyRole('PDT', 'KHOA')) and hasAuthority('READ')")
     @GetMapping("/notification-detail")
     public ResponseEntity<?> notificationDetail(
+            @RequestParam Long notificationId,
             @RequestParam String documentType,
             @RequestParam Long documentId
     ) {
         try {
+            NotificationReceivers notification = notificationReceiverService.findById(notificationId);
+            notificationReceiverService.isRead(notification);
             switch (documentType.toUpperCase()) {
                 case "CERTIFICATE":
                     return handleCertificateDetail(documentId);
