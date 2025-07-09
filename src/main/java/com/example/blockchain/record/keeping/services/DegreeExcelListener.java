@@ -5,10 +5,7 @@ import com.alibaba.excel.event.AnalysisEventListener;
 import com.alibaba.excel.metadata.CellExtra;
 import com.example.blockchain.record.keeping.dtos.request.DegreeExcelRowRequest;
 import com.example.blockchain.record.keeping.dtos.request.DegreePrintData;
-import com.example.blockchain.record.keeping.enums.ActionType;
-import com.example.blockchain.record.keeping.enums.Entity;
-import com.example.blockchain.record.keeping.enums.LogTemplate;
-import com.example.blockchain.record.keeping.enums.Status;
+import com.example.blockchain.record.keeping.enums.*;
 import com.example.blockchain.record.keeping.exceptions.BadRequestException;
 import com.example.blockchain.record.keeping.exceptions.ListBadRequestException;
 import com.example.blockchain.record.keeping.models.*;
@@ -36,11 +33,14 @@ public class DegreeExcelListener extends AnalysisEventListener<DegreeExcelRowReq
     private final DegreeTitleSevice degreeTitleSevice;
     private final DegreeService degreeService;
     private final StudentService studentService;
-    private Long departmentId = 0L;
+    private final User user;
     private final GraphicsTextWriter graphicsTextWriter;
     private final AuditLogService auditLogService;
     private final HttpServletRequest httpServletRequest;
     private final LogRepository logRepository;
+    private final UserService userService;
+    private final NotificateService notificateService;
+    private final NotificationReceiverService notificationReceiverService;
 
     public DegreeExcelListener(RatingService ratingService,
                                EducationModelSevice educationModelSevice,
@@ -48,7 +48,13 @@ public class DegreeExcelListener extends AnalysisEventListener<DegreeExcelRowReq
                                DegreeService degreeService,
                                StudentService studentService,
                                GraphicsTextWriter graphicsTextWriter,
-                               Long departmentId, AuditLogService auditLogService, HttpServletRequest httpServletRequest, LogRepository logRepository
+                               User user,
+                               AuditLogService auditLogService,
+                               HttpServletRequest httpServletRequest,
+                               LogRepository logRepository,
+                               UserService userService,
+                               NotificateService notificateService,
+                               NotificationReceiverService notificationReceiverService
     ) {
         this.ratingService = ratingService;
         this.educationModelSevice = educationModelSevice;
@@ -56,10 +62,13 @@ public class DegreeExcelListener extends AnalysisEventListener<DegreeExcelRowReq
         this.degreeService = degreeService;
         this.studentService = studentService;
         this.graphicsTextWriter = graphicsTextWriter;
-        this.departmentId = departmentId;
+        this.user =user;
         this.auditLogService = auditLogService;
         this.httpServletRequest = httpServletRequest;
         this.logRepository = logRepository;
+        this.userService = userService;
+        this.notificateService = notificateService;
+        this.notificationReceiverService = notificationReceiverService;
     }
 
     @Override
@@ -102,7 +111,7 @@ public class DegreeExcelListener extends AnalysisEventListener<DegreeExcelRowReq
 
         //tìm tất cả sinh viên 1 lần
         Map<String, Student> studentMap = studentService
-                .findByStudentCodesOfDepartment(departmentId, allStudentCodes)
+                .findByStudentCodesOfDepartment(user.getDepartment().getId(), allStudentCodes)
                 .stream()
                 .collect(Collectors.toMap(Student::getStudentCode, s -> s));
 
@@ -123,6 +132,8 @@ public class DegreeExcelListener extends AnalysisEventListener<DegreeExcelRowReq
 
         List<Degree> degreeList = new ArrayList<>();
         List<DegreePrintData> printDataList = new ArrayList<>();
+        List<Notifications> notificationsList = new ArrayList<>();
+        List<NotificationReceivers> notificationReceiversList = new ArrayList<>();
 
         for (int i = 0; i < rows.size(); i++) {
             DegreeExcelRowRequest row = rows.get(i);
@@ -274,6 +285,14 @@ public class DegreeExcelListener extends AnalysisEventListener<DegreeExcelRowReq
             degree.setImageUrl(image_url);
 
             printDataList.add(degreePrintData);
+
+            //thong bao
+            Notifications notifications = new Notifications();
+            notifications.setUser(user);
+            notifications.setTitle(NotificationType.DEGREE_CREATED.getName());
+            notifications.setContent("Khoa "+ student.getStudentClass().getDepartment().getName().toLowerCase() +" đã tạo văn bằng có số hiệu: "+ degree.getDiplomaNumber());
+            notifications.setType(NotificationType.DEGREE_CREATED);
+            notificationsList.add(notifications);
         }
 
         if (!errors.isEmpty()) {
@@ -296,6 +315,19 @@ public class DegreeExcelListener extends AnalysisEventListener<DegreeExcelRowReq
 
         executor.shutdown();
         degreeService.saveAll(degreeList);
+
+        notificateService.saveAll(notificationsList);
+
+        User userUniversity = userService.findByUser(user.getDepartment().getUniversity().getEmail());
+
+        for (Notifications notification : notificationsList) {
+            NotificationReceivers notificationReceivers = new NotificationReceivers();
+            notificationReceivers.setNotification(notification);
+            notificationReceivers.setReceiverId(userUniversity.getId());
+            notificationReceivers.setCreatedAt(now.toLocalDateTime());
+            notificationReceiversList.add(notificationReceivers);
+        }
+        notificationReceiverService.saveAll(notificationReceiversList);
 
         //log
         String ipAdress = auditLogService.getClientIp(httpServletRequest);

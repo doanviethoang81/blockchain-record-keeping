@@ -61,6 +61,7 @@ public class CertificateController {
     private final LogRepository logRepository;
     private final HttpServletRequest httpServletRequest;
     private final NotificateService notificateService;
+    private final NotificationReceiverService notificationReceiverService;
 
     //---------------------------- ADMIN -------------------------------------------------------
     // xem all chứng chỉ
@@ -504,7 +505,7 @@ public class CertificateController {
             List<Long> ids = request.getIds();
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             String username = authentication.getName();
-            University university = universityService.getUniversityByEmail(username);
+            User user = userService.findByUser(username);
 
             List<String> alreadyValidated = new ArrayList<>();
 
@@ -522,7 +523,7 @@ public class CertificateController {
                 );
             }
 
-            certificateService.confirmCertificates(ids, university, httpServletRequest);
+            certificateService.confirmCertificates(ids, user, httpServletRequest);
             return ApiResponseBuilder.success("Xác nhận list chứng chỉ thành công", null);
         } catch (Exception e) {
             return ApiResponseBuilder.internalError("Lỗi: " + e.getMessage());
@@ -986,7 +987,7 @@ public class CertificateController {
                 return ApiResponseBuilder.badRequest("Số hiệu bằng chứng chỉ này đã tồn tại!");
             }
 
-            certificateService.createCertificate(student, jsonNode );
+            certificateService.createCertificate(student, jsonNode,user );
             return ApiResponseBuilder.success("Tạo chứng chỉ thành công, chờ PDT duyệt ", null);
         } catch (IllegalArgumentException e) {
             return ApiResponseBuilder.badRequest(e.getMessage());
@@ -1032,7 +1033,11 @@ public class CertificateController {
                         graphicsTextWriter,
                         auditLogService,
                         logRepository,
-                        httpServletRequest
+                        httpServletRequest,
+                        notificateService,
+                        notificationReceiverService,
+                        user,
+                        userService
                 )
         ).sheet().doRead();
 
@@ -1128,7 +1133,13 @@ public class CertificateController {
                         alreadyValidated
                 );
             }
-            certificateService.rejectCertificates(ids);
+
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String username = authentication.getName();
+            User user = userService.findByUser(username);
+
+
+            certificateService.rejectCertificates(ids,user);
             return ApiResponseBuilder.success("Từ chối xác nhận danh sách chứng chỉ thành công", null);
         } catch (Exception e) {
             return ApiResponseBuilder.internalError("Lỗi: " + e.getMessage());

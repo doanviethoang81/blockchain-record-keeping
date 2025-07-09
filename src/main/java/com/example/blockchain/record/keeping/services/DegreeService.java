@@ -6,10 +6,7 @@ import com.example.blockchain.record.keeping.configs.Constants;
 import com.example.blockchain.record.keeping.dtos.CertificateExcelDTO;
 import com.example.blockchain.record.keeping.dtos.DegreeExcelDTO;
 import com.example.blockchain.record.keeping.dtos.request.*;
-import com.example.blockchain.record.keeping.enums.ActionType;
-import com.example.blockchain.record.keeping.enums.Entity;
-import com.example.blockchain.record.keeping.enums.LogTemplate;
-import com.example.blockchain.record.keeping.enums.Status;
+import com.example.blockchain.record.keeping.enums.*;
 import com.example.blockchain.record.keeping.models.*;
 import com.example.blockchain.record.keeping.repositorys.*;
 import com.example.blockchain.record.keeping.response.*;
@@ -54,6 +51,9 @@ public class DegreeService implements IDegreeService{
     private final ActionChangeRepository actionChangeRepository;
     private final LogRepository logRepository;
     private final HttpServletRequest httpServletRequest;
+    private final UserService userService;
+    private final NotificateService notificateService;
+    private final NotificationReceiverService notificationReceiverService;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -63,7 +63,7 @@ public class DegreeService implements IDegreeService{
 
     @Transactional
     @Auditable(action = ActionType.CREATED, entity = Entity.degrees)
-    public Degree createDegree(DegreeRequest request) {
+    public Degree createDegree(DegreeRequest request, User user) {
         ZonedDateTime vietnamTime = ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
         Student student = studentService.findById(request.getStudentId());
@@ -115,6 +115,21 @@ public class DegreeService implements IDegreeService{
         degree.setImageUrl(image_url);
 
         AuditingContext.setDescription("Tạo văn bằng cho một sinh viên, số hiệu bằng: " + degree.getDiplomaNumber());
+
+        Notifications notifications = new Notifications();
+        notifications.setUser(user);
+        notifications.setTitle(NotificationType.DEGREE_CREATED.getName());
+        notifications.setContent("Khoa "+ user.getDepartment().getName() +" đã tạo văn bằng có số hiệu: "+ degree.getDiplomaNumber());
+        notifications.setType(NotificationType.DEGREE_CREATED);
+        notificateService.save(notifications);
+
+        User userUniversity = userService.findByUser(degree.getStudent().getStudentClass().getDepartment().getUniversity().getEmail());
+
+        NotificationReceivers notificationReceivers = new NotificationReceivers();
+        notificationReceivers.setNotification(notifications);
+        notificationReceivers.setReceiverId(userUniversity.getId());
+        notificationReceivers.setCreatedAt(vietnamTime.toLocalDateTime());
+        notificationReceiverService.save(notificationReceivers);
         return degreeRepository.save(degree);
     }
 
@@ -394,7 +409,7 @@ public class DegreeService implements IDegreeService{
     // xác nhận them dau moc van bang
     @Transactional
     @Auditable(action = ActionType.VERIFIED, entity = Entity.degrees)
-    public Degree degreeValidation (University university,Long degreeId) throws Exception {
+    public Degree degreeValidation (User user,Long degreeId) throws Exception {
         try {
             ZonedDateTime vietnamTime = ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
 
@@ -403,7 +418,7 @@ public class DegreeService implements IDegreeService{
             Degree degree = degreeRepository.findById(degreeId)
                     .orElseThrow(() -> new RuntimeException("Không tìm thấy văn bằng có id " + degreeId));
 
-            String imageUrl = graphicsTextWriter.degreeValidation(degree.getImageUrl(), university.getSealImageUrl());
+            String imageUrl = graphicsTextWriter.degreeValidation(degree.getImageUrl(), user.getUniversity().getSealImageUrl());
             degree.setImageUrl(imageUrl);
 
             String ipfsUrl = PinataUploader.uploadFromUrlToPinata(imageUrl);
@@ -420,13 +435,13 @@ public class DegreeService implements IDegreeService{
             // lấy thông tin vb lưu block
             DegreeBlockchainRequest request = new DegreeBlockchainRequest(
                     degree.getStudent().getName(),
-                    university.getName(),
+                    user.getUniversity().getName(),
                     degree.getIssueDate().format(formatter),
                     degree.getDiplomaNumber(),
                     degree.getLotteryNumber(),
                     ipfsUrl
             );
-            String base64PrivateKey = university.getPrivateKey();
+            String base64PrivateKey = user.getUniversity().getPrivateKey();
             PrivateKey privateKey = RSAKeyPairGenerator.getPrivateKeyFromBase64(base64PrivateKey);
             String json = objectMapper.writeValueAsString(request);
             String encryptedHex = rsaUtil.encryptWithPrivateKeyToHex(json, privateKey);
@@ -439,11 +454,27 @@ public class DegreeService implements IDegreeService{
             brevoApiEmailService.sendEmailsToStudentsExcel(
                     degree.getStudent().getEmail(),
                     degree.getStudent().getName(),
-                    university.getName(),
+                    user.getUniversity().getName(),
                     certificateUrl,
                     "Văn bằng");
 
             AuditingContext.setDescription("Xác thực văn bằng số hiệu bằng: " + degree.getDiplomaNumber());
+
+            Notifications notifications = new Notifications();
+            notifications.setUser(user);
+            notifications.setTitle(NotificationType.DEGREE_APPROVED.getName());
+            notifications.setContent("Phòng đào tạo đã xác nhận văn bằng có số hiệu: "+ degree.getDiplomaNumber());
+            notifications.setType(NotificationType.DEGREE_APPROVED);
+            notificateService.save(notifications);
+
+            User userDepartment = userService.findByDepartment(degree.getStudent().getStudentClass().getDepartment());
+
+            NotificationReceivers notificationReceivers = new NotificationReceivers();
+            notificationReceivers.setNotification(notifications);
+            notificationReceivers.setReceiverId(userDepartment.getId());
+            notificationReceivers.setCreatedAt(vietnamTime.toLocalDateTime());
+            notificationReceiverService.save(notificationReceivers);
+
             return degree;
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -452,7 +483,7 @@ public class DegreeService implements IDegreeService{
 
     // xác nhận 1 list
     @Transactional
-    public void approveDegreeList(List<Long> ids, University university, HttpServletRequest request) throws Exception {
+    public void approveDegreeList(List<Long> ids, User user, HttpServletRequest request) throws Exception {
         ZonedDateTime vietnamTime = ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
@@ -460,7 +491,7 @@ public class DegreeService implements IDegreeService{
             Degree degree = degreeRepository.findById(id)
                     .orElseThrow(() -> new RuntimeException("Không tìm thấy văn bằng có id " + id));
 
-            String imageUrl = graphicsTextWriter.degreeValidation(degree.getImageUrl(), university.getSealImageUrl());
+            String imageUrl = graphicsTextWriter.degreeValidation(degree.getImageUrl(), user.getUniversity().getSealImageUrl());
             degree.setImageUrl(imageUrl);
 
             //IPFS & QR
@@ -474,13 +505,13 @@ public class DegreeService implements IDegreeService{
 
             DegreeBlockchainRequest bcRequest = new DegreeBlockchainRequest(
                     degree.getStudent().getName(),
-                    university.getName(),
+                    user.getUniversity().getName(),
                     degree.getIssueDate().format(formatter),
                     degree.getDiplomaNumber(),
                     degree.getLotteryNumber(),
                     ipfsUrl
             );
-            String privateKeyBase64 = university.getPrivateKey();
+            String privateKeyBase64 = user.getUniversity().getPrivateKey();
             PrivateKey privateKey = RSAKeyPairGenerator.getPrivateKeyFromBase64(privateKeyBase64);
             String json = objectMapper.writeValueAsString(bcRequest);
             String encryptedHex = rsaUtil.encryptWithPrivateKeyToHex(json, privateKey);
@@ -492,9 +523,24 @@ public class DegreeService implements IDegreeService{
             brevoApiEmailService.sendEmailsToStudentsExcel(
                     degree.getStudent().getEmail(),
                     degree.getStudent().getName(),
-                    university.getName(),
+                    user.getUniversity().getName(),
                     verifyUrl,
                     "Văn bằng");
+
+            Notifications notifications = new Notifications();
+            notifications.setUser(user);
+            notifications.setTitle(NotificationType.DEGREE_APPROVED.getName());
+            notifications.setContent("Phòng đào tạo đã xác nhận văn bằng có số hiệu: "+ degree.getDiplomaNumber());
+            notifications.setType(NotificationType.DEGREE_APPROVED);
+            notificateService.save(notifications);
+
+            User userDepartment = userService.findByDepartment(degree.getStudent().getStudentClass().getDepartment());
+
+            NotificationReceivers notificationReceivers = new NotificationReceivers();
+            notificationReceivers.setNotification(notifications);
+            notificationReceivers.setReceiverId(userDepartment.getId());
+            notificationReceivers.setCreatedAt(vietnamTime.toLocalDateTime());
+            notificationReceiverService.save(notificationReceivers);
         }
         List<Degree> degrees = degreeRepository.findAllById(ids);
         degreeRepository.saveAll(degrees);
@@ -515,7 +561,7 @@ public class DegreeService implements IDegreeService{
     //từ chối xác nhận van bang
     @Transactional
     @Auditable(action = ActionType.REJECTED, entity = Entity.degrees)
-    public Degree degreeRejected (Long degreeId) throws Exception {
+    public Degree degreeRejected (Long degreeId, User user) throws Exception {
         try {
             ZonedDateTime vietnamTime = ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
 
@@ -525,6 +571,21 @@ public class DegreeService implements IDegreeService{
             degree.setStatus(Status.REJECTED);
             degree.setUpdatedAt(vietnamTime.toLocalDateTime());
             AuditingContext.setDescription("Từ chối xác thực văn bằng số hiệu văn bằng: " + degree.getDiplomaNumber());
+
+            Notifications notifications = new Notifications();
+            notifications.setUser(user);
+            notifications.setTitle(NotificationType.CERTIFICATE_REJECTED.getName());
+            notifications.setContent("Phòng đào tạo đã từ chối xác nhận văn bằng có số hiệu: "+ degree.getDiplomaNumber());
+            notifications.setType(NotificationType.CERTIFICATE_REJECTED);
+            notificateService.save(notifications);
+
+            User userDepartment = userService.findByDepartment(degree.getStudent().getStudentClass().getDepartment());
+
+            NotificationReceivers notificationReceivers = new NotificationReceivers();
+            notificationReceivers.setNotification(notifications);
+            notificationReceivers.setReceiverId(userDepartment.getId());
+            notificationReceivers.setCreatedAt(vietnamTime.toLocalDateTime());
+            notificationReceiverService.save(notificationReceivers);
             return degree;
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -533,13 +594,29 @@ public class DegreeService implements IDegreeService{
 
     //từ chối 1 list van bang
     @Transactional
-    public void rejectDegreeList(List<Long> ids) {
+    public void rejectDegreeList(List<Long> ids, User user) {
         ZonedDateTime vietnamTime = ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
 
         List<Degree> degrees = degreeRepository.findAllById(ids);
         for (Degree degree : degrees) {
             degree.setStatus(Status.REJECTED);
             degree.setUpdatedAt(vietnamTime.toLocalDateTime());
+
+            Notifications notifications = new Notifications();
+            notifications.setUser(user);
+            notifications.setTitle(NotificationType.DEGREE_REJECTED.getName());
+            notifications.setContent("Phòng đào tạo đã từ chối xác nhận văn bằng có số hiệu: "+ degree.getDiplomaNumber());
+            notifications.setType(NotificationType.DEGREE_REJECTED);
+            notificateService.save(notifications);
+
+            User userDepartment = userService.findByDepartment(degree.getStudent().getStudentClass().getDepartment());
+
+            NotificationReceivers notificationReceivers = new NotificationReceivers();
+            notificationReceivers.setNotification(notifications);
+            notificationReceivers.setReceiverId(userDepartment.getId());
+            notificationReceivers.setCreatedAt(vietnamTime.toLocalDateTime());
+            notificationReceivers.setCreatedAt(vietnamTime.toLocalDateTime());
+            notificationReceiverService.save(notificationReceivers);
         }
 
         degreeRepository.saveAll(degrees);

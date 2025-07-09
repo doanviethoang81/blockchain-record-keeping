@@ -34,6 +34,5 @@ public class Notifications {
     @Column(name = "type")
     private NotificationType type;
 
-    @Column(name="created_at")
-    private LocalDateTime createdAt;
+
 }

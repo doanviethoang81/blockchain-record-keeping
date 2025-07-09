@@ -54,6 +54,8 @@ public class DegreeController {
     private final AuditLogService auditLogService;
     private final HttpServletRequest httpServletRequest;
     private final LogRepository logRepository;
+    private final NotificateService notificateService;
+    private final NotificationReceiverService notificationReceiverService;
 
     //---------------------------- KHOA -------------------------------------------------------
     // cấp văn bằng
@@ -103,7 +105,7 @@ public class DegreeController {
             if(degreeService.existByLotteryNumber(user.getUniversity().getId(), request.getLotteryNumber())){
                 return ApiResponseBuilder.badRequest("Số vào sổ văn bằng đã tồn tại!");
             }
-            degreeService.createDegree(request);
+            degreeService.createDegree(request,user);
             return ApiResponseBuilder.success("Tạo văn bằng thành công", null);
         } catch (DateTimeParseException e) {
             return ApiResponseBuilder.badRequest("Ngày cấp văn bằng không đúng định dạng dd/MM/yyyy");
@@ -137,7 +139,6 @@ public class DegreeController {
         String username = authentication.getName();
         User user = userService.findByUser(username);
 
-        Long ida= user.getDepartment().getId();
         EasyExcel.read(
                 file.getInputStream(),
                 DegreeExcelRowRequest.class,
@@ -148,10 +149,13 @@ public class DegreeController {
                         degreeService,
                         studentService,
                         graphicsTextWriter,
-                        ida,
+                        user,
                         auditLogService,
                         httpServletRequest,
-                        logRepository
+                        logRepository,
+                        userService,
+                        notificateService,
+                        notificationReceiverService
                 )
         ).sheet().doRead();
 
@@ -841,12 +845,12 @@ public class DegreeController {
         try{
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             String username = authentication.getName();
-            University university = universityService.getUniversityByEmail(username);
+            User user = userService.findByUser(username);
             Degree degree = degreeService.findByIdAndStatus(id);
             if(degree != null){
                 return ApiResponseBuilder.badRequest("Văn bằng này đã được xác nhận rồi!");
             }
-            degreeService.degreeValidation(university,id);
+            degreeService.degreeValidation(user,id);
             return ApiResponseBuilder.success("Xác nhận thành công ", null);
         } catch (Exception e) {
             return ApiResponseBuilder.internalError("Lỗi " + e.getMessage());
@@ -858,11 +862,15 @@ public class DegreeController {
     @PostMapping("/pdt/degree-rejected/{id}")
     public ResponseEntity<?> degreeRejected(@PathVariable("id") Long id){
         try{
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String username = authentication.getName();
+            User user = userService.findByUser(username);
+
             Degree degree = degreeService.findByIdAndStatus(id);
             if(degree != null){
                 return ApiResponseBuilder.badRequest("Văn bằng này đã được xác nhận rồi!");
             }
-            degreeService.degreeRejected(id);
+            degreeService.degreeRejected(id,user);
             return ApiResponseBuilder.success("Từ chối Xác nhận thành công ", null);
         } catch (Exception e) {
             return ApiResponseBuilder.internalError("Lỗi " + e.getMessage());
@@ -881,7 +889,7 @@ public class DegreeController {
             List<Long> ids = request.getIds();
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             String username = authentication.getName();
-            University university = universityService.getUniversityByEmail(username);
+            User user = userService.findByUser(username);
 
             List<String> alreadyValidated = new ArrayList<>();
 
@@ -899,7 +907,7 @@ public class DegreeController {
                 );
             }
 
-            degreeService.approveDegreeList(ids, university, httpServletRequest);
+            degreeService.approveDegreeList(ids, user, httpServletRequest);
             return ApiResponseBuilder.success("Xác nhận tất cả văn bằng thành công", null);
         } catch (Exception e) {
             return ApiResponseBuilder.internalError("Lỗi: " + e.getMessage());
@@ -911,6 +919,10 @@ public class DegreeController {
     @PostMapping("/pdt/reject-a-list-of-degree")
     public ResponseEntity<?> rejectAListOfDegree (@RequestBody ListValidationRequest request) {
         try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String username = authentication.getName();
+            User user = userService.findByUser(username);
+
             if (request == null || request.getIds() == null || request.getIds().isEmpty()) {
                 return ApiResponseBuilder.badRequest("Vui lòng chọn văn bằng cần từ chối xác nhận!");
             }
@@ -928,7 +940,7 @@ public class DegreeController {
                 return ApiResponseBuilder.listBadRequest("Không thể xác nhận vì có văn bằng đã được xác nhận.",alreadyValidated
                 );
             }
-            degreeService.rejectDegreeList(ids);
+            degreeService.rejectDegreeList(ids, user);
             return ApiResponseBuilder.success("Từ chối xác nhận danh sách văn bằng thành công", null);
         } catch (Exception e) {
             return ApiResponseBuilder.internalError("Lỗi: " + e.getMessage());

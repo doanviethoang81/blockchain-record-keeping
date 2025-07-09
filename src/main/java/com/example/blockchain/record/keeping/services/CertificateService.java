@@ -331,7 +331,7 @@ public class CertificateService implements ICertificateService{
     }
 
     @Transactional
-    public void createCertificate(Student student,JsonNode jsonNode) {
+    public void createCertificate(Student student,JsonNode jsonNode, User user) {
         ZonedDateTime vietnamTime = ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
@@ -391,6 +391,21 @@ public class CertificateService implements ICertificateService{
         log.setIpAddress(ipAdress);
         log.setCreatedAt(vietnamTime.toLocalDateTime());
         logRepository.save(log);
+
+        Notifications notifications = new Notifications();
+        notifications.setUser(user);
+        notifications.setTitle(NotificationType.CERTIFICATE_CREATED.getName());
+        notifications.setContent("Khoa "+ student.getStudentClass().getDepartment().getName().toLowerCase() +" đã tạo chứng chỉ có số hiệu: "+ certificate.getDiplomaNumber());
+        notifications.setType(NotificationType.CERTIFICATE_CREATED);
+        notificateService.save(notifications);
+
+        User userDepartment = userService.findByDepartment(certificate.getStudent().getStudentClass().getDepartment());
+
+        NotificationReceivers notificationReceivers = new NotificationReceivers();
+        notificationReceivers.setNotification(notifications);
+        notificationReceivers.setReceiverId(userDepartment.getId());
+        notificationReceivers.setCreatedAt(vietnamTime.toLocalDateTime());
+        notificationReceiverService.save(notificationReceivers);
     }
 
     // them dau moc 1 ch ch
@@ -450,12 +465,14 @@ public class CertificateService implements ICertificateService{
             notifications.setTitle(NotificationType.CERTIFICATE_APPROVED.getName());
             notifications.setContent("Phòng đào tạo đã xác nhận chứng chỉ có số hiệu: "+ certificate.getDiplomaNumber());
             notifications.setType(NotificationType.CERTIFICATE_APPROVED);
-            notifications.setCreatedAt(vietnamTime.toLocalDateTime());
             notificateService.save(notifications);
+
+            User userDepartment = userService.findByDepartment(certificate.getStudent().getStudentClass().getDepartment());
 
             NotificationReceivers notificationReceivers = new NotificationReceivers();
             notificationReceivers.setNotification(notifications);
-            notificationReceivers.setReceiverId(certificate.getStudent().getStudentClass().getDepartment().getId());
+            notificationReceivers.setReceiverId(userDepartment.getId());
+            notificationReceivers.setCreatedAt(vietnamTime.toLocalDateTime());
             notificationReceiverService.save(notificationReceivers);
 
             return certificate;
@@ -466,7 +483,7 @@ public class CertificateService implements ICertificateService{
 
     // xác nhận 1 list ch ch
     @Transactional
-    public void confirmCertificates(List<Long> ids, University university, HttpServletRequest request) throws Exception {
+    public void confirmCertificates(List<Long> ids, User user, HttpServletRequest request) throws Exception {
         ZonedDateTime vietnamTime = ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
@@ -474,7 +491,7 @@ public class CertificateService implements ICertificateService{
             Certificate certificate = certificateRepository.findById(id)
                     .orElseThrow(() -> new RuntimeException("Không tìm thấy chứng chỉ có id " + id));
 
-            String imageUrl = graphicsTextWriter.certificateValidation(certificate.getImageUrl(), university.getSealImageUrl());
+            String imageUrl = graphicsTextWriter.certificateValidation(certificate.getImageUrl(), user.getUniversity().getSealImageUrl());
             certificate.setImageUrl(imageUrl);
 
             String ipfsUrl = PinataUploader.uploadFromUrlToPinata(imageUrl);
@@ -489,12 +506,12 @@ public class CertificateService implements ICertificateService{
 
             CertificateBlockchainRequest bcRequest = new CertificateBlockchainRequest(
                     certificate.getStudent().getName(),
-                    university.getName(),
+                    user.getUniversity().getName(),
                     certificate.getIssueDate().format(formatter),
                     certificate.getDiplomaNumber(),
                     ipfsUrl
             );
-            String privateKeyBase64 = university.getPrivateKey();
+            String privateKeyBase64 = user.getUniversity().getPrivateKey();
             PrivateKey privateKey = RSAKeyPairGenerator.getPrivateKeyFromBase64(privateKeyBase64);
             String json = objectMapper.writeValueAsString(bcRequest);
             String encryptedHex = rsaUtil.encryptWithPrivateKeyToHex(json, privateKey);
@@ -504,10 +521,25 @@ public class CertificateService implements ICertificateService{
             brevoApiEmailService.sendEmailsToStudentsExcel(
                     certificate.getStudent().getEmail(),
                     certificate.getStudent().getName(),
-                    university.getName(),
+                    user.getUniversity().getName(),
                     certificateUrl,
                     "Chứng chỉ"
             );
+
+            Notifications notifications = new Notifications();
+            notifications.setUser(user);
+            notifications.setTitle(NotificationType.CERTIFICATE_APPROVED.getName());
+            notifications.setContent("Phòng đào tạo đã xác nhận chứng chỉ có số hiệu: "+ certificate.getDiplomaNumber());
+            notifications.setType(NotificationType.CERTIFICATE_APPROVED);
+            notificateService.save(notifications);
+
+            User userDepartment = userService.findByDepartment(certificate.getStudent().getStudentClass().getDepartment());
+
+            NotificationReceivers notificationReceivers = new NotificationReceivers();
+            notificationReceivers.setNotification(notifications);
+            notificationReceivers.setReceiverId(userDepartment.getId());
+            notificationReceivers.setCreatedAt(vietnamTime.toLocalDateTime());
+            notificationReceiverService.save(notificationReceivers);
         }
 
         List<Certificate> certificates = certificateRepository.findAllById(ids);
@@ -545,12 +577,14 @@ public class CertificateService implements ICertificateService{
             notifications.setTitle(NotificationType.CERTIFICATE_REJECTED.getName());
             notifications.setContent("Phòng đào tạo đã từ chối xác nhận chứng chỉ có số hiệu: "+ certificate.getDiplomaNumber());
             notifications.setType(NotificationType.CERTIFICATE_REJECTED);
-            notifications.setCreatedAt(vietnamTime.toLocalDateTime());
             notificateService.save(notifications);
+
+            User userDepartment = userService.findByDepartment(certificate.getStudent().getStudentClass().getDepartment());
 
             NotificationReceivers notificationReceivers = new NotificationReceivers();
             notificationReceivers.setNotification(notifications);
-            notificationReceivers.setReceiverId(certificate.getStudent().getStudentClass().getDepartment().getId());
+            notificationReceivers.setReceiverId(userDepartment.getId());
+            notificationReceivers.setCreatedAt(vietnamTime.toLocalDateTime());
             notificationReceiverService.save(notificationReceivers);
 
             return certificate;
@@ -561,13 +595,28 @@ public class CertificateService implements ICertificateService{
 
     // từ chối 1 list
     @Transactional
-    public void rejectCertificates(List<Long> ids) {
+    public void rejectCertificates(List<Long> ids, User user) {
         ZonedDateTime vietnamTime = ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
 
         List<Certificate> certificates = certificateRepository.findAllById(ids);
         for (Certificate cert : certificates) {
             cert.setStatus(Status.REJECTED);
             cert.setUpdatedAt(vietnamTime.toLocalDateTime());
+
+            Notifications notifications = new Notifications();
+            notifications.setUser(user);
+            notifications.setTitle(NotificationType.CERTIFICATE_REJECTED.getName());
+            notifications.setContent("Phòng đào tạo đã từ chối xác nhận chứng chỉ có số hiệu: "+ cert.getDiplomaNumber());
+            notifications.setType(NotificationType.CERTIFICATE_REJECTED);
+            notificateService.save(notifications);
+
+            User userDepartment = userService.findByDepartment(cert.getStudent().getStudentClass().getDepartment());
+
+            NotificationReceivers notificationReceivers = new NotificationReceivers();
+            notificationReceivers.setNotification(notifications);
+            notificationReceivers.setReceiverId(userDepartment.getId());
+            notificationReceivers.setCreatedAt(vietnamTime.toLocalDateTime());
+            notificationReceiverService.save(notificationReceivers);
         }
 
         certificateRepository.saveAll(certificates);
@@ -576,7 +625,7 @@ public class CertificateService implements ICertificateService{
         String ipAdress = auditLogService.getClientIp(httpServletRequest);
         Log log = new Log();
         log.setUser(auditLogService.getCurrentUser());
-        log.setActionType(ActionType.VERIFIED);
+        log.setActionType(ActionType.REJECTED);
         log.setEntityName(Entity.certificates);
         log.setEntityId(null);
         log.setDescription(LogTemplate.REJECTED_CERTIFICATE.format(ids.size()));

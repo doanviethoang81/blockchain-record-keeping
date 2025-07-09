@@ -5,15 +5,10 @@ import com.alibaba.excel.event.AnalysisEventListener;
 import com.alibaba.excel.metadata.CellExtra;
 import com.example.blockchain.record.keeping.dtos.CertificateExcelRowDTO;
 import com.example.blockchain.record.keeping.dtos.request.CertificatePrintData;
-import com.example.blockchain.record.keeping.dtos.request.DegreeExcelRowRequest;
-import com.example.blockchain.record.keeping.enums.ActionType;
-import com.example.blockchain.record.keeping.enums.Entity;
-import com.example.blockchain.record.keeping.enums.LogTemplate;
-import com.example.blockchain.record.keeping.enums.Status;
+import com.example.blockchain.record.keeping.enums.*;
 import com.example.blockchain.record.keeping.exceptions.BadRequestException;
 import com.example.blockchain.record.keeping.exceptions.ListBadRequestException;
 import com.example.blockchain.record.keeping.models.*;
-import com.example.blockchain.record.keeping.repositorys.ActionChangeRepository;
 import com.example.blockchain.record.keeping.repositorys.LogRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
@@ -42,12 +37,24 @@ public class CertificateExcelListener extends AnalysisEventListener<CertificateE
     private final AuditLogService auditLogService;
     private final LogRepository logRepository;
     private final HttpServletRequest httpServletRequest;
+    private final NotificateService notificateService;
+    private final NotificationReceiverService notificationReceiverService;
+    private final User user;
+    private final UserService userService;
 
     public CertificateExcelListener(
             StudentService studentService,
             Long departmentId,
             UniversityCertificateType universityCertificateType,
-            CertificateService certificateService, GraphicsTextWriter graphicsTextWriter, AuditLogService auditLogService, LogRepository logRepository, HttpServletRequest httpServletRequest) {
+            CertificateService certificateService,
+            GraphicsTextWriter graphicsTextWriter,
+            AuditLogService auditLogService,
+            LogRepository logRepository,
+            HttpServletRequest httpServletRequest,
+            NotificateService notificateService,
+            NotificationReceiverService notificationReceiverService,
+            User user, UserService userService
+    ) {
         this.studentService = studentService;
         this.departmentId = departmentId;
         this.universityCertificateType = universityCertificateType;
@@ -56,6 +63,10 @@ public class CertificateExcelListener extends AnalysisEventListener<CertificateE
         this.auditLogService = auditLogService;
         this.logRepository = logRepository;
         this.httpServletRequest = httpServletRequest;
+        this.notificateService = notificateService;
+        this.notificationReceiverService = notificationReceiverService;
+        this.user = user;
+        this.userService = userService;
     }
 
     private final List<CertificateExcelRowDTO> rows = new ArrayList<>();
@@ -117,6 +128,8 @@ public class CertificateExcelListener extends AnalysisEventListener<CertificateE
 
         List<Certificate> certificatesToSave = new ArrayList<>();
         List<CertificatePrintData> printDataList = new ArrayList<>();
+        List<Notifications> notificationsList = new ArrayList<>();
+        List<NotificationReceivers> notificationReceiversList = new ArrayList<>();
 
         for (int i = 0; i < rows.size(); i++) {
             CertificateExcelRowDTO row = rows.get(i);
@@ -218,6 +231,14 @@ public class CertificateExcelListener extends AnalysisEventListener<CertificateE
             printData.setSigner(row.getSigner());
 
             printDataList.add(printData);
+
+            //thong bao
+            Notifications notifications = new Notifications();
+            notifications.setUser(user);
+            notifications.setTitle(NotificationType.CERTIFICATE_CREATED.getName());
+            notifications.setContent("Khoa "+ student.getStudentClass().getDepartment().getName().toLowerCase() +" đã tạo chứng chỉ có số hiệu: "+ certificate.getDiplomaNumber());
+            notifications.setType(NotificationType.CERTIFICATE_CREATED);
+            notificationsList.add(notifications);
         }
 
         if (!errors.isEmpty()) {
@@ -239,6 +260,18 @@ public class CertificateExcelListener extends AnalysisEventListener<CertificateE
         }
         executor.shutdown();
         certificateService.saveAll(certificatesToSave);
+        notificateService.saveAll(notificationsList);
+
+        User userUniversity = userService.findByUser(universityCertificateType.getUniversity().getEmail());
+
+        for (Notifications notification : notificationsList) {
+            NotificationReceivers notificationReceivers = new NotificationReceivers();
+            notificationReceivers.setNotification(notification);
+            notificationReceivers.setReceiverId(userUniversity.getId());
+            notificationReceivers.setCreatedAt(now.toLocalDateTime());
+            notificationReceiversList.add(notificationReceivers);
+        }
+        notificationReceiverService.saveAll(notificationReceiversList);
 
         //log
         String ipAdress = auditLogService.getClientIp(httpServletRequest);

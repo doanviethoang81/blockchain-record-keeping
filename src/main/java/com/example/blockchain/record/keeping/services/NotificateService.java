@@ -6,6 +6,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class NotificateService implements INotificateService{
@@ -15,5 +17,10 @@ public class NotificateService implements INotificateService{
     @Override
     public Notifications save(Notifications notifications) {
         return notificationRepository.save(notifications);
+    }
+
+    @Override
+    public List<Notifications> saveAll(List<Notifications> list) {
+        return notificationRepository.saveAll(list);
     }
 }

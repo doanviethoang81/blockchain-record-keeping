@@ -28,4 +28,7 @@ public class NotificationReceivers {
 
     @Column(name = "is_read")
     private boolean isRead;
+
+    @Column(name="created_at")
+    private LocalDateTime createdAt;
 }
