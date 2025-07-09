@@ -519,13 +519,13 @@ public class DegreeService implements IDegreeService{
             String txHash = blockChainService.issue(encryptedHex);
             degree.setBlockchainTxHash(txHash);
 
-            //email
-            brevoApiEmailService.sendEmailsToStudentsExcel(
-                    degree.getStudent().getEmail(),
-                    degree.getStudent().getName(),
-                    user.getUniversity().getName(),
-                    verifyUrl,
-                    "Văn bằng");
+            //email NÀO CHẠY MỞ
+//            brevoApiEmailService.sendEmailsToStudentsExcel(
+//                    degree.getStudent().getEmail(),
+//                    degree.getStudent().getName(),
+//                    user.getUniversity().getName(),
+//                    verifyUrl,
+//                    "Văn bằng");
 
             Notifications notifications = new Notifications();
             notifications.setUser(user);

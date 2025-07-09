@@ -1,5 +1,7 @@
 package com.example.blockchain.record.keeping.controllers;
 
+import com.example.blockchain.record.keeping.dtos.request.ChangePasswordRequest;
+import com.example.blockchain.record.keeping.dtos.request.UniversityRequest;
 import com.example.blockchain.record.keeping.models.*;
 import com.example.blockchain.record.keeping.response.*;
 import com.example.blockchain.record.keeping.services.*;
@@ -7,7 +9,10 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -96,6 +101,22 @@ public class UniversityController {
         return ApiResponseBuilder.success("Thông tin chi tiết của trường", data);
     }
 
-
+    //update tài khoản university
+//    @PutMapping("/pdt/update")
+//    public ResponseEntity<?> changePasswordStudent(
+//            @RequestBody UniversityRequest universityRequest
+//    ) {
+//        try {
+//            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+//            String username = authentication.getName();
+//            if (universityRequest == null ) {
+//                return ApiResponseBuilder.badRequest("Vui lòng nhập đầy đủ thông tin!");
+//            }
+//
+//            return ApiResponseBuilder.success("Thay đổi thông tin thành công", null);
+//        } catch (Exception e) {
+//            return ApiResponseBuilder.internalError("Lỗi: " + e.getMessage());
+//        }
+//    }
 
 }

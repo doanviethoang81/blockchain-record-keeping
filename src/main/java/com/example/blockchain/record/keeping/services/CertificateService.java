@@ -518,13 +518,14 @@ public class CertificateService implements ICertificateService{
             String txHash = blockChainService.issue(encryptedHex);
             certificate.setBlockchainTxHash(txHash);
 
-            brevoApiEmailService.sendEmailsToStudentsExcel(
-                    certificate.getStudent().getEmail(),
-                    certificate.getStudent().getName(),
-                    user.getUniversity().getName(),
-                    certificateUrl,
-                    "Chứng chỉ"
-            );
+            // NÀO CHAY THI MO
+//            brevoApiEmailService.sendEmailsToStudentsExcel(
+//                    certificate.getStudent().getEmail(),
+//                    certificate.getStudent().getName(),
+//                    user.getUniversity().getName(),
+//                    certificateUrl,
+//                    "Chứng chỉ"
+//            );
 
             Notifications notifications = new Notifications();
             notifications.setUser(user);
