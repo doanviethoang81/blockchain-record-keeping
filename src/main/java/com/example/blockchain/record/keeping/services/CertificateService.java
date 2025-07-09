@@ -397,6 +397,8 @@ public class CertificateService implements ICertificateService{
         notifications.setTitle(NotificationType.CERTIFICATE_CREATED.getName());
         notifications.setContent("Khoa "+ student.getStudentClass().getDepartment().getName().toLowerCase() +" đã tạo chứng chỉ có số hiệu: "+ certificate.getDiplomaNumber());
         notifications.setType(NotificationType.CERTIFICATE_CREATED);
+        notifications.setDocumentType("CERTIFICATE");
+        notifications.setDocumentId(certificate.getId());
         notificateService.save(notifications);
 
         User userDepartment = userService.findByDepartment(certificate.getStudent().getStudentClass().getDepartment());
@@ -465,6 +467,8 @@ public class CertificateService implements ICertificateService{
             notifications.setTitle(NotificationType.CERTIFICATE_APPROVED.getName());
             notifications.setContent("Phòng đào tạo đã xác nhận chứng chỉ có số hiệu: "+ certificate.getDiplomaNumber());
             notifications.setType(NotificationType.CERTIFICATE_APPROVED);
+            notifications.setDocumentType("CERTIFICATE");
+            notifications.setDocumentId(certificate.getId());
             notificateService.save(notifications);
 
             User userDepartment = userService.findByDepartment(certificate.getStudent().getStudentClass().getDepartment());
@@ -532,6 +536,8 @@ public class CertificateService implements ICertificateService{
             notifications.setTitle(NotificationType.CERTIFICATE_APPROVED.getName());
             notifications.setContent("Phòng đào tạo đã xác nhận chứng chỉ có số hiệu: "+ certificate.getDiplomaNumber());
             notifications.setType(NotificationType.CERTIFICATE_APPROVED);
+            notifications.setDocumentType("CERTIFICATE");
+            notifications.setDocumentId(certificate.getId());
             notificateService.save(notifications);
 
             User userDepartment = userService.findByDepartment(certificate.getStudent().getStudentClass().getDepartment());
@@ -578,6 +584,8 @@ public class CertificateService implements ICertificateService{
             notifications.setTitle(NotificationType.CERTIFICATE_REJECTED.getName());
             notifications.setContent("Phòng đào tạo đã từ chối xác nhận chứng chỉ có số hiệu: "+ certificate.getDiplomaNumber());
             notifications.setType(NotificationType.CERTIFICATE_REJECTED);
+            notifications.setDocumentType("CERTIFICATE");
+            notifications.setDocumentId(certificate.getId());
             notificateService.save(notifications);
 
             User userDepartment = userService.findByDepartment(certificate.getStudent().getStudentClass().getDepartment());
@@ -609,6 +617,8 @@ public class CertificateService implements ICertificateService{
             notifications.setTitle(NotificationType.CERTIFICATE_REJECTED.getName());
             notifications.setContent("Phòng đào tạo đã từ chối xác nhận chứng chỉ có số hiệu: "+ cert.getDiplomaNumber());
             notifications.setType(NotificationType.CERTIFICATE_REJECTED);
+            notifications.setDocumentType("CERTIFICATE");
+            notifications.setDocumentId(cert.getId());
             notificateService.save(notifications);
 
             User userDepartment = userService.findByDepartment(cert.getStudent().getStudentClass().getDepartment());

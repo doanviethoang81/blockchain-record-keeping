@@ -121,6 +121,8 @@ public class DegreeService implements IDegreeService{
         notifications.setTitle(NotificationType.DEGREE_CREATED.getName());
         notifications.setContent("Khoa "+ user.getDepartment().getName() +" đã tạo văn bằng có số hiệu: "+ degree.getDiplomaNumber());
         notifications.setType(NotificationType.DEGREE_CREATED);
+        notifications.setDocumentType("DEGREE");
+        notifications.setDocumentId(degree.getId());
         notificateService.save(notifications);
 
         User userUniversity = userService.findByUser(degree.getStudent().getStudentClass().getDepartment().getUniversity().getEmail());
@@ -465,6 +467,8 @@ public class DegreeService implements IDegreeService{
             notifications.setTitle(NotificationType.DEGREE_APPROVED.getName());
             notifications.setContent("Phòng đào tạo đã xác nhận văn bằng có số hiệu: "+ degree.getDiplomaNumber());
             notifications.setType(NotificationType.DEGREE_APPROVED);
+            notifications.setDocumentType("DEGREE");
+            notifications.setDocumentId(degree.getId());
             notificateService.save(notifications);
 
             User userDepartment = userService.findByDepartment(degree.getStudent().getStudentClass().getDepartment());
@@ -532,6 +536,8 @@ public class DegreeService implements IDegreeService{
             notifications.setTitle(NotificationType.DEGREE_APPROVED.getName());
             notifications.setContent("Phòng đào tạo đã xác nhận văn bằng có số hiệu: "+ degree.getDiplomaNumber());
             notifications.setType(NotificationType.DEGREE_APPROVED);
+            notifications.setDocumentType("DEGREE");
+            notifications.setDocumentId(degree.getId());
             notificateService.save(notifications);
 
             User userDepartment = userService.findByDepartment(degree.getStudent().getStudentClass().getDepartment());
@@ -577,6 +583,8 @@ public class DegreeService implements IDegreeService{
             notifications.setTitle(NotificationType.CERTIFICATE_REJECTED.getName());
             notifications.setContent("Phòng đào tạo đã từ chối xác nhận văn bằng có số hiệu: "+ degree.getDiplomaNumber());
             notifications.setType(NotificationType.CERTIFICATE_REJECTED);
+            notifications.setDocumentType("DEGREE");
+            notifications.setDocumentId(degree.getId());
             notificateService.save(notifications);
 
             User userDepartment = userService.findByDepartment(degree.getStudent().getStudentClass().getDepartment());
@@ -607,6 +615,8 @@ public class DegreeService implements IDegreeService{
             notifications.setTitle(NotificationType.DEGREE_REJECTED.getName());
             notifications.setContent("Phòng đào tạo đã từ chối xác nhận văn bằng có số hiệu: "+ degree.getDiplomaNumber());
             notifications.setType(NotificationType.DEGREE_REJECTED);
+            notifications.setDocumentType("DEGREE");
+            notifications.setDocumentId(degree.getId());
             notificateService.save(notifications);
 
             User userDepartment = userService.findByDepartment(degree.getStudent().getStudentClass().getDepartment());

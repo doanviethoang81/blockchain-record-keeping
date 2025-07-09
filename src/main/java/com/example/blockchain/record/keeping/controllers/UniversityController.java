@@ -26,6 +26,7 @@ public class UniversityController {
     private final PasswordEncoder passwordEncoder;
     private final UniversityService universityService;
     private final UserService userService;
+    private final ImageUploadService imageUploadService;
 
     //---------------------------- ADMIN -------------------------------------------------------
     //danh sách university
@@ -102,21 +103,49 @@ public class UniversityController {
     }
 
     //update tài khoản university
-//    @PutMapping("/pdt/update")
-//    public ResponseEntity<?> changePasswordStudent(
-//            @RequestBody UniversityRequest universityRequest
-//    ) {
-//        try {
-//            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-//            String username = authentication.getName();
-//            if (universityRequest == null ) {
-//                return ApiResponseBuilder.badRequest("Vui lòng nhập đầy đủ thông tin!");
-//            }
-//
-//            return ApiResponseBuilder.success("Thay đổi thông tin thành công", null);
-//        } catch (Exception e) {
-//            return ApiResponseBuilder.internalError("Lỗi: " + e.getMessage());
-//        }
-//    }
+    @PutMapping("/pdt/update")
+    public ResponseEntity<?> updateUniversityInfo(
+            @ModelAttribute UniversityRequest universityRequest
+    ) {
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String username = authentication.getName();
+            University university = universityService.getUniversityByEmail(username);
+            if (university == null) {
+                return ApiResponseBuilder.notFound("Không tìm thấy tài khoản phòng đào tạo.");
+            }
+
+            university.setName(universityRequest.getName());
+            university.setEmail(universityRequest.getEmail());
+            university.setAddress(universityRequest.getAddress());
+            university.setTaxCode(universityRequest.getTaxCode());
+            university.setWebsite(universityRequest.getWebsite());
+
+            if (universityRequest.getLogo() != null && !universityRequest.getLogo().isEmpty()) {
+                String contentType = universityRequest.getLogo().getContentType();
+                if (!contentType.startsWith("image/")) {
+                    return ApiResponseBuilder.badRequest("Logo tải lên không phải là ảnh!");
+                }
+                String imageUrl = imageUploadService.uploadImage(universityRequest.getLogo());
+                university.setLogo(imageUrl);
+            }
+
+            if (universityRequest.getSealImageUrl() != null && !universityRequest.getSealImageUrl().isEmpty()) {
+                String contentType = universityRequest.getSealImageUrl().getContentType();
+                if (!contentType.startsWith("image/")) {
+                    return ApiResponseBuilder.badRequest("Dấu mộc tải lên không phải là ảnh!");
+                }
+                String sealImageUrl = imageUploadService.uploadImage(universityRequest.getSealImageUrl());
+                university.setSealImageUrl(sealImageUrl);
+            }
+
+            universityService.save(university);
+
+            return ApiResponseBuilder.success("Cập nhật thông tin thành công", null);
+        } catch (Exception e) {
+            return ApiResponseBuilder.internalError("Lỗi: " + e.getMessage());
+        }
+    }
+
 
 }

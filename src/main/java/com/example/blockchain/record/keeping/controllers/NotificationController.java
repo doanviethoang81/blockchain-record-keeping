@@ -1,16 +1,14 @@
 package com.example.blockchain.record.keeping.controllers;
 
+import com.example.blockchain.record.keeping.configs.Constants;
 import com.example.blockchain.record.keeping.models.Certificate;
+import com.example.blockchain.record.keeping.models.Degree;
 import com.example.blockchain.record.keeping.models.NotificationReceivers;
-import com.example.blockchain.record.keeping.models.University;
 import com.example.blockchain.record.keeping.models.User;
 import com.example.blockchain.record.keeping.response.*;
-import com.example.blockchain.record.keeping.services.NotificateService;
-import com.example.blockchain.record.keeping.services.NotificationReceiverService;
-import com.example.blockchain.record.keeping.services.UserService;
+import com.example.blockchain.record.keeping.services.*;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
-import org.hibernate.query.sql.internal.ParameterRecognizerImpl;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -32,14 +30,15 @@ import java.util.stream.Collectors;
 @SecurityRequirement(name = "bearerAuth")
 public class NotificationController {
 
-    private final NotificateService notificateService;
     private final NotificationReceiverService notificationReceiverService;
     private final UserService userService;
+    private final CertificateService certificateService;
+    private final DegreeService degreeService;
 
 
     @PreAuthorize("(hasAnyRole('PDT', 'KHOA')) and hasAuthority('READ')")
     @GetMapping("/notification")
-    public ResponseEntity<?> getCertificateOfUniversity(
+    public ResponseEntity<?> getNotification(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(name = "status", defaultValue = "all") String status,
@@ -89,6 +88,7 @@ public class NotificationController {
             );
 
             List<NotificationResponse> notificationResponses = notifications.stream().map(s -> new NotificationResponse(
+                    s.getNotification().getId(),
                     s.getNotification().getTitle(),
                     s.getNotification().getContent(),
                     s.getNotification().getType(),
@@ -103,6 +103,108 @@ public class NotificationController {
             return ApiResponseBuilder.success("Danh sách thông báo", data);
         } catch (Exception e) {
             return ApiResponseBuilder.internalError("Lỗi: " + e.getMessage());
+        }
+    }
+
+    // XEM CHI TIẾT
+    @PreAuthorize("(hasAnyRole('PDT', 'KHOA')) and hasAuthority('READ')")
+    @GetMapping("/notification-detail")
+    public ResponseEntity<?> notificationDetail(
+            @RequestParam String documentType,
+            @RequestParam Long documentId
+    ) {
+        try {
+            switch (documentType.toUpperCase()) {
+                case "CERTIFICATE":
+                    return handleCertificateDetail(documentId);
+                case "DEGREE":
+                    return handleDegreeDetail(documentId);
+                default:
+                    return ApiResponseBuilder.badRequest("Loại giấy tờ không hợp lệ: " + documentType);
+            }
+        } catch (Exception e) {
+            return ApiResponseBuilder.internalError("Lỗi: " + e.getMessage());
+        }
+    }
+
+    public ResponseEntity<?> handleCertificateDetail(Long documentId){
+        try {
+            Certificate certificate = certificateService.findById(documentId);
+            String ipfsUrl = certificate.getIpfsUrl() != null ? Constants.IPFS_URL + certificate.getIpfsUrl() : null;
+            CertificateDetailResponse certificateDetailResponse = new CertificateDetailResponse(
+                    certificate.getId(),
+                    certificate.getStudent().getId(),
+                    certificate.getStudent().getName(),
+                    certificate.getStudent().getStudentClass().getName(),
+                    certificate.getStudent().getStudentClass().getDepartment().getName(),
+                    certificate.getStudent().getStudentClass().getDepartment().getUniversity().getName(),
+                    certificate.getUniversityCertificateType().getCertificateType().getId(),
+                    certificate.getUniversityCertificateType().getCertificateType().getName(),
+                    certificate.getIssueDate(),
+                    certificate.getDiplomaNumber(),
+                    certificate.getStudent().getStudentCode(),
+                    certificate.getStudent().getEmail(),
+                    certificate.getStudent().getBirthDate(),
+                    certificate.getStudent().getCourse(),
+                    certificate.getGrantor(),
+                    certificate.getSigner(),
+                    certificate.getStatus().getLabel(),
+                    certificate.getImageUrl(),
+                    ipfsUrl,
+                    certificate.getQrCodeUrl(),
+                    certificate.getBlockchainTxHash(),
+                    certificate.getUpdatedAt()
+            );
+            return ApiResponseBuilder.success("Chi tiết chứng chỉ", certificateDetailResponse);
+        } catch (IllegalArgumentException e) {
+            return ApiResponseBuilder.badRequest(e.getMessage());
+        } catch (Exception e) {
+            return ApiResponseBuilder.internalError("Lỗi " + e.getMessage());
+        }
+    }
+
+    public ResponseEntity<?> handleDegreeDetail(Long documentId){
+        try {
+            Degree degree = degreeService.findById(documentId);
+            if (degree == null) {
+                return ApiResponseBuilder.badRequest("Không tìm thấy văn bằng có id =" + documentId);
+            }
+            DegreeDetailResponse degreeDetailResponse = new DegreeDetailResponse();
+
+            String ipfsUrl = degree.getIpfsUrl() != null ? Constants.IPFS_URL + degree.getIpfsUrl() : null;
+
+            degreeDetailResponse.setId(degree.getId());
+            degreeDetailResponse.setStudentId(degree.getStudent().getId());
+            degreeDetailResponse.setNameStudent(degree.getStudent().getName());
+            degreeDetailResponse.setClassName(degree.getStudent().getStudentClass().getName());
+            degreeDetailResponse.setDepartmentName(degree.getStudent().getStudentClass().getDepartment().getName());
+            degreeDetailResponse.setUniversity(degree.getStudent().getStudentClass().getDepartment().getUniversity().getName());
+            degreeDetailResponse.setStudentCode(degree.getStudent().getStudentCode());
+            degreeDetailResponse.setIssueDate(degree.getIssueDate());
+            degreeDetailResponse.setGraduationYear(degree.getGraduationYear());
+            degreeDetailResponse.setEmail(degree.getStudent().getEmail());
+            degreeDetailResponse.setBirthDate(degree.getStudent().getBirthDate());
+            degreeDetailResponse.setRatingId(degree.getRating().getId());
+            degreeDetailResponse.setRatingName(degree.getRating().getName());
+            degreeDetailResponse.setDegreeTitleId(degree.getDegreeTitle().getId());
+            degreeDetailResponse.setDegreeTitleName(degree.getDegreeTitle().getName());
+            degreeDetailResponse.setEducationModeId(degree.getEducationMode().getId());
+            degreeDetailResponse.setEducationModeName(degree.getEducationMode().getName());
+            degreeDetailResponse.setCourse(degree.getStudent().getCourse());
+            degreeDetailResponse.setSigner(degree.getSigner());
+            degreeDetailResponse.setStatus(degree.getStatus());
+            degreeDetailResponse.setImageUrl(degree.getImageUrl());
+            degreeDetailResponse.setIpfsUrl(ipfsUrl);
+            degreeDetailResponse.setQrCodeUrl(degree.getQrCode());
+            degreeDetailResponse.setTransactionHash(degree.getBlockchainTxHash());
+            degreeDetailResponse.setDiplomaNumber(degree.getDiplomaNumber());
+            degreeDetailResponse.setLotteryNumber(degree.getLotteryNumber());
+            degreeDetailResponse.setCreatedAt(degree.getUpdatedAt());
+            return ApiResponseBuilder.success("Chi tiết văn bằng", degreeDetailResponse);
+        } catch (IllegalArgumentException e) {
+            return ApiResponseBuilder.badRequest(e.getMessage());
+        } catch (Exception e) {
+            return ApiResponseBuilder.internalError("Lỗi " + e.getMessage());
         }
     }
 }

@@ -12,4 +12,7 @@ public interface IUniversityService {
     List<User> findAllUserUniversity(String nameUniversity);
 
     University findById(Long id);
+
+    University save(University university);
+
 }

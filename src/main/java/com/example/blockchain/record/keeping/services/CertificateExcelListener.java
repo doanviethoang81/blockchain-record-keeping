@@ -238,6 +238,8 @@ public class CertificateExcelListener extends AnalysisEventListener<CertificateE
             notifications.setTitle(NotificationType.CERTIFICATE_CREATED.getName());
             notifications.setContent("Khoa "+ student.getStudentClass().getDepartment().getName().toLowerCase() +" đã tạo chứng chỉ có số hiệu: "+ certificate.getDiplomaNumber());
             notifications.setType(NotificationType.CERTIFICATE_CREATED);
+            notifications.setDocumentType("CERTIFICATE");
+            notifications.setDocumentId(certificate.getId());
             notificationsList.add(notifications);
         }
 

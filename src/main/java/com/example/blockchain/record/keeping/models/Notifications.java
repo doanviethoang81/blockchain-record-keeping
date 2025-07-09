@@ -34,5 +34,9 @@ public class Notifications {
     @Column(name = "type")
     private NotificationType type;
 
+    @Column(name = "document_type")
+    private String documentType;
 
+    @Column(name = "document_id")
+    private Long documentId;
 }

@@ -33,4 +33,9 @@ public class UniversityService implements IUniversityService{
         return universityRepository.findById(id)
                 .orElseThrow(()-> new RuntimeException("Không tìm thấy trường có id "+ id));
     }
+
+    @Override
+    public University save(University university) {
+        return universityRepository.save(university);
+    }
 }

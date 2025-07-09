@@ -292,6 +292,8 @@ public class DegreeExcelListener extends AnalysisEventListener<DegreeExcelRowReq
             notifications.setTitle(NotificationType.DEGREE_CREATED.getName());
             notifications.setContent("Khoa "+ student.getStudentClass().getDepartment().getName().toLowerCase() +" đã tạo văn bằng có số hiệu: "+ degree.getDiplomaNumber());
             notifications.setType(NotificationType.DEGREE_CREATED);
+            notifications.setDocumentType("DEGREE");
+            notifications.setDocumentId(degree.getId());
             notificationsList.add(notifications);
         }
 

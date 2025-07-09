@@ -989,7 +989,7 @@ public class DegreeController {
         degreeDetailResponse.setDiplomaNumber(degree.getDiplomaNumber());
         degreeDetailResponse.setLotteryNumber(degree.getLotteryNumber());
         degreeDetailResponse.setCreatedAt(degree.getUpdatedAt());
-        return ApiResponseBuilder.success("thành công", degreeDetailResponse);
+        return ApiResponseBuilder.success("Chi tiết văn bằng", degreeDetailResponse);
     }
 
     //văn bằng cua 1 sinh vien
