@@ -657,6 +657,7 @@ public class DegreeService implements IDegreeService{
 
     @org.springframework.transaction.annotation.Transactional(readOnly = true)
     public List<DegreeExcelDTO> getAllDegreeDTOs(String type) {
+
         List<Degree> degreeList = degreeRepository.findByStatus(type);
         AtomicInteger counter = new AtomicInteger(1);
         return degreeList.stream()

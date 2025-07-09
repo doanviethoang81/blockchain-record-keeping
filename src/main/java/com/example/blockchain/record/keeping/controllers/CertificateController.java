@@ -7,6 +7,9 @@ import com.example.blockchain.record.keeping.dtos.CertificateExcelRowDTO;
 import com.example.blockchain.record.keeping.dtos.request.CertificateRequest;
 import com.example.blockchain.record.keeping.dtos.request.DecryptRequest;
 import com.example.blockchain.record.keeping.dtos.request.ListValidationRequest;
+import com.example.blockchain.record.keeping.enums.ActionType;
+import com.example.blockchain.record.keeping.enums.Entity;
+import com.example.blockchain.record.keeping.enums.LogTemplate;
 import com.example.blockchain.record.keeping.enums.Status;
 import com.example.blockchain.record.keeping.models.*;
 import com.example.blockchain.record.keeping.repositorys.LogRepository;
@@ -1207,6 +1210,19 @@ public class CertificateController {
         response.setHeader("Content-Disposition", "attachment; filename=" + fileName + ".xlsx");
 
         List<CertificateExcelDTO> data = certificateService.getAllCertificateDTOs(status);
+
+        ZonedDateTime vietnamTime = ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
+        // ghi log
+        String ipAdress = auditLogService.getClientIp(httpServletRequest);
+        Log log = new Log();
+        log.setUser(auditLogService.getCurrentUser());
+        log.setActionType(ActionType.EXPORT_EXCEL);
+        log.setEntityName(Entity.certificates);
+        log.setEntityId(null);
+        log.setDescription(LogTemplate.EXPORT_EXCEL.format("chứng chỉ " + (type == null ? "all" : type.toLowerCase())));
+        log.setCreatedAt(vietnamTime.toLocalDateTime());
+        log.setIpAddress(ipAdress);
+        logRepository.save(log);
 
         EasyExcel.write(response.getOutputStream(), CertificateExcelDTO.class)
                 .registerWriteHandler(ExcelStyleUtil.certificateStyleStrategy())

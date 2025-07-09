@@ -650,6 +650,7 @@ public class CertificateService implements ICertificateService{
                     return dto;
                 })
                 .toList();
+
     }
 
     public CertificateExcelDTO convertToDTO(Certificate entity) {

@@ -7,6 +7,9 @@ import com.example.blockchain.record.keeping.dtos.DegreeExcelDTO;
 import com.example.blockchain.record.keeping.dtos.request.DegreeExcelRowRequest;
 import com.example.blockchain.record.keeping.dtos.request.ListValidationRequest;
 import com.example.blockchain.record.keeping.dtos.request.DegreeRequest;
+import com.example.blockchain.record.keeping.enums.ActionType;
+import com.example.blockchain.record.keeping.enums.Entity;
+import com.example.blockchain.record.keeping.enums.LogTemplate;
 import com.example.blockchain.record.keeping.enums.Status;
 import com.example.blockchain.record.keeping.models.*;
 import com.example.blockchain.record.keeping.repositorys.LogRepository;
@@ -1034,7 +1037,7 @@ public class DegreeController {
         String status = null;
         if (type != null) {
             try {
-                status =type;
+                status = type;
             } catch (IllegalArgumentException e) {
                 response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Type không đúng định dạng!");
                 return;
@@ -1048,6 +1051,19 @@ public class DegreeController {
         response.setHeader("Content-Disposition", "attachment; filename=" + fileName + ".xlsx");
 
         List<DegreeExcelDTO> data = degreeService.getAllDegreeDTOs(status);
+
+        ZonedDateTime vietnamTime = ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
+        // ghi log
+        String ipAdress = auditLogService.getClientIp(httpServletRequest);
+        Log log = new Log();
+        log.setUser(auditLogService.getCurrentUser());
+        log.setActionType(ActionType.EXPORT_EXCEL);
+        log.setEntityName(Entity.certificates);
+        log.setEntityId(null);
+        log.setDescription(LogTemplate.EXPORT_EXCEL.format("văn bằng " + (type == null ? "all" : type.toLowerCase())));
+        log.setCreatedAt(vietnamTime.toLocalDateTime());
+        log.setIpAddress(ipAdress);
+        logRepository.save(log);
 
         EasyExcel.write(response.getOutputStream(), DegreeExcelDTO.class)
                 .registerWriteHandler(ExcelStyleUtil.certificateStyleStrategy())
