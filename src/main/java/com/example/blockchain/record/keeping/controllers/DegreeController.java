@@ -61,7 +61,7 @@ public class DegreeController {
     private final NotificationReceiverService notificationReceiverService;
 
     //---------------------------- KHOA -------------------------------------------------------
-    // cấp văn bằng
+    // tạo văn bằng
     @PreAuthorize("hasAuthority('WRITE')")
     @PostMapping("/khoa/degree/create")
     public ResponseEntity<?> createDegree(

@@ -401,11 +401,11 @@ public class CertificateService implements ICertificateService{
         notifications.setDocumentId(certificate.getId());
         notificateService.save(notifications);
 
-        User userDepartment = userService.findByDepartment(certificate.getStudent().getStudentClass().getDepartment());
+        User userUniversity = userService.findByUser(certificate.getStudent().getStudentClass().getDepartment().getUniversity().getEmail());
 
         NotificationReceivers notificationReceivers = new NotificationReceivers();
         notificationReceivers.setNotification(notifications);
-        notificationReceivers.setReceiverId(userDepartment.getId());
+        notificationReceivers.setReceiverId(userUniversity.getId());
         notificationReceivers.setCreatedAt(vietnamTime.toLocalDateTime());
         notificationReceiverService.save(notificationReceivers);
     }

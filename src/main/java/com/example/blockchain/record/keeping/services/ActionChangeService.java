@@ -31,6 +31,9 @@ public class ActionChangeService implements IActionChangeService{
             Map.entry("trainingLocation", "Nơi đào tạo"),
             Map.entry("degreeTitle", "Tên văn bằng"),
             Map.entry("graduationYear", "Năm tốt nghiệp"),
+            Map.entry("address", "Địa chỉ"),
+            Map.entry("taxCode", "Mã số thuế"),
+            Map.entry("website", "Website"),
             Map.entry("educationMode", "Hình thức đào tạo")
     );
 
