@@ -1,5 +1,6 @@
 package com.example.blockchain.record.keeping.repositorys;
 
+import com.example.blockchain.record.keeping.enums.Status;
 import com.example.blockchain.record.keeping.models.University;
 import com.example.blockchain.record.keeping.models.User;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -24,4 +25,6 @@ public interface UniversityRepository extends JpaRepository<University, Long> {
             ORDER BY u.updated_at DESC
             """, nativeQuery = true)
     List<User> findAllUserUniversity(@Param("name") String name);
+
+    boolean existsByNameIgnoreCaseAndIdNot(String name, Long id);
 }

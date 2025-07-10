@@ -1205,13 +1205,32 @@ public class CertificateController {
         response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
         response.setCharacterEncoding("UTF-8");
 
-        String fileName = URLEncoder.encode("chung_chi_" + (type == null ? "all" : type) , StandardCharsets.UTF_8)
+        String fileName = URLEncoder.encode("chung_chi_" + (type == null ? "all" : type.toLowerCase()) , StandardCharsets.UTF_8)
                 .replaceAll("\\+", "%20");
         response.setHeader("Content-Disposition", "attachment; filename=" + fileName + ".xlsx");
 
         List<CertificateExcelDTO> data = certificateService.getAllCertificateDTOs(status);
 
         ZonedDateTime vietnamTime = ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
+
+        if (type == null) {
+            status = "Danh sách tất cả chứng chỉ";
+        } else {
+            switch (type) {
+                case "APPROVED":
+                    status = "Danh sách chứng chỉ đã xác nhận";
+                    break;
+                case "REJECTED":
+                    status = "Danh sách chứng chỉ đã từ chối";
+                    break;
+                case "PENDING":
+                    status = "Danh sách chứng chỉ chờ duyệt";
+                    break;
+                default:
+                    status = "Không rõ trạng thái";
+            }
+        }
+
         // ghi log
         String ipAdress = auditLogService.getClientIp(httpServletRequest);
         Log log = new Log();
@@ -1219,7 +1238,7 @@ public class CertificateController {
         log.setActionType(ActionType.EXPORT_EXCEL);
         log.setEntityName(Entity.certificates);
         log.setEntityId(null);
-        log.setDescription(LogTemplate.EXPORT_EXCEL.format("chứng chỉ " + (type == null ? "all" : type.toLowerCase())));
+        log.setDescription(LogTemplate.EXPORT_EXCEL.format(status));
         log.setCreatedAt(vietnamTime.toLocalDateTime());
         log.setIpAddress(ipAdress);
         logRepository.save(log);

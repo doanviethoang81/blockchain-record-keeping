@@ -137,6 +137,28 @@ public class AuditLogService {
         return clone;
     }
 
+    public University cloneUniversity(University source) {
+        University clone = new University();
+        clone.setName(source.getName());
+        clone.setAddress(source.getAddress());
+        clone.setEmail(source.getEmail());
+        clone.setTaxCode(source.getTaxCode());
+        clone.setWebsite(source.getWebsite());
+        return clone;
+    }
+
+    public University cloneLogoUniversity(University source) {
+        University clone = new University();
+        clone.setLogo(source.getLogo());
+        return clone;
+    }
+
+    public University cloneSelaUniversity(University source) {
+        University clone = new University();
+        clone.setSealImageUrl(source.getSealImageUrl());
+        return clone;
+    }
+
     public Department cloneDepartment(Department source) {
         Department clone = new Department();
         clone.setName(source.getName());

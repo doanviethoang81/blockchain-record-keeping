@@ -2,10 +2,17 @@ package com.example.blockchain.record.keeping.controllers;
 
 import com.example.blockchain.record.keeping.dtos.request.ChangePasswordRequest;
 import com.example.blockchain.record.keeping.dtos.request.UniversityRequest;
+import com.example.blockchain.record.keeping.enums.ActionType;
+import com.example.blockchain.record.keeping.enums.Entity;
+import com.example.blockchain.record.keeping.enums.LogTemplate;
 import com.example.blockchain.record.keeping.models.*;
+import com.example.blockchain.record.keeping.repositorys.ActionChangeRepository;
+import com.example.blockchain.record.keeping.repositorys.LogRepository;
 import com.example.blockchain.record.keeping.response.*;
 import com.example.blockchain.record.keeping.services.*;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -13,8 +20,12 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.util.StringUtils;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -27,6 +38,10 @@ public class UniversityController {
     private final UniversityService universityService;
     private final UserService userService;
     private final ImageUploadService imageUploadService;
+    private final ActionChangeRepository actionChangeRepository;
+    private final LogRepository logRepository;
+    private final AuditLogService auditLogService;
+    private final HttpServletRequest httpServletRequest;
 
     //---------------------------- ADMIN -------------------------------------------------------
     //danh sách university
@@ -105,45 +120,125 @@ public class UniversityController {
     //update tài khoản university
     @PutMapping("/pdt/update")
     public ResponseEntity<?> updateUniversityInfo(
-            @ModelAttribute UniversityRequest universityRequest
+            @Valid @ModelAttribute UniversityRequest universityRequest,
+            BindingResult bindingResult
     ) {
         try {
+            if (bindingResult.hasErrors()) {
+                String errorMessage = bindingResult.getFieldErrors().stream()
+                        .map(err -> err.getDefaultMessage())
+                        .collect(Collectors.joining(", "));
+                return ApiResponseBuilder.badRequest(errorMessage);
+            }
+
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             String username = authentication.getName();
             University university = universityService.getUniversityByEmail(username);
+
             if (university == null) {
-                return ApiResponseBuilder.notFound("Không tìm thấy tài khoản phòng đào tạo.");
+                return ApiResponseBuilder.notFound("Không tìm thấy tài khoản phòng đào tạo");
             }
 
-            university.setName(universityRequest.getName());
-            university.setEmail(universityRequest.getEmail());
-            university.setAddress(universityRequest.getAddress());
-            university.setTaxCode(universityRequest.getTaxCode());
-            university.setWebsite(universityRequest.getWebsite());
-
-            if (universityRequest.getLogo() != null && !universityRequest.getLogo().isEmpty()) {
-                String contentType = universityRequest.getLogo().getContentType();
-                if (!contentType.startsWith("image/")) {
-                    return ApiResponseBuilder.badRequest("Logo tải lên không phải là ảnh!");
-                }
-                String imageUrl = imageUploadService.uploadImage(universityRequest.getLogo());
-                university.setLogo(imageUrl);
+            if (universityService.existsByNameIgnoreCaseAndIdNot(universityRequest.getName(), university.getId())) {
+                return ApiResponseBuilder.badRequest("Tên trường đã tồn tại!");
             }
 
-            if (universityRequest.getSealImageUrl() != null && !universityRequest.getSealImageUrl().isEmpty()) {
-                String contentType = universityRequest.getSealImageUrl().getContentType();
-                if (!contentType.startsWith("image/")) {
-                    return ApiResponseBuilder.badRequest("Dấu mộc tải lên không phải là ảnh!");
-                }
-                String sealImageUrl = imageUploadService.uploadImage(universityRequest.getSealImageUrl());
-                university.setSealImageUrl(sealImageUrl);
+            if (!universityRequest.getEmail().equals(university.getEmail())
+                    && userService.isEmailRegistered(universityRequest.getEmail())) {
+                return ApiResponseBuilder.badRequest("Email này đã tồn tại!");
             }
-
-            universityService.save(university);
-
+            universityService.update(university, universityRequest);
             return ApiResponseBuilder.success("Cập nhật thông tin thành công", null);
         } catch (Exception e) {
             return ApiResponseBuilder.internalError("Lỗi: " + e.getMessage());
+        }
+    }
+
+    //logo
+    @PutMapping("/pdt/university/logo")
+    public ResponseEntity<?> updateLogo(@RequestParam("logo") MultipartFile logo) {
+        try {
+            if (logo.isEmpty() || !logo.getContentType().startsWith("image/")) {
+                return ApiResponseBuilder.badRequest("Logo tải lên không hợp lệ!");
+            }
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String userName = authentication.getName();
+            University university = universityService.getUniversityByEmail(userName);
+
+            University universityOld = auditLogService.cloneLogoUniversity(university);
+
+            String imageUrl = imageUploadService.uploadImage(logo);
+
+            university.setLogo(imageUrl);
+            universityService.save(university);
+            ZonedDateTime vietnamTime = ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
+
+            String ipAdress = auditLogService.getClientIp(httpServletRequest);
+            List<ActionChange> changes = auditLogService.compareObjects(null, universityOld, university);
+            if (!changes.isEmpty()) {
+                Log log = new Log();
+                log.setUser(auditLogService.getCurrentUser());
+                log.setActionType(ActionType.UPDATED);
+                log.setEntityName(Entity.universitys);
+                log.setEntityId(null);
+                log.setDescription(LogTemplate.UPDATE_UNIVERCITY_LOGO.getName());
+                log.setIpAddress(ipAdress);
+                log.setCreatedAt(vietnamTime.toLocalDateTime());
+
+                log = logRepository.save(log);
+
+                for (ActionChange change : changes) {
+                    change.setLog(log);
+                }
+                actionChangeRepository.saveAll(changes);
+            }
+            return ApiResponseBuilder.success("Cập nhật logo thành công", null);
+        } catch (Exception e) {
+            return ApiResponseBuilder.internalError("Lỗi khi cập nhật logo: " + e.getMessage());
+        }
+    }
+
+    @PutMapping("/pdt/university/seal")
+    public ResponseEntity<?> updateSeal(@RequestParam("seal") MultipartFile seal) {
+        try {
+            if (seal.isEmpty() || !seal.getContentType().startsWith("image/")) {
+                return ApiResponseBuilder.badRequest("Dấu mộc tải lên không hợp lệ!");
+            }
+            ZonedDateTime vietnamTime = ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
+
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String userName = authentication.getName();
+            University university = universityService.getUniversityByEmail(userName);
+
+            University universityOld = auditLogService.cloneSelaUniversity(university);
+
+            String imageUrl = imageUploadService.uploadImage(seal);
+            university.setSealImageUrl(imageUrl);
+            universityService.save(university);
+
+            String ipAdress = auditLogService.getClientIp(httpServletRequest);
+            List<ActionChange> changes = auditLogService.compareObjects(null, universityOld, university);
+            if (!changes.isEmpty()) {
+                Log log = new Log();
+                log.setUser(auditLogService.getCurrentUser());
+                log.setActionType(ActionType.UPDATED);
+                log.setEntityName(Entity.universitys);
+                log.setEntityId(null);
+                log.setDescription(LogTemplate.UPDATE_UNIVERCITY_SEAL.getName());
+                log.setIpAddress(ipAdress);
+                log.setCreatedAt(vietnamTime.toLocalDateTime());
+
+                log = logRepository.save(log);
+
+                for (ActionChange change : changes) {
+                    change.setLog(log);
+                }
+                actionChangeRepository.saveAll(changes);
+            }
+
+            return ApiResponseBuilder.success("Cập nhật dấu mộc thành công", null);
+        } catch (Exception e) {
+            return ApiResponseBuilder.internalError("Lỗi khi cập nhật dấu mộc: " + e.getMessage());
         }
     }
 

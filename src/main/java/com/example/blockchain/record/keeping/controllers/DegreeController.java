@@ -1046,13 +1046,31 @@ public class DegreeController {
         response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
         response.setCharacterEncoding("UTF-8");
 
-        String fileName = URLEncoder.encode("van_bang_" + (type == null ? "all" : type) , StandardCharsets.UTF_8)
+        String fileName = URLEncoder.encode("van_bang_" + (type == null ? "all" : type.toLowerCase()) , StandardCharsets.UTF_8)
                 .replaceAll("\\+", "%20");
         response.setHeader("Content-Disposition", "attachment; filename=" + fileName + ".xlsx");
 
         List<DegreeExcelDTO> data = degreeService.getAllDegreeDTOs(status);
 
         ZonedDateTime vietnamTime = ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
+
+        if (type == null) {
+            status = "Danh sách tất cả văn bằng";
+        } else {
+            switch (type) {
+                case "APPROVED":
+                    status = "Danh sách văn bằng đã xác nhận";
+                    break;
+                case "REJECTED":
+                    status = "Danh sách văn bằng đã từ chối";
+                    break;
+                case "PENDING":
+                    status = "Danh sách văn bằng chờ duyệt";
+                    break;
+                default:
+                    status = "Không rõ trạng thái";
+            }
+        }
         // ghi log
         String ipAdress = auditLogService.getClientIp(httpServletRequest);
         Log log = new Log();
@@ -1060,7 +1078,7 @@ public class DegreeController {
         log.setActionType(ActionType.EXPORT_EXCEL);
         log.setEntityName(Entity.certificates);
         log.setEntityId(null);
-        log.setDescription(LogTemplate.EXPORT_EXCEL.format("văn bằng " + (type == null ? "all" : type.toLowerCase())));
+        log.setDescription(LogTemplate.EXPORT_EXCEL.format(status));
         log.setCreatedAt(vietnamTime.toLocalDateTime());
         log.setIpAddress(ipAdress);
         logRepository.save(log);

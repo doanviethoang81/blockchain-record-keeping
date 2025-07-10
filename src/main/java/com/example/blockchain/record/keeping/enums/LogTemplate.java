@@ -20,6 +20,10 @@ public enum LogTemplate {
     CHANGE_PASSWORD_DEPARTMENT("Thay đổi mật khẩu của khoa: %s"),
     UPDATE_DEPARTMENT("Cập nhật thông tin khoa: %s"),
 
+    UPDATE_UNIVERCITY("Cập nhật thông tin phòng đào tạo"),
+    UPDATE_UNIVERCITY_LOGO("Cập nhật logo của trường"),
+    UPDATE_UNIVERCITY_SEAL("Cập nhật dấu mộc của trường"),
+
     EXPORT_EXCEL("Xuất file excel: %s"),
 
     CREATE_CERTIFICATE("Tạo chứng chỉ cho sinh viên, số hiệu chứng chỉ: %s"),
