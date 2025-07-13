@@ -45,18 +45,29 @@ public interface StudentRepository extends JpaRepository<Student,Long> {
     Optional<Student> findByStudentCodeOfUniversity(@Param("studentCode") String studentCode,
                                                        @Param("universityId") Long universityId);
 
+    //
+//    SELECT s.* FROM students s
+//    JOIN student_class sc ON s.student_class_id = sc.id
+//    JOIN departments d on sc.department_id = d.id
+//    join universitys u on d.university_id = u.id
+//    WHERE s.email = 'hoangdoanviet11@gmail.com'
+//    AND u.id = 14
+//    AND s.status = 'ACTIVE'
+//    AND d.status = 'ACTIVE'
+    //
     //kiểm tra co trung email sv trong 1 khoa k
     @Query(value = """
     SELECT s.* FROM students s
     JOIN student_class sc ON s.student_class_id = sc.id
     JOIN departments d on sc.department_id = d.id
+    JOIN universitys u on d.university_id = u.id
     WHERE s.email = :studentEmail
-      AND d.id = :departmentId
+      AND u.id = :universityId
       AND s.status = 'ACTIVE'
       AND d.status = 'ACTIVE'
     """, nativeQuery = true)
     Optional<Student> findByEmailStudentCodeOfDepartment(@Param("studentEmail") String studentEmail,
-                                               @Param("departmentId") Long departmentId);
+                                               @Param("universityId") Long universityId);
 
 
     // danh sach sv theo 1 tr

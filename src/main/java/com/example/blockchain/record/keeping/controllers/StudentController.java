@@ -192,12 +192,12 @@ public class StudentController {
             Student checkStudentCode  = studentService.findByStudentCodeOfUniversity(
                     studentRequest.getStudentCode(),university.getId());
             Student checkEmialStudent = studentService.findByEmailStudentCodeOfDepartment(
-                    studentRequest.getEmail(),studentRequest.getDepartmetnId());
+                    studentRequest.getEmail(),university.getId());
             if(checkStudentCode !=null){
                 return ApiResponseBuilder.badRequest("Mã số sinh viên đã tồn tại!");
             }
             if(checkEmialStudent !=null){
-                return ApiResponseBuilder.badRequest("Email sinh viên đã tồn tại trong khoa này!");
+                return ApiResponseBuilder.badRequest("Email sinh viên đã tồn tại trong trường này!");
             }
             LocalDate birthDate = studentRequest.getBirthDate();
             if (birthDate != null) {
@@ -279,7 +279,7 @@ public class StudentController {
             }
             if(!student.getEmail().equals(studentRequest.getEmail())){
                 Student checkEmialStudent = studentService.findByEmailStudentCodeOfDepartment(
-                        studentRequest.getEmail(),student.getStudentClass().getDepartment().getId());
+                        studentRequest.getEmail(),user.getUniversity().getId());
 
                 if (checkEmialStudent != null && !checkEmialStudent.getId().equals(id)) {
                     return ApiResponseBuilder.badRequest("Email sinh viên đã tồn tại trong khoa này!");

@@ -281,20 +281,9 @@ public class DegreeExcelListener extends AnalysisEventListener<DegreeExcelRowReq
 
             String image_url = graphicsTextWriter.drawDegreeText(degreePrintData);
 
-
             degree.setImageUrl(image_url);
 
             printDataList.add(degreePrintData);
-
-            //thong bao
-            Notifications notifications = new Notifications();
-            notifications.setUser(user);
-            notifications.setTitle(NotificationType.DEGREE_CREATED.getName());
-            notifications.setContent("Khoa "+ student.getStudentClass().getDepartment().getName().toLowerCase() +" đã tạo văn bằng có số hiệu: "+ degree.getDiplomaNumber());
-            notifications.setType(NotificationType.DEGREE_CREATED);
-            notifications.setDocumentType("DEGREE");
-            notifications.setDocumentId(degree.getId());
-            notificationsList.add(notifications);
         }
 
         if (!errors.isEmpty()) {
@@ -318,6 +307,17 @@ public class DegreeExcelListener extends AnalysisEventListener<DegreeExcelRowReq
         executor.shutdown();
         degreeService.saveAll(degreeList);
 
+        for (Degree degree : degreeList) {
+            Student student = degree.getStudent();
+            Notifications notifications = new Notifications();
+            notifications.setUser(user);
+            notifications.setTitle(NotificationType.DEGREE_CREATED.getName());
+            notifications.setContent("Khoa "+ student.getStudentClass().getDepartment().getName().toLowerCase() +" đã tạo văn bằng có số hiệu: "+ degree.getDiplomaNumber());
+            notifications.setType(NotificationType.DEGREE_CREATED);
+            notifications.setDocumentType("DEGREE");
+            notifications.setDocumentId(degree.getId());
+            notificationsList.add(notifications);
+        }
         notificateService.saveAll(notificationsList);
 
         User userUniversity = userService.findByUser(user.getDepartment().getUniversity().getEmail());

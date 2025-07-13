@@ -7,10 +7,7 @@ import com.example.blockchain.record.keeping.dtos.CertificateExcelRowDTO;
 import com.example.blockchain.record.keeping.dtos.request.CertificateRequest;
 import com.example.blockchain.record.keeping.dtos.request.DecryptRequest;
 import com.example.blockchain.record.keeping.dtos.request.ListValidationRequest;
-import com.example.blockchain.record.keeping.enums.ActionType;
-import com.example.blockchain.record.keeping.enums.Entity;
-import com.example.blockchain.record.keeping.enums.LogTemplate;
-import com.example.blockchain.record.keeping.enums.Status;
+import com.example.blockchain.record.keeping.enums.*;
 import com.example.blockchain.record.keeping.models.*;
 import com.example.blockchain.record.keeping.repositorys.LogRepository;
 import com.example.blockchain.record.keeping.response.*;
@@ -36,6 +33,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.security.PublicKey;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -65,6 +63,7 @@ public class CertificateController {
     private final HttpServletRequest httpServletRequest;
     private final NotificateService notificateService;
     private final NotificationReceiverService notificationReceiverService;
+//    private final NotificationWebSocketSender notificationWebSocketSender;
 
     //---------------------------- ADMIN -------------------------------------------------------
     // xem all chứng chỉ
@@ -1248,5 +1247,14 @@ public class CertificateController {
                 .sheet("Danh sách chứng chỉ " + type)
                 .doWrite(data);
     }
+
+//    @GetMapping("/pdt/test/send")
+//    public ResponseEntity<?> testSocket() {
+//        NotificationResponse response = new NotificationResponse(
+//                1L, "Thông báo test", "Nội dung test", NotificationType.DEGREE_APPROVED, false, LocalDateTime.now()
+//        );
+//        notificationWebSocketSender.sendNotification(7L, response);
+//        return ResponseEntity.ok("Đã gửi WebSocket!");
+//    }
 
 }

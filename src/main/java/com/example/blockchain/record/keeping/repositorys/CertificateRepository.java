@@ -283,6 +283,7 @@ public interface CertificateRepository extends JpaRepository<Certificate,Long> {
         JOIN students s ON c.student_id = s.id
         JOIN university_certificate_types uct ON c.university_certificate_type_id = uct.id
         WHERE s.id IN :studentIds AND uct.certificate_type_id = :certificateTypeId
+        AND c.status IN ('PENDING', 'APPROVED')
     """, nativeQuery = true)
     List<String> findStudentCodesWithCertificateNative(@Param("studentIds") Set<Long> studentIds,
                                                        @Param("certificateTypeId") Long certificateTypeId);

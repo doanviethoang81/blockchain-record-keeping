@@ -160,8 +160,8 @@ public class StudentExcelListener extends AnalysisEventListener<StudentExcelRowR
                 errors.add("Dòng " + rowIndex + ": Mã sinh viên đã tồn tại trong hệ thống");
             }
 
-            if (studentService.findByEmailStudentCodeOfDepartment(row.getEmail(), department.getId()) != null) {
-                errors.add("Dòng " + rowIndex + ": Email sinh viên đã tồn tại trong khoa");
+            if (studentService.findByEmailStudentCodeOfDepartment(row.getEmail(), department.getUniversity().getId()) != null) {
+                errors.add("Dòng " + rowIndex + ": Email sinh viên đã tồn tại trong trường");
             }
         }
 

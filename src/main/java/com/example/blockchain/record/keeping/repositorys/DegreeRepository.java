@@ -24,6 +24,7 @@ public interface DegreeRepository extends JpaRepository<Degree,Long> {
     FROM degrees d
     JOIN students s ON d.student_id = s.id
     WHERE s.student_code IN :studentCodes
+    AND d.status IN ('PENDING', 'APPROVED')
 """, nativeQuery = true)
     List<String> findStudentCodesWithDegree(@Param("studentCodes") Set<String> studentCodes);
 

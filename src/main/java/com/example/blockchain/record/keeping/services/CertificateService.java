@@ -50,6 +50,7 @@ public class CertificateService implements ICertificateService{
     private final UserService userService;
     private final NotificateService notificateService;
     private final NotificationReceiverService notificationReceiverService;
+//    private final NotificationWebSocketSender notificationWebSocketSender;
 
     @Autowired
     private Web3j web3j;
@@ -595,6 +596,18 @@ public class CertificateService implements ICertificateService{
             notificationReceivers.setReceiverId(userDepartment.getId());
             notificationReceivers.setCreatedAt(vietnamTime.toLocalDateTime());
             notificationReceiverService.save(notificationReceivers);
+
+            //gửi WebSocket thông báo realtime
+//            NotificationResponse response = new NotificationResponse(
+//                    notificationReceivers.getId(),
+//                    notifications.getTitle(),
+//                    notifications.getContent(),
+//                    notifications.getType(),
+//                    false,
+//                    notificationReceivers.getCreatedAt()
+//            );
+//            notificationWebSocketSender.sendNotification(userDepartment.getId(), response);
+//
 
             return certificate;
         } catch (Exception e) {

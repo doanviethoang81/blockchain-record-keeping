@@ -295,7 +295,7 @@ public class AuthenticationController {
                 return ApiResponseBuilder.badRequest("Tài khoản này đã bị khóa!");
             }
             String roleName = user.getRole().getName();
-            if (roleName == "KHOA") {
+            if (roleName.equals("KHOA")) {
                 return ApiResponseBuilder.badRequest("Tài khoản của bạn không có quyền cấp lại mật khẩu!");
             }
             String otp = String.format("%06d", new Random().nextInt(999999));

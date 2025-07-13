@@ -232,15 +232,6 @@ public class CertificateExcelListener extends AnalysisEventListener<CertificateE
 
             printDataList.add(printData);
 
-            //thong bao
-            Notifications notifications = new Notifications();
-            notifications.setUser(user);
-            notifications.setTitle(NotificationType.CERTIFICATE_CREATED.getName());
-            notifications.setContent("Khoa "+ student.getStudentClass().getDepartment().getName().toLowerCase() +" đã tạo chứng chỉ có số hiệu: "+ certificate.getDiplomaNumber());
-            notifications.setType(NotificationType.CERTIFICATE_CREATED);
-            notifications.setDocumentType("CERTIFICATE");
-            notifications.setDocumentId(certificate.getId());
-            notificationsList.add(notifications);
         }
 
         if (!errors.isEmpty()) {
@@ -262,6 +253,18 @@ public class CertificateExcelListener extends AnalysisEventListener<CertificateE
         }
         executor.shutdown();
         certificateService.saveAll(certificatesToSave);
+
+        for (Certificate certificate : certificatesToSave) {
+            Student student = certificate.getStudent();
+            Notifications notifications = new Notifications();
+            notifications.setUser(user);
+            notifications.setTitle(NotificationType.CERTIFICATE_CREATED.getName());
+            notifications.setContent("Khoa " + student.getStudentClass().getDepartment().getName().toLowerCase() + " đã tạo chứng chỉ có số hiệu: " + certificate.getDiplomaNumber());
+            notifications.setType(NotificationType.CERTIFICATE_CREATED);
+            notifications.setDocumentType("CERTIFICATE");
+            notifications.setDocumentId(certificate.getId());
+            notificationsList.add(notifications);
+        }
         notificateService.saveAll(notificationsList);
 
         User userUniversity = userService.findByUser(universityCertificateType.getUniversity().getEmail());

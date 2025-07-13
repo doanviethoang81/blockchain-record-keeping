@@ -116,6 +116,8 @@ public class DegreeService implements IDegreeService{
 
         AuditingContext.setDescription("Tạo văn bằng cho một sinh viên, số hiệu bằng: " + degree.getDiplomaNumber());
 
+        degreeRepository.save(degree);
+
         Notifications notifications = new Notifications();
         notifications.setUser(user);
         notifications.setTitle(NotificationType.DEGREE_CREATED.getName());
@@ -132,7 +134,7 @@ public class DegreeService implements IDegreeService{
         notificationReceivers.setReceiverId(userUniversity.getId());
         notificationReceivers.setCreatedAt(vietnamTime.toLocalDateTime());
         notificationReceiverService.save(notificationReceivers);
-        return degreeRepository.save(degree);
+        return degree;
     }
 
 
@@ -453,12 +455,12 @@ public class DegreeService implements IDegreeService{
             degree.setBlockchainTxHash(txHash);
 
             // gửi emial
-            brevoApiEmailService.sendEmailsToStudentsExcel(
-                    degree.getStudent().getEmail(),
-                    degree.getStudent().getName(),
-                    user.getUniversity().getName(),
-                    certificateUrl,
-                    "Văn bằng");
+//            brevoApiEmailService.sendEmailsToStudentsExcel(
+//                    degree.getStudent().getEmail(),
+//                    degree.getStudent().getName(),
+//                    user.getUniversity().getName(),
+//                    certificateUrl,
+//                    "Văn bằng");
 
             AuditingContext.setDescription("Xác thực văn bằng số hiệu bằng: " + degree.getDiplomaNumber());
 
@@ -524,12 +526,12 @@ public class DegreeService implements IDegreeService{
             degree.setBlockchainTxHash(txHash);
 
             //email NÀO CHẠY MỞ
-//            brevoApiEmailService.sendEmailsToStudentsExcel(
-//                    degree.getStudent().getEmail(),
-//                    degree.getStudent().getName(),
-//                    user.getUniversity().getName(),
-//                    verifyUrl,
-//                    "Văn bằng");
+            brevoApiEmailService.sendEmailsToStudentsExcel(
+                    degree.getStudent().getEmail(),
+                    degree.getStudent().getName(),
+                    user.getUniversity().getName(),
+                    verifyUrl,
+                    "Văn bằng");
 
             Notifications notifications = new Notifications();
             notifications.setUser(user);

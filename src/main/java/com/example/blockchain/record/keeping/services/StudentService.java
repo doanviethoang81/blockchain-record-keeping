@@ -83,8 +83,8 @@ public class StudentService implements IStudentService{
     }
 
     @Override
-    public Student findByEmailStudentCodeOfDepartment(String email, Long departmentId) {
-        return studentRepository.findByEmailStudentCodeOfDepartment(email,departmentId).orElse(null);
+    public Student findByEmailStudentCodeOfDepartment(String email, Long universityId) {
+        return studentRepository.findByEmailStudentCodeOfDepartment(email,universityId).orElse(null);
     }
 
     @Override

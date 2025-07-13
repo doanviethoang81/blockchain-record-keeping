@@ -107,8 +107,10 @@ public class SecurityConfigs {
                                 "/swagger-ui.html",
                                 "/api/v1/verify/**",
                                 "/api/v1/verify"
+//                                "/ws/**"
                         ).permitAll()
                         .requestMatchers("/api/v1/check-role").permitAll()
+//                        .requestMatchers("/ws/**").permitAll()
                         .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/v1/pdt/**").hasRole("PDT")
                         .requestMatchers("/api/v1/khoa/**").hasRole("KHOA")
