@@ -45,16 +45,6 @@ public interface StudentRepository extends JpaRepository<Student,Long> {
     Optional<Student> findByStudentCodeOfUniversity(@Param("studentCode") String studentCode,
                                                        @Param("universityId") Long universityId);
 
-    //
-//    SELECT s.* FROM students s
-//    JOIN student_class sc ON s.student_class_id = sc.id
-//    JOIN departments d on sc.department_id = d.id
-//    join universitys u on d.university_id = u.id
-//    WHERE s.email = 'hoangdoanviet11@gmail.com'
-//    AND u.id = 14
-//    AND s.status = 'ACTIVE'
-//    AND d.status = 'ACTIVE'
-    //
     //kiểm tra co trung email sv trong 1 khoa k
     @Query(value = """
     SELECT s.* FROM students s
@@ -94,7 +84,26 @@ public interface StudentRepository extends JpaRepository<Student,Long> {
     """, nativeQuery = true)
     List<Student> getAllStudentOfDepartment(@Param("departmentId") Long departmentId);
 
-    // tìm sv theo lớp mssv tên (Khoa)
+    // count sách sinh viên 1 khoa
+    @Query(value = """
+    SELECT count(*) FROM students s
+    JOIN student_class sc ON s.student_class_id = sc.id
+    JOIN departments d ON sc.department_id = d.id
+    WHERE (:departmentId IS NULL OR d.id = :departmentId)
+      AND (:className IS NULL OR sc.name LIKE CONCAT('%', :className, '%'))
+      AND (:studentCode IS NULL OR s.student_code LIKE CONCAT('%', :studentCode, '%'))
+      AND (:studentName IS NULL OR s.name LIKE CONCAT('%', :studentName, '%'))
+      AND s.status = 'ACTIVE'
+      and sc.status ='ACTIVE'
+      AND d.status = 'ACTIVE'
+      ORDER BY s.updated_at DESC
+    """, nativeQuery = true)
+    long countStudentOdDepartment(@Param("departmentId") Long departmentId,
+                                 @Param("className") String className,
+                                 @Param("studentCode") String studentCode,
+                                 @Param("studentName") String studentName);
+
+    // danh sách sinh viên 1 khoa
     @Query(value = """
     SELECT s.* FROM students s
     JOIN student_class sc ON s.student_class_id = sc.id
@@ -105,13 +114,39 @@ public interface StudentRepository extends JpaRepository<Student,Long> {
       AND (:studentName IS NULL OR s.name LIKE CONCAT('%', :studentName, '%'))
       AND s.status = 'ACTIVE'
       and sc.status ='ACTIVE'
-      AND d.status = 'ACTIVE' 
+      AND d.status = 'ACTIVE'
       ORDER BY s.updated_at DESC
+      LIMIT :limit OFFSET :offset
     """, nativeQuery = true)
     List<Student> searchStudents(@Param("departmentId") Long departmentId,
                                  @Param("className") String className,
                                  @Param("studentCode") String studentCode,
-                                 @Param("studentName") String studentName);
+                                 @Param("studentName") String studentName,
+                                 @Param("limit") int limit,
+                                 @Param("offset") int offset);
+
+    //count số lượng sinh viên pdt
+    @Query(value = """
+    SELECT count(*) FROM students s
+    JOIN student_class sc ON s.student_class_id = sc.id
+    JOIN departments d ON sc.department_id = d.id
+    JOIN universitys un on d.university_id= un.id
+    WHERE un.id = :universityId
+      AND (:departmentName IS NULL OR d.name LIKE CONCAT('%', :departmentName, '%'))
+      AND (:className IS NULL OR sc.name LIKE CONCAT('%', :className, '%'))
+      AND (:studentCode IS NULL OR s.student_code LIKE CONCAT('%', :studentCode, '%'))
+      AND (:studentName IS NULL OR s.name LIKE CONCAT('%', :studentName, '%'))
+      AND s.status = 'ACTIVE'
+      and sc.status ='ACTIVE'
+      AND d.status = 'ACTIVE' 
+      ORDER BY s.updated_at DESC
+    """, nativeQuery = true)
+    long countStudentsByUniversity(
+            @Param("universityId") Long universityId,
+            @Param("departmentName") String departmentName,
+            @Param("className") String className,
+            @Param("studentCode") String studentCode,
+            @Param("studentName") String studentName);
 
     // tìm sv theo khoa lớp mssv tên (PDT)
     @Query(value = """
@@ -126,15 +161,18 @@ public interface StudentRepository extends JpaRepository<Student,Long> {
       AND (:studentName IS NULL OR s.name LIKE CONCAT('%', :studentName, '%'))
       AND s.status = 'ACTIVE'
       and sc.status ='ACTIVE'
-      AND d.status = 'ACTIVE' 
+      AND d.status = 'ACTIVE'
       ORDER BY s.updated_at DESC
+      LIMIT :limit OFFSET :offset
     """, nativeQuery = true)
     List<Student> searchStudentsByUniversity(
                                  @Param("universityId") Long universityId,
                                  @Param("departmentName") String departmentName,
                                  @Param("className") String className,
                                  @Param("studentCode") String studentCode,
-                                 @Param("studentName") String studentName);
+                                 @Param("studentName") String studentName,
+                                 @Param("limit") int limit,
+                                 @Param("offset") int offset);
 
     // tim kiem 1 list sinh vien trong khoa
     @Query(value = """

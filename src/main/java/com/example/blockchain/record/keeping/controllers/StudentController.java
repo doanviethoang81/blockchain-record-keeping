@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.time.Period;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -57,54 +58,63 @@ public class StudentController {
             @RequestParam(required = false) String studentCode,
             @RequestParam(required = false) String studentName
     ){
-        try{
-            if (page < 1) page = 1;
-            if (size < 1) size = 10;
+        try {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             String username = authentication.getName();
-            University university = universityService.getUniversityByEmail(username);
+
+            User user = userService.findByUser(username);
+
+            long totalItems = studentService.countStudentsByUniversity(
+                    user.getUniversity().getId(),
+                    departmentName == null ? null : departmentName.trim(),
+                    className == null ? null : className.trim(),
+                    studentCode == null ? null : studentCode.trim(),
+                    studentName == null ? null : studentName.trim()
+            );
+
+            if (totalItems == 0) {
+                PaginationMeta meta = new PaginationMeta(0, 0, size, page, 0);
+                PaginatedData<CertificateResponse> data = new PaginatedData<>(Collections.emptyList(), meta);
+                return ApiResponseBuilder.success("Không có sinh viên nào!", data);
+            }
+
+            int offset = (page - 1) * size;
+
+            if (offset >= totalItems && totalItems > 0) {
+                page = 1;
+                offset = 0;
+            }
 
             List<Student> studentList = studentService.getAllStudentOfUniversity(
-                    university.getId(), departmentName,className,studentCode,studentName);
+                    user.getUniversity().getId(),
+                    departmentName == null ? null : departmentName.trim(),
+                    className == null ? null : className.trim(),
+                    studentCode == null ? null : studentCode.trim(),
+                    studentName == null ? null : studentName.trim(),
+                    size,
+                    offset
+            );
 
-            if ((departmentName != null && !departmentName.isEmpty())
-                    || (studentCode != null && !studentCode.isEmpty())
-                    || (className != null && !className.isEmpty())
-                    || (studentName != null && !studentName.isEmpty())) {
-                if(studentList.isEmpty()){
-                    return ApiResponseBuilder.success("Không tìm thấy sinh viên!",studentList);
-                }
-            }
+            List<StudentOfUniversityResponse> studentOfUniversityResponseList = studentList.stream()
+                    .map(s -> new StudentOfUniversityResponse(
+                            s.getId(),
+                            s.getName(),
+                            s.getStudentClass().getName(),
+                            s.getStudentClass().getDepartment().getName(),
+                            s.getStudentCode(),
+                            s.getEmail(),
+                            s.getBirthDate(),
+                            s.getCourse()
+                    ))
+                    .collect(Collectors.toList());
 
-            List<StudentOfUniversityResponse> studentResponseList = new ArrayList<>();
-            for(Student student : studentList){
-                StudentOfUniversityResponse studentResponse = new StudentOfUniversityResponse(
-                        student.getId(),
-                        student.getName(),
-                        student.getStudentClass().getName(),
-                        student.getStudentClass().getDepartment().getName(),
-                        student.getStudentCode(),
-                        student.getEmail(),
-                        student.getBirthDate(),
-                        student.getCourse()
-                );
-                studentResponseList.add(studentResponse);
-            }
+            int totalPages = (int) Math.ceil((double) totalItems / size);
+            PaginationMeta meta = new PaginationMeta(totalItems, studentList.size(), size, page, totalPages);
+            PaginatedData<StudentOfUniversityResponse> data = new PaginatedData<>(studentOfUniversityResponseList, meta);
 
-            int start = (page -1) * size;
-            int end = Math.min(start + size, studentResponseList.size());
-            if (start >= studentResponseList.size()) {
-                return ApiResponseBuilder.success("Không có sinh viên nào!",studentResponseList);
-            }
-
-            List<StudentOfUniversityResponse> pagedResult = studentResponseList.subList(start, end);
-            PaginatedData<StudentOfUniversityResponse> data = new PaginatedData<>(pagedResult,
-                    new PaginationMeta(studentResponseList.size(), pagedResult.size(), size, page,
-                            (int) Math.ceil((double) studentResponseList.size() / size)));
-            return ApiResponseBuilder.success(
-                    "Lấy danh sách sinh viên trường thành công.",data);
+            return ApiResponseBuilder.success("Danh sách sinh viên của trường", data);
         } catch (Exception e) {
-            return ApiResponseBuilder.badRequest("Lỗi không lấy được dữ liệu!");
+            return ApiResponseBuilder.internalError("Lỗi: " + e.getMessage());
         }
     }
 
@@ -317,15 +327,39 @@ public class StudentController {
             @RequestParam(required = false) String studentName
     ) {
         try {
-            if (page < 1) page = 1;
-            if (size < 1) size = 10;
-
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             String username = authentication.getName();
+
             User user = userService.findByUser(username);
 
-            List<Student> studentList= studentService.searchStudents(
-                        user.getDepartment().getId(), className, studentCode,studentName);
+            long totalItems = studentService.countStudentOdDepartment(
+                    user.getDepartment().getId(),
+                    className == null ? null : className.trim(),
+                    studentCode == null ? null : studentCode.trim(),
+                    studentName == null ? null : studentName.trim()
+            );
+
+            if (totalItems == 0) {
+                PaginationMeta meta = new PaginationMeta(0, 0, size, page, 0);
+                PaginatedData<CertificateResponse> data = new PaginatedData<>(Collections.emptyList(), meta);
+                return ApiResponseBuilder.success("Không có sinh viên nào!", data);
+            }
+
+            int offset = (page - 1) * size;
+
+            if (offset >= totalItems && totalItems > 0) {
+                page = 1;
+                offset = 0;
+            }
+
+            List<Student> studentList = studentService.searchStudents(
+                    user.getDepartment().getId(),
+                    className == null ? null : className.trim(),
+                    studentCode == null ? null : studentCode.trim(),
+                    studentName == null ? null : studentName.trim(),
+                    size,
+                    offset
+            );
 
             List<StudentResponse> studentResponseList = studentList.stream()
                     .map(s -> new StudentResponse(
@@ -335,38 +369,17 @@ public class StudentController {
                             s.getEmail(),
                             s.getStudentClass().getName(),
                             s.getBirthDate(),
-                            s.getCourse()))
+                            s.getCourse()
+                    ))
                     .collect(Collectors.toList());
 
-            int start = (page - 1) * size;
-            int end = Math.min(start + size, studentResponseList.size());
+            int totalPages = (int) Math.ceil((double) totalItems / size);
+            PaginationMeta meta = new PaginationMeta(totalItems, studentList.size(), size, page, totalPages);
+            PaginatedData<StudentResponse> data = new PaginatedData<>(studentResponseList, meta);
 
-            if ((studentCode != null && !studentCode.isEmpty())
-                    || (className != null && !className.isEmpty())
-                    || (studentName != null && !studentName.isEmpty())) {
-                if(studentList.isEmpty()){
-                    return ApiResponseBuilder.success("Không tìm thấy sinh viên!",studentList);
-                }
-            }
-            if (start >= studentResponseList.size()) {
-                return ApiResponseBuilder.success("Khoa chưa có sinh viên nào!",studentList);
-            }
-
-            List<StudentResponse> pagedResult = studentResponseList.subList(start, end);
-
-            PaginatedData<StudentResponse> data = new PaginatedData<>(pagedResult,
-                    new PaginationMeta(
-                            studentResponseList.size(),
-                            pagedResult.size(),
-                            size,
-                            page,
-                            (int) Math.ceil((double) studentResponseList.size() / size)
-                    ));
-
-            return ApiResponseBuilder.success("Lấy danh sách sinh viên thành công.", data);
-
+            return ApiResponseBuilder.success("Danh sách sinh viên của khoa", data);
         } catch (Exception e) {
-            return ApiResponseBuilder.badRequest("Lỗi không lấy được dữ liệu! " + e.getMessage());
+            return ApiResponseBuilder.internalError("Lỗi: " + e.getMessage());
         }
     }
 

@@ -49,13 +49,13 @@ public class StudentService implements IStudentService{
     }
 
     @Override
-    public List<Student> getAllStudentOfUniversity(Long universityId, String departmentName, String className, String studentCode, String studentName) {
-        return studentRepository.searchStudentsByUniversity(universityId,departmentName,className,studentCode,studentName);
+    public List<Student> getAllStudentOfUniversity(Long universityId, String departmentName, String className, String studentCode, String studentName, int limit, int offset) {
+        return studentRepository.searchStudentsByUniversity(universityId,departmentName,className,studentCode,studentName, limit, offset);
     }
 
     @Override
-    public List<Student> searchStudents(Long departmentId, String className, String studentCode, String name) {
-        return studentRepository.searchStudents(departmentId,className,studentCode, name);
+    public List<Student> searchStudents(Long departmentId, String className, String studentCode, String name, int limit, int offset) {
+        return studentRepository.searchStudents(departmentId,className,studentCode, name, limit, offset);
     }
 
     @Override
@@ -176,6 +176,16 @@ public class StudentService implements IStudentService{
         student.setUpdatedAt(vietnamTime.toLocalDateTime());
         studentRepository.save(student);
         return true;
+    }
+
+    @Override
+    public long countStudentsByUniversity(Long universityId, String departmentName, String className, String studentCode, String studentName) {
+        return studentRepository.countStudentsByUniversity(universityId, departmentName, className, studentCode, studentName);
+    }
+
+    @Override
+    public long countStudentOdDepartment(Long departmentId, String className, String studentCode, String studentName) {
+        return studentRepository.countStudentOdDepartment(departmentId, className, studentCode, studentName);
     }
 
     public Student findById(Long id){

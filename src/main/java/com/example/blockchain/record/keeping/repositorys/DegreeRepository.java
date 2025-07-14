@@ -45,6 +45,33 @@ public interface DegreeRepository extends JpaRepository<Degree,Long> {
             """,nativeQuery = true)
     List<String> findExistingLotteryNumbers(@Param("lotteryNumbers") Collection<String> lotteryNumbers);
 
+    //đếm văn bằng của 1 trường
+    @Query(value = """
+            SELECT count(*)
+            FROM degrees d
+            JOIN students s on d.student_id=s.id
+            JOIN student_class sc on s.student_class_id = sc.id
+            join departments dp on sc.department_id = dp.id
+            WHERE dp.university_id = :universityId
+            and s.status ='ACTIVE'
+            and sc.status ='ACTIVE'
+            and dp.status ='ACTIVE'
+            AND (:departmentName IS NULL OR dp.name LIKE CONCAT('%', :departmentName, '%'))
+            AND (:className IS NULL OR sc.name LIKE CONCAT('%', :className, '%'))
+            AND (:studentCode IS NULL OR s.student_code LIKE CONCAT('%', :studentCode, '%'))
+            AND (:studentName IS NULL OR s.name LIKE CONCAT('%', :studentName, '%'))
+            AND (:graduationYear IS NULL OR d.graduation_year LIKE CONCAT('%', :graduationYear, '%'))            
+            AND (:diplomaNumber IS NULL OR d.diploma_number LIKE CONCAT('%', :diplomaNumber, '%'))            
+            ORDER BY d.updated_at DESC 
+            """,nativeQuery = true)
+    long countAllDegreeOfUniversity(@Param("universityId") Long universityId,
+                                    @Param("departmentName") String departmentName,
+                                    @Param("className") String className,
+                                    @Param("studentCode") String studentCode,
+                                    @Param("studentName") String studentName,
+                                    @Param("graduationYear") String graduationYear,
+                                    @Param("diplomaNumber") String diplomaNumber);
+
     // list văn bằng của 1 trường
     @Query(value = """
             SELECT d.*
@@ -63,14 +90,47 @@ public interface DegreeRepository extends JpaRepository<Degree,Long> {
             AND (:graduationYear IS NULL OR d.graduation_year LIKE CONCAT('%', :graduationYear, '%'))            
             AND (:diplomaNumber IS NULL OR d.diploma_number LIKE CONCAT('%', :diplomaNumber, '%'))            
             ORDER BY d.updated_at DESC 
+            LIMIT :limit OFFSET :offset            
             """,nativeQuery = true)
     List<Degree> listAllDegreeOfUniversity(@Param("universityId") Long universityId,
-                                            @Param("departmentName") String departmentName,
+                                           @Param("departmentName") String departmentName,
                                            @Param("className") String className,
                                            @Param("studentCode") String studentCode,
                                            @Param("studentName") String studentName,
                                            @Param("graduationYear") String graduationYear,
-                                           @Param("diplomaNumber") String diplomaNumber);
+                                           @Param("diplomaNumber") String diplomaNumber,
+                                           @Param("limit") int limit,
+                                           @Param("offset") int offset);
+
+    // đếm văn bằng theo status của 1 trường
+    @Query(value = """
+            SELECT count(*)
+            FROM degrees d
+            JOIN students s on d.student_id=s.id
+            JOIN student_class sc on s.student_class_id = sc.id
+            join departments dp on sc.department_id = dp.id
+            WHERE dp.university_id = :universityId
+            and s.status ='ACTIVE'
+            and sc.status ='ACTIVE'
+            and dp.status ='ACTIVE'
+            and d.status = :status
+            AND (:departmentName IS NULL OR dp.name LIKE CONCAT('%', :departmentName, '%'))
+            AND (:className IS NULL OR sc.name LIKE CONCAT('%', :className, '%'))
+            AND (:studentCode IS NULL OR s.student_code LIKE CONCAT('%', :studentCode, '%'))
+            AND (:studentName IS NULL OR s.name LIKE CONCAT('%', :studentName, '%'))
+            AND (:graduationYear IS NULL OR d.graduation_year LIKE CONCAT('%', :graduationYear, '%'))                        
+            AND (:diplomaNumber IS NULL OR d.diploma_number LIKE CONCAT('%', :diplomaNumber, '%'))                        
+            ORDER BY d.updated_at DESC 
+            """,nativeQuery = true)
+    long countDegreeOfUniversityAndStatus(@Param("universityId") Long universityId,
+                                          @Param("departmentName") String departmentName,
+                                          @Param("className") String className,
+                                          @Param("studentCode") String studentCode,
+                                          @Param("studentName") String studentName,
+                                          @Param("graduationYear") String graduationYear,
+                                          @Param("diplomaNumber") String diplomaNumber,
+                                          @Param("status") String status
+    );
 
     // list văn bằng chưa đc xác nhận của 1 trường
     @Query(value = """
@@ -82,7 +142,7 @@ public interface DegreeRepository extends JpaRepository<Degree,Long> {
             WHERE dp.university_id = :universityId
             and s.status ='ACTIVE'
             and sc.status ='ACTIVE'
-            and dp.status ='ACTIVE'          
+            and dp.status ='ACTIVE'
             and d.status = :status
             AND (:departmentName IS NULL OR dp.name LIKE CONCAT('%', :departmentName, '%'))
             AND (:className IS NULL OR sc.name LIKE CONCAT('%', :className, '%'))
@@ -90,17 +150,44 @@ public interface DegreeRepository extends JpaRepository<Degree,Long> {
             AND (:studentName IS NULL OR s.name LIKE CONCAT('%', :studentName, '%'))
             AND (:graduationYear IS NULL OR d.graduation_year LIKE CONCAT('%', :graduationYear, '%'))                        
             AND (:diplomaNumber IS NULL OR d.diploma_number LIKE CONCAT('%', :diplomaNumber, '%'))                        
+            ORDER BY d.updated_at DESC
+            LIMIT :limit OFFSET :offset            
+            """,nativeQuery = true)
+    List<Degree> listDegreeOfUniversityAndStatus(@Param("universityId") Long universityId,
+                                                 @Param("departmentName") String departmentName,
+                                                 @Param("className") String className,
+                                                 @Param("studentCode") String studentCode,
+                                                 @Param("studentName") String studentName,
+                                                 @Param("graduationYear") String graduationYear,
+                                                 @Param("diplomaNumber") String diplomaNumber,
+                                                 @Param("status") String status,
+                                                 @Param("limit") int limit,
+                                                 @Param("offset") int offset);
+    //count văn bằng của 1 khoa
+    @Query(value = """
+            SELECT COUNT(*)
+            FROM degrees d
+            JOIN students s on d.student_id=s.id
+            JOIN student_class sc on s.student_class_id = sc.id
+            join departments dp on sc.department_id = dp.id
+            WHERE dp.id = :departmentId
+            and s.status ='ACTIVE'
+            and sc.status ='ACTIVE'
+            AND (:className IS NULL OR sc.name LIKE CONCAT('%', :className, '%'))
+            AND (:studentCode IS NULL OR s.student_code LIKE CONCAT('%', :studentCode, '%'))
+            AND (:studentName IS NULL OR s.name LIKE CONCAT('%', :studentName, '%'))
+            AND (:graduationYear IS NULL OR d.graduation_year LIKE CONCAT('%', :graduationYear, '%'))
+            AND (:diplomaNumber IS NULL OR d.diploma_number LIKE CONCAT('%', :diplomaNumber, '%'))
             ORDER BY d.updated_at DESC 
             """,nativeQuery = true)
-    List<Degree> listDegreeOfUniversity(@Param("universityId") Long universityId,
-                                               @Param("departmentName") String departmentName,
-                                               @Param("className") String className,
-                                               @Param("studentCode") String studentCode,
-                                               @Param("studentName") String studentName,
-                                               @Param("graduationYear") String graduationYear,
-                                               @Param("diplomaNumber") String diplomaNumber,
-                                               @Param("status") String status
-    );
+    long countAllDegreeOfDepartment(@Param("departmentId") Long departmentId,
+                                    @Param("className") String className,
+                                    @Param("studentCode") String studentCode,
+                                    @Param("studentName") String studentName,
+                                    @Param("graduationYear") String graduationYear,
+                                    @Param("diplomaNumber") String diplomaNumber);
+
+
     // list văn bằng của 1 khoa
     @Query(value = """
             SELECT d.*
@@ -114,16 +201,45 @@ public interface DegreeRepository extends JpaRepository<Degree,Long> {
             AND (:className IS NULL OR sc.name LIKE CONCAT('%', :className, '%'))
             AND (:studentCode IS NULL OR s.student_code LIKE CONCAT('%', :studentCode, '%'))
             AND (:studentName IS NULL OR s.name LIKE CONCAT('%', :studentName, '%'))
-            AND (:graduationYear IS NULL OR d.graduation_year LIKE CONCAT('%', :graduationYear, '%'))                        
-            AND (:diplomaNumber IS NULL OR d.diploma_number LIKE CONCAT('%', :diplomaNumber, '%'))                        
-            ORDER BY d.updated_at DESC 
+            AND (:graduationYear IS NULL OR d.graduation_year LIKE CONCAT('%', :graduationYear, '%'))
+            AND (:diplomaNumber IS NULL OR d.diploma_number LIKE CONCAT('%', :diplomaNumber, '%'))
+            ORDER BY d.updated_at DESC
+            LIMIT :limit OFFSET :offset
             """,nativeQuery = true)
     List<Degree> listAllDegreeOfDepartment(@Param("departmentId") Long departmentId,
                                            @Param("className") String className,
                                            @Param("studentCode") String studentCode,
                                            @Param("studentName") String studentName,
                                            @Param("graduationYear") String graduationYear,
-                                           @Param("diplomaNumber") String diplomaNumber);
+                                           @Param("diplomaNumber") String diplomaNumber,
+                                           @Param("limit") int limit,
+                                           @Param("offset") int offset);
+
+    //COUNT SỐ luong văn bang theo status
+    @Query(value = """
+            SELECT count(*)
+            FROM degrees d
+            JOIN students s on d.student_id=s.id
+            JOIN student_class sc on s.student_class_id = sc.id
+            join departments dp on sc.department_id = dp.id
+            WHERE dp.id = :departmentId
+            and d.status = :status
+            and s.status ='ACTIVE'
+            and sc.status ='ACTIVE'
+            AND (:className IS NULL OR sc.name LIKE CONCAT('%', :className, '%'))
+            AND (:studentCode IS NULL OR s.student_code LIKE CONCAT('%', :studentCode, '%'))
+            AND (:studentName IS NULL OR s.name LIKE CONCAT('%', :studentName, '%'))
+            AND (:graduationYear IS NULL OR d.graduation_year LIKE CONCAT('%', :graduationYear, '%'))
+            AND (:diplomaNumber IS NULL OR d.diploma_number LIKE CONCAT('%', :diplomaNumber, '%'))            
+            ORDER BY d.updated_at DESC
+            """,nativeQuery = true)
+    long countDegreeOfDepartmentAndStatus(@Param("departmentId") Long departmentId,
+                                          @Param("className") String className,
+                                          @Param("studentCode") String studentCode,
+                                          @Param("studentName") String studentName,
+                                          @Param("graduationYear") String graduationYear,
+                                          @Param("diplomaNumber") String diplomaNumber,
+                                          @Param("status") String status);
 
     // list văn bằng chưa đc xác nhận của 1 khoa
     @Query(value = """
@@ -133,24 +249,26 @@ public interface DegreeRepository extends JpaRepository<Degree,Long> {
             JOIN student_class sc on s.student_class_id = sc.id
             join departments dp on sc.department_id = dp.id
             WHERE dp.id = :departmentId
-            and d.status = :status            
+            and d.status = :status
             and s.status ='ACTIVE'
             and sc.status ='ACTIVE'
             AND (:className IS NULL OR sc.name LIKE CONCAT('%', :className, '%'))
             AND (:studentCode IS NULL OR s.student_code LIKE CONCAT('%', :studentCode, '%'))
             AND (:studentName IS NULL OR s.name LIKE CONCAT('%', :studentName, '%'))
-            AND (:graduationYear IS NULL OR d.graduation_year LIKE CONCAT('%', :graduationYear, '%'))            
-            AND (:diplomaNumber IS NULL OR d.diploma_number LIKE CONCAT('%', :diplomaNumber, '%'))            
-            ORDER BY d.updated_at DESC 
+            AND (:graduationYear IS NULL OR d.graduation_year LIKE CONCAT('%', :graduationYear, '%'))
+            AND (:diplomaNumber IS NULL OR d.diploma_number LIKE CONCAT('%', :diplomaNumber, '%'))
+            ORDER BY d.updated_at DESC
+            LIMIT :limit OFFSET :offset
             """,nativeQuery = true)
     List<Degree> listAllDegreeOfDepartmentAndStatus(@Param("departmentId") Long departmentId,
-                                                  @Param("className") String className,
-                                                  @Param("studentCode") String studentCode,
-                                                  @Param("studentName") String studentName,
-                                                  @Param("graduationYear") String graduationYear,
-                                                  @Param("diplomaNumber") String diplomaNumber,
-                                                  @Param("status") String status
-    );
+                                                    @Param("className") String className,
+                                                    @Param("studentCode") String studentCode,
+                                                    @Param("studentName") String studentName,
+                                                    @Param("graduationYear") String graduationYear,
+                                                    @Param("diplomaNumber") String diplomaNumber,
+                                                    @Param("status") String status,
+                                                    @Param("limit") int limit,
+                                                    @Param("offset") int offset);
 
     // list văn bằng all admin
     @Query(value = """
@@ -173,12 +291,12 @@ public interface DegreeRepository extends JpaRepository<Degree,Long> {
             ORDER BY d.updated_at DESC
             """,nativeQuery = true)
     List<Degree> listAllDegree(@Param("universityName") String universityName,
-                                           @Param("departmentName") String departmentName,
-                                           @Param("className") String className,
-                                           @Param("studentCode") String studentCode,
-                                           @Param("studentName") String studentName,
-                                           @Param("graduationYear") String graduationYear,
-                                           @Param("diplomaNumber") String diplomaNumber);
+                               @Param("departmentName") String departmentName,
+                               @Param("className") String className,
+                               @Param("studentCode") String studentCode,
+                               @Param("studentName") String studentName,
+                               @Param("graduationYear") String graduationYear,
+                               @Param("diplomaNumber") String diplomaNumber);
 
     //kiem tra xem chung chi da duoc xac thuc chua
     Degree findByIdAndStatus(Long id, Status status);
@@ -310,7 +428,7 @@ public interface DegreeRepository extends JpaRepository<Degree,Long> {
         AND (d.status LIKE 'APPROVED' OR d.status LIKE 'PENDING');
         """,nativeQuery = true)
     Degree existByDiplomaNumber(@Param("universityId") Long universityId,
-                                     @Param("diplomaNumber") String diplomaNumber
+                                @Param("diplomaNumber") String diplomaNumber
     );
 
     //kiem tra số vào sổ văn bằng
@@ -343,8 +461,8 @@ public interface DegreeRepository extends JpaRepository<Degree,Long> {
       AND (d.status = 'APPROVED' OR d.status = 'PENDING')
     """, nativeQuery = true)
     Degree existByDiplomaNumberIgnoreId(@Param("universityId") Long universityId,
-                                @Param("diplomaNumber") String diplomaNumber,
-                                @Param("degreeId") Long degreeId);
+                                        @Param("diplomaNumber") String diplomaNumber,
+                                        @Param("degreeId") Long degreeId);
 
     //kiem tra de update k lấy id
     @Query(value = """
@@ -360,8 +478,8 @@ public interface DegreeRepository extends JpaRepository<Degree,Long> {
       AND (d.status = 'APPROVED' OR d.status = 'PENDING')
     """, nativeQuery = true)
     Degree existByLotteryNumberIgnoreId(@Param("universityId") Long universityId,
-                                @Param("lotteryNumber") String lotteryNumber,
-                                @Param("degreeId") Long degreeId);
+                                        @Param("lotteryNumber") String lotteryNumber,
+                                        @Param("degreeId") Long degreeId);
 
     //xuat excel
     @Query(value = """

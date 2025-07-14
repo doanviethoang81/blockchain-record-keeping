@@ -251,23 +251,23 @@ public class DegreeService implements IDegreeService{
     }
 
     @Override
-    public List<Degree> listAllDegreeOfUniversity(Long universittyId, String departmentName, String className, String studentCode, String studentName,String graduationYear, String diplomaNumber) {
-        return degreeRepository.listAllDegreeOfUniversity(universittyId,departmentName,className,studentCode,studentName, graduationYear,diplomaNumber);
+    public List<Degree> listAllDegreeOfUniversity(Long universittyId, String departmentName, String className, String studentCode, String studentName,String graduationYear, String diplomaNumber, int limit, int offset){
+        return degreeRepository.listAllDegreeOfUniversity(universittyId,departmentName,className,studentCode,studentName, graduationYear,diplomaNumber, limit,offset);
     }
 
     @Override
-    public List<Degree> listAllDegreeOfUniversityAndStatus(Long universittyId, String departmentName, String className, String studentCode, String studentName,String graduationYear,String diplomaNumber, String status) {
-        return degreeRepository.listDegreeOfUniversity(universittyId,departmentName,className,studentCode,studentName, graduationYear,diplomaNumber, status);
+    public List<Degree> listAllDegreeOfUniversityAndStatus(Long universittyId, String departmentName, String className, String studentCode, String studentName,String graduationYear,String diplomaNumber, String status,  int limit, int offset){
+        return degreeRepository.listDegreeOfUniversityAndStatus(universittyId,departmentName,className,studentCode,studentName, graduationYear,diplomaNumber, status, limit, offset);
     }
 
     @Override
-    public List<Degree> listAllDegreeOfDepartment(Long departmentId, String className, String studentCode, String studentName,String graduationYear, String diplomaNumber) {
-        return degreeRepository.listAllDegreeOfDepartment(departmentId,className,studentCode,studentName, graduationYear,diplomaNumber);
+    public List<Degree> listAllDegreeOfDepartment(Long departmentId, String className, String studentCode, String studentName,String graduationYear, String diplomaNumber,  int limit, int offset){
+        return degreeRepository.listAllDegreeOfDepartment(departmentId,className,studentCode,studentName, graduationYear,diplomaNumber, limit, offset);
     }
 
     @Override
-    public List<Degree> listAllDegreeOfDepartmentAndStatus( Long departmentId, String className, String studentCode, String studentName,String graduationYear,String diplomaNumber, String status) {
-        return degreeRepository.listAllDegreeOfDepartmentAndStatus(departmentId,className,studentCode,studentName, graduationYear,diplomaNumber, status);
+    public List<Degree> listAllDegreeOfDepartmentAndStatus( Long departmentId, String className, String studentCode, String studentName,String graduationYear,String diplomaNumber, String status,  int limit, int offset){
+        return degreeRepository.listAllDegreeOfDepartmentAndStatus(departmentId,className,studentCode,studentName, graduationYear,diplomaNumber, status, limit, offset);
     }
 
     @Override
@@ -390,6 +390,26 @@ public class DegreeService implements IDegreeService{
             return false;
         }
         return true;
+    }
+
+    @Override
+    public long countAllDegreeOfUniversity(Long universityId, String departmentName, String className, String studentCode, String studentName, String graduationYear, String diplomaNumber) {
+        return degreeRepository.countAllDegreeOfUniversity(universityId, departmentName, className, studentCode, studentName, graduationYear, diplomaNumber);
+    }
+
+    @Override
+    public long countAllDegreeOfUniversityAndStatus(Long universityId, String departmentName, String className, String studentCode, String studentName, String graduationYear, String diplomaNumber, String status) {
+        return degreeRepository.countDegreeOfUniversityAndStatus(universityId, departmentName, className, studentCode, studentName, graduationYear, diplomaNumber, status);
+    }
+
+    @Override
+    public long countAllDegreeOfDepartment(Long departmentId, String className, String studentCode, String studentName, String graduationYear, String diplomaNumber) {
+        return degreeRepository.countAllDegreeOfDepartment(departmentId, className, studentCode, studentName, graduationYear, diplomaNumber);
+    }
+
+    @Override
+    public long countDegreeOfDepartmentAndStatus(Long departmentId, String className, String studentCode, String studentName, String graduationYear, String diplomaNumber, String status) {
+        return degreeRepository.countDegreeOfDepartmentAndStatus(departmentId, className, studentCode, studentName, graduationYear, diplomaNumber, status);
     }
 
 
@@ -526,12 +546,12 @@ public class DegreeService implements IDegreeService{
             degree.setBlockchainTxHash(txHash);
 
             //email NÀO CHẠY MỞ
-            brevoApiEmailService.sendEmailsToStudentsExcel(
-                    degree.getStudent().getEmail(),
-                    degree.getStudent().getName(),
-                    user.getUniversity().getName(),
-                    verifyUrl,
-                    "Văn bằng");
+//            brevoApiEmailService.sendEmailsToStudentsExcel(
+//                    degree.getStudent().getEmail(),
+//                    degree.getStudent().getName(),
+//                    user.getUniversity().getName(),
+//                    verifyUrl,
+//                    "Văn bằng");
 
             Notifications notifications = new Notifications();
             notifications.setUser(user);

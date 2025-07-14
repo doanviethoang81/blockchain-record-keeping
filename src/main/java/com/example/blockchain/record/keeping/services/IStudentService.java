@@ -7,6 +7,7 @@ import com.example.blockchain.record.keeping.models.Student;
 import com.example.blockchain.record.keeping.models.StudentClass;
 import com.example.blockchain.record.keeping.models.User;
 import jnr.ffi.Struct;
+import org.springframework.data.repository.query.Param;
 
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -17,9 +18,9 @@ import java.util.Set;
 public interface IStudentService {
     Student findByStudentCodeOfUniversity(String studentCode,Long universityId);
 
-    List<Student> getAllStudentOfUniversity(Long universityId, String departmentName, String className, String studentCode, String studentName);
+    List<Student> getAllStudentOfUniversity(Long universityId, String departmentName, String className, String studentCode, String studentName, int limit, int offset);
 
-    List<Student> searchStudents(Long departmentId, String className, String studentCode, String name);
+    List<Student> searchStudents(Long departmentId, String className, String studentCode, String name, int limit, int offset);
 
     Student createStudent(StudentRequest studentRequest);
 
@@ -40,4 +41,16 @@ public interface IStudentService {
     Student findByEmail(String email);
 
     boolean resetPassword(String email, String newPassword);
+
+    long countStudentsByUniversity(Long universityId,
+                                   String departmentName,
+                                   String className,
+                                   String studentCode,
+                                   String studentName);
+
+    long countStudentOdDepartment(
+            Long departmentId,
+            String className,
+            String studentCode,
+            String studentName);
 }

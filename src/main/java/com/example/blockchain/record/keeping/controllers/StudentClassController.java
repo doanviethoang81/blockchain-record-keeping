@@ -48,7 +48,7 @@ public class StudentClassController {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             String username = authentication.getName();
             University university = universityService.getUniversityByEmail(username);
-            List<StudentClassResponse> studentClassList = studentClassService.getAllClassofUniversity(university.getId(), name);
+            List<StudentClassResponse> studentClassList = studentClassService.getAllClassofUniversity(university.getId(), name == null ? null : name.trim());
             if ((name != null && !name.isEmpty())) {
                 if(studentClassList.isEmpty()){
                     return ApiResponseBuilder.success("Không tìm thấy lớp!",studentClassList);
@@ -145,7 +145,7 @@ public class StudentClassController {
             User user = userService.findByUser(username);
 
             List<StudentClassResponse> studentClassResponseList =
-                    studentClassService.listClassOfDepartmentId(user.getDepartment().getId(), name);
+                    studentClassService.listClassOfDepartmentId(user.getDepartment().getId(), name == null ? null : name.trim());
             if(name!= null && !name.isEmpty()){
                 if(studentClassResponseList.isEmpty()){
                     return ApiResponseBuilder.success("Không tìm thấy lớp!", null);

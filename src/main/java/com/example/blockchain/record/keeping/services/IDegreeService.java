@@ -6,6 +6,7 @@ import com.example.blockchain.record.keeping.models.Student;
 import com.example.blockchain.record.keeping.response.DegreeClassificationByYearResponse;
 import com.example.blockchain.record.keeping.response.DegreeClassificationStatisticsResponse;
 import com.example.blockchain.record.keeping.response.DegreeResponse;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Optional;
@@ -30,13 +31,13 @@ public interface IDegreeService {
 
     Degree findByLotteryNumber(String lotteryNumber);
 
-    List<Degree> listAllDegreeOfUniversity(Long universittyId, String departmentName, String className, String studentCode, String studentName,String graduationYear, String diplomaNumber);
+    List<Degree> listAllDegreeOfUniversity(Long universittyId, String departmentName, String className, String studentCode, String studentName,String graduationYear, String diplomaNumber, int limit, int offset);
 
-    List<Degree> listAllDegreeOfUniversityAndStatus(Long universittyId, String departmentName, String className, String studentCode, String studentName,String graduationYear, String diplomaNumber,String status);
+    List<Degree> listAllDegreeOfUniversityAndStatus(Long universittyId, String departmentName, String className, String studentCode, String studentName,String graduationYear, String diplomaNumber,String status, int limit, int offset);
 
-    List<Degree> listAllDegreeOfDepartment(Long departmentId, String className, String studentCode, String studentName,String graduationYear, String diplomaNumber);
+    List<Degree> listAllDegreeOfDepartment(Long departmentId, String className, String studentCode, String studentName,String graduationYear, String diplomaNumber, int limit, int offset);
 
-    List<Degree> listAllDegreeOfDepartmentAndStatus(Long departmentId, String className, String studentCode, String studentName,String graduationYear,String diplomaNumber, String status);
+    List<Degree> listAllDegreeOfDepartmentAndStatus(Long departmentId, String className, String studentCode, String studentName,String graduationYear,String diplomaNumber, String status, int limit, int offset);
 
     List<Degree> listAllDegree(String universityName, String departmentName, String className, String studentCode, String studentName,String graduationYear, String diplomaNumber);
 
@@ -61,4 +62,37 @@ public interface IDegreeService {
     boolean existByDiplomanumberIngnoreId(Long universityId, String diplomaNumber, Long degreeId);
 
     boolean existByLotteryNumberIngnoreId(Long universityId, String lotteryNumber, Long degreeId);
+
+    long countAllDegreeOfUniversity(Long universityId,
+                                    String departmentName,
+                                    String className,
+                                    String studentCode,
+                                    String studentName,
+                                    String graduationYear,
+                                    String diplomaNumber);
+
+    long countAllDegreeOfUniversityAndStatus(Long universityId,
+                                             String departmentName,
+                                             String className,
+                                             String studentCode,
+                                             String studentName,
+                                             String graduationYear,
+                                             String diplomaNumber,
+                                             String status);
+
+    long countAllDegreeOfDepartment(Long departmentId,
+                                    String className,
+                                    String studentCode,
+                                    String studentName,
+                                    String graduationYear,
+                                    String diplomaNumber);
+
+    long countDegreeOfDepartmentAndStatus(
+            Long departmentId,
+            String className,
+            String studentCode,
+            String studentName,
+            String graduationYear,
+            String diplomaNumber,
+            String status);
 }
