@@ -322,21 +322,25 @@ public interface CertificateRepository extends JpaRepository<Certificate,Long> {
     @Query(value = """
     SELECT
         m.month,
-        COALESCE(SUM(CASE WHEN c.status = 'PENDING' THEN 1 ELSE 0 END), 0) AS pending,
-        COALESCE(SUM(CASE WHEN c.status = 'APPROVED' THEN 1 ELSE 0 END), 0) AS approved,
-        COALESCE(SUM(CASE WHEN c.status = 'REJECTED' THEN 1 ELSE 0 END), 0) AS rejected
+        COALESCE(SUM(CASE WHEN fc.status = 'PENDING' THEN 1 ELSE 0 END), 0) AS pending,
+        COALESCE(SUM(CASE WHEN fc.status = 'APPROVED' THEN 1 ELSE 0 END), 0) AS approved,
+        COALESCE(SUM(CASE WHEN fc.status = 'REJECTED' THEN 1 ELSE 0 END), 0) AS rejected
     FROM (
         SELECT 1 AS month UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4 UNION ALL
         SELECT 5 UNION ALL SELECT 6 UNION ALL SELECT 7 UNION ALL SELECT 8 UNION ALL
         SELECT 9 UNION ALL SELECT 10 UNION ALL SELECT 11 UNION ALL SELECT 12
     ) AS m
-    LEFT JOIN certificates c ON MONTH(c.updated_at) = m.month AND YEAR(c.updated_at) = YEAR(CURDATE())
-    LEFT JOIN students s ON c.student_id = s.id AND s.status = 'ACTIVE'
-    LEFT JOIN student_class sc ON s.student_class_id = sc.id AND sc.status = 'ACTIVE'
-    LEFT JOIN departments d ON sc.department_id = d.id AND d.id = :departmentId
+    LEFT JOIN (
+        SELECT c.status, MONTH(c.updated_at) AS cert_month
+        FROM certificates c
+        JOIN students s ON c.student_id = s.id AND s.status = 'ACTIVE'
+        JOIN student_class sc ON s.student_class_id = sc.id AND sc.status = 'ACTIVE'
+        JOIN departments d ON sc.department_id = d.id
+        WHERE d.id = :departmentId AND YEAR(c.updated_at) = YEAR(CURDATE())
+    ) AS fc ON m.month = fc.cert_month
     GROUP BY m.month
-    ORDER BY m.month
-""", nativeQuery = true)
+    ORDER BY m.month;
+    """, nativeQuery = true)
     List<Object[]> monthlyCertificateStatisticsOfDepartment(@Param("departmentId") Long departmentId);
 
 
@@ -366,25 +370,35 @@ public interface CertificateRepository extends JpaRepository<Certificate,Long> {
 
     //thống kê sl từng loại chung chi theo khoa
     @Query(value = """
-            SELECT
-                ct.name,
-                COUNT(DISTINCT c.student_id) AS approved,
-                ROUND(COUNT(DISTINCT c.student_id) * 100.0 / total.total_students, 2) AS percentage
-            FROM university_certificate_types uct
-            JOIN certificate_types ct ON uct.certificate_type_id = ct.id
-            JOIN universitys u ON uct.university_id = u.id
-            JOIN departments d ON u.id = d.university_id
-            LEFT JOIN certificates c ON uct.id = c.university_certificate_type_id AND c.status = 'APPROVED'
-            JOIN (
-                SELECT d.id AS department_id, COUNT(DISTINCT s.id) AS total_students
-                FROM departments d
-                JOIN student_class sc ON d.id = sc.department_id
-                JOIN students s ON sc.id = s.student_class_id
-                WHERE d.id = :departmentId AND s.status = 'ACTIVE'
-            ) total ON total.department_id = d.id
-            WHERE ct.status = 'ACTIVE' AND d.id = :departmentId
-            GROUP BY ct.name, total.total_students;
-            """,nativeQuery = true)
+        SELECT
+            ct.name,
+            COUNT(DISTINCT c.student_id) AS approved,
+            ROUND(COUNT(DISTINCT c.student_id) * 100.0 / total.total_students, 2) AS percentage
+        FROM university_certificate_types uct
+        JOIN certificate_types ct ON uct.certificate_type_id = ct.id
+        JOIN universitys u ON uct.university_id = u.id
+        JOIN departments d ON u.id = d.university_id
+        JOIN (
+            SELECT d.id AS department_id, COUNT(DISTINCT s.id) AS total_students
+            FROM departments d
+            JOIN student_class sc ON d.id = sc.department_id
+            JOIN students s ON sc.id = s.student_class_id
+            WHERE d.id = :departmentId AND s.status = 'ACTIVE'
+        ) total ON total.department_id = d.id
+        LEFT JOIN certificates c ON uct.id = c.university_certificate_type_id
+            AND c.status = 'APPROVED'
+            AND EXISTS (
+                SELECT 1
+                FROM students s2
+                JOIN student_class sc2 ON s2.student_class_id = sc2.id
+                WHERE s2.id = c.student_id
+                  AND s2.status = 'ACTIVE'
+                  AND sc2.department_id = d.id
+            )
+        WHERE ct.status = 'ACTIVE'
+          AND d.id = :departmentId
+        GROUP BY ct.name, total.total_students;
+        """,nativeQuery = true)
     List<CountCertificateTypeRequest> countCertificateTypeOfDepartment(@Param("departmentId")Long departmentId);
 
     //list chung chi cua student

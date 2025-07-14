@@ -122,7 +122,7 @@ public interface UserRepository extends JpaRepository<User,Long> {
          JOIN student_class sc ON s.student_class_id = sc.id 
          JOIN departments d ON sc.department_id = d.id 
          JOIN users u ON u.department_id = d.id 
-         WHERE u.university_id = :universityId AND d.status = 'ACTIVE' AND s.status = 'ACTIVE' AND dgr.status = 'APPROVED') AS degreeApproved,
+         WHERE u.university_id = :universityId AND d.status = 'ACTIVE' AND dgr.status = 'APPROVED') AS degreeApproved,
 
         (SELECT COUNT(*) 
          FROM degrees dgr 
@@ -178,7 +178,6 @@ public interface UserRepository extends JpaRepository<User,Long> {
                    AND s.status = 'ACTIVE' 
                    AND c.status = 'REJECTED') AS certificate_rejected,
             
-                -- Văn bằng theo trạng thái, lớp hoạt động, sinh viên hoạt động
                 (SELECT COUNT(*) 
                  FROM degrees d 
                  JOIN students s ON d.student_id = s.id 
@@ -194,7 +193,6 @@ public interface UserRepository extends JpaRepository<User,Long> {
                  JOIN student_class sc ON s.student_class_id = sc.id 
                  WHERE sc.department_id = :departmentId 
                    AND sc.status = 'ACTIVE' 
-                   AND s.status = 'ACTIVE' 
                    AND d.status = 'APPROVED') AS degree_approved,
             
                 (SELECT COUNT(*) 

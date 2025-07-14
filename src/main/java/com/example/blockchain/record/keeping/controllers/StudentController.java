@@ -181,7 +181,7 @@ public class StudentController {
         }
     }
 
-    // thêm sinh viên ngày sinh > 18
+    // thêm sinh viên
     @PreAuthorize("hasAuthority('WRITE')")
     @PostMapping("/pdt/create-student")
     public ResponseEntity<?> createStudent(

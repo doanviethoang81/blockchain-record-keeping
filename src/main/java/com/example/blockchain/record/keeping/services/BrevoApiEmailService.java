@@ -63,7 +63,7 @@ public class BrevoApiEmailService {
         headers.setContentType(MediaType.APPLICATION_JSON);
 
         Map<String, Object> body = new HashMap<>();
-        body.put("sender", Map.of("name", "Thông Báo Cấp Chứng Chỉ", "email", "hoangdoanviet81@gmail.com"));
+        body.put("sender", Map.of("name", "Thông Báo Cấp " + paperName, "email", "hoangdoanviet81@gmail.com"));
         body.put("to", List.of(Map.of("email", toEmail)));
         body.put("subject", name);
         body.put("htmlContent", contentHtml);

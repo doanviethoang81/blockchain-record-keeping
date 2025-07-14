@@ -458,7 +458,7 @@ public class CertificateService implements ICertificateService{
                     certificate.getStudent().getName(),
                     university.getName(),
                     certificateUrl,
-                    "Chứng chỉ");
+                    "Chứng Chỉ");
             AuditingContext.setDescription("Xác thực chứng chỉ số hiệu bằng: " + certificate.getDiplomaNumber());
 
             User user = userService.findByUser(university.getEmail());
@@ -524,13 +524,13 @@ public class CertificateService implements ICertificateService{
             certificate.setBlockchainTxHash(txHash);
 
             // NÀO CHAY THI MO
-//            brevoApiEmailService.sendEmailsToStudentsExcel(
-//                    certificate.getStudent().getEmail(),
-//                    certificate.getStudent().getName(),
-//                    user.getUniversity().getName(),
-//                    certificateUrl,
-//                    "Chứng chỉ"
-//            );
+            brevoApiEmailService.sendEmailsToStudentsExcel(
+                    certificate.getStudent().getEmail(),
+                    certificate.getStudent().getName(),
+                    user.getUniversity().getName(),
+                    certificateUrl,
+                    "Chứng Chỉ"
+            );
 
             Notifications notifications = new Notifications();
             notifications.setUser(user);

@@ -430,7 +430,7 @@ public class DegreeService implements IDegreeService{
         return new HashSet<>(degreeRepository.findExistingLotteryNumbers(lotteryNumbers));
     }
 
-    // xác nhận them dau moc van bang
+    // xác nhận 1 van bang
     @Transactional
     @Auditable(action = ActionType.VERIFIED, entity = Entity.degrees)
     public Degree degreeValidation (User user,Long degreeId) throws Exception {
@@ -475,12 +475,12 @@ public class DegreeService implements IDegreeService{
             degree.setBlockchainTxHash(txHash);
 
             // gửi emial
-//            brevoApiEmailService.sendEmailsToStudentsExcel(
-//                    degree.getStudent().getEmail(),
-//                    degree.getStudent().getName(),
-//                    user.getUniversity().getName(),
-//                    certificateUrl,
-//                    "Văn bằng");
+            brevoApiEmailService.sendEmailsToStudentsExcel(
+                    degree.getStudent().getEmail(),
+                    degree.getStudent().getName(),
+                    user.getUniversity().getName(),
+                    certificateUrl,
+                    "Văn Bằng");
 
             AuditingContext.setDescription("Xác thực văn bằng số hiệu bằng: " + degree.getDiplomaNumber());
 
@@ -546,12 +546,12 @@ public class DegreeService implements IDegreeService{
             degree.setBlockchainTxHash(txHash);
 
             //email NÀO CHẠY MỞ
-//            brevoApiEmailService.sendEmailsToStudentsExcel(
-//                    degree.getStudent().getEmail(),
-//                    degree.getStudent().getName(),
-//                    user.getUniversity().getName(),
-//                    verifyUrl,
-//                    "Văn bằng");
+            brevoApiEmailService.sendEmailsToStudentsExcel(
+                    degree.getStudent().getEmail(),
+                    degree.getStudent().getName(),
+                    user.getUniversity().getName(),
+                    verifyUrl,
+                    "Văn Bằng");
 
             Notifications notifications = new Notifications();
             notifications.setUser(user);
