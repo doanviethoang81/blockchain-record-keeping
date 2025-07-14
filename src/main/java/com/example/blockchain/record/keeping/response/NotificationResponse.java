@@ -18,5 +18,7 @@ public class NotificationResponse {
     private String content;
     private NotificationType type;
     private boolean isRead;
+    private String documentType;
+    private Long documentId;
     private LocalDateTime createdAt;
 }

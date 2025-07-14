@@ -90,6 +90,8 @@ public class NotificationController {
                     s.getNotification().getContent(),
                     s.getNotification().getType(),
                     s.isRead(),
+                    s.getNotification().getDocumentType(),
+                    s.getNotification().getDocumentId(),
                     s.getCreatedAt()
             )).collect(Collectors.toList());
 
