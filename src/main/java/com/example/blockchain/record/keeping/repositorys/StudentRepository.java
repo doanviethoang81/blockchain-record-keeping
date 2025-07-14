@@ -218,4 +218,21 @@ public interface StudentRepository extends JpaRepository<Student,Long> {
           SELECT s.student_code FROM students s WHERE s.id = :id
     """, nativeQuery = true)
     String findByStudentCode(@Param("id") Long id);
+
+
+    //kiem tra sinh viên có chưứng chỉ chưa
+    @Query(value = """
+        SELECT COUNT(*) AS count_certificate
+        FROM certificates c
+        WHERE c.student_id = :id
+        """,nativeQuery = true)
+    long countCertificateOfStudent(@Param("id") Long id);
+
+    //kiem tra sinh viên có văn bằng chưa
+    @Query(value = """
+        SELECT COUNT(*) AS count_degree
+        FROM degrees d
+        WHERE d.student_id = :id
+        """,nativeQuery = true)
+    long countDegreeOfStudent(@Param("id") Long id);
 }

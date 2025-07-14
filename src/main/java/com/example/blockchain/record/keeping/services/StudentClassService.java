@@ -141,6 +141,11 @@ public class StudentClassService implements IStudentClassService{
         return studentClass;
     }
 
+    @Override
+    public long countStudentOfClass(Long id) {
+        return studentClassRepository.countStudentOfClass(id);
+    }
+
     public List<StudentClassResponse> getAllClassofUniversity(Long id, String name){
         List<StudentClass> studentClassList = studentClassRepository.findAllClassOfUniversityByName(id, name);
         List<StudentClassResponse> studentClassResponseList = new ArrayList<>();

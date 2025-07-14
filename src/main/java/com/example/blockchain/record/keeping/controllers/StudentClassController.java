@@ -120,8 +120,11 @@ public class StudentClassController {
     //xóa
     @PreAuthorize("hasAuthority('WRITE')")
     @DeleteMapping("/pdt/delete-class/{id}")
-    public ResponseEntity<?> deleteDepartment(@PathVariable Long id){
+    public ResponseEntity<?> deleteClass(@PathVariable Long id){
         try {
+            if( studentClassService.countStudentOfClass(id) > 0){
+                return ApiResponseBuilder.badRequest("Không thể xóa lớp vì vẫn còn sinh viên đang hoạt động!");
+            }
             studentClassService.deleteStudentClass(id);
             return ApiResponseBuilder.success("Xóa lớp thành công", null);
         } catch (Exception e) {
@@ -133,7 +136,7 @@ public class StudentClassController {
     // ds lớp cho khoa vs tìm theo tên
     @PreAuthorize("hasAuthority('WRITE')")
     @GetMapping("/khoa/list-class-of-department")
-    public ResponseEntity<?> searchDepartment(
+    public ResponseEntity<?> searchClass(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) String name){

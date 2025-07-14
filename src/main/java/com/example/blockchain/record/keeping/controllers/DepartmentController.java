@@ -268,6 +268,9 @@ public class DepartmentController {
     public ResponseEntity<?> deleteDepartment(@PathVariable Long id){
         try {
             User user = userService.finbById(id);
+            if( departmentService.countClassOfDepartment(user.getDepartment().getId()) > 0){
+                return ApiResponseBuilder.badRequest("Không thể xóa khoa vì vẫn còn lớp thuộc khoa đang hoạt động!");
+            }
             departmentService.deleteDepartment(user.getDepartment().getId());
             return ApiResponseBuilder.success("Xóa khoa thành công", null);
         } catch (Exception e) {

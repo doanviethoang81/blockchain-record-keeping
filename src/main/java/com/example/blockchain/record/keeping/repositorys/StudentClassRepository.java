@@ -78,4 +78,13 @@ public interface StudentClassRepository extends JpaRepository<StudentClass,Long>
             @Param("departmentId") Long departmentId,
             @Param("className") String className);
 
+    //kiem tra de xoa lop
+    @Query(value = """
+            SELECT COUNT(*) AS count_student
+            FROM students s
+            WHERE s.student_class_id = :id
+            and s.status = 'ACTIVE'
+            """,nativeQuery = true)
+    long countStudentOfClass(@Param("id") Long id);
+
 }

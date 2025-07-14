@@ -32,4 +32,6 @@ public interface IStudentClassService {
     StudentClass create(String name, Department department);
 
     StudentClass update(StudentClass studentClass,String name);
+
+    long countStudentOfClass(Long id);
 }

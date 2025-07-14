@@ -309,6 +309,12 @@ public class StudentController {
             @PathVariable("id")  Long id)
     {
         try {
+            if(studentService.countCertificateOfStudent(id) > 0){
+                return ApiResponseBuilder.badRequest("Không thể xóa sinh viên này vì sinh viên có chứng chỉ đang tồn tại!");
+            }
+            if(studentService.countDegreeOfStudent(id) > 0){
+                return ApiResponseBuilder.badRequest("Không thể xóa sinh viên này vì sinh viên có văn bằng đang tồn tại!");
+            }
             studentService.delete(id);
             return ApiResponseBuilder.success("Xóa sinh viên thành công", null);
         } catch (Exception e) {

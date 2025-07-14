@@ -188,6 +188,16 @@ public class StudentService implements IStudentService{
         return studentRepository.countStudentOdDepartment(departmentId, className, studentCode, studentName);
     }
 
+    @Override
+    public long countCertificateOfStudent(Long id) {
+        return studentRepository.countCertificateOfStudent(id);
+    }
+
+    @Override
+    public long countDegreeOfStudent(Long id) {
+        return studentRepository.countDegreeOfStudent(id);
+    }
+
     public Student findById(Long id){
         return studentRepository.findByIdAndStatus(id, Status.ACTIVE).orElse(null);
     }

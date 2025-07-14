@@ -35,4 +35,12 @@ public interface DepartmentRepository extends JpaRepository<Department,Long> {
     Optional<Department> findByDepartmentNameOfUniversity(@Param("universityId") Long universityId,
                                                           @Param("departmentName") String departmentName);
 
+    //kiem tra xem có lớp thuộc khoa không de xoa khoa
+    @Query(value = """
+        SELECT COUNT(*) AS count_class
+        FROM student_class sc
+        WHERE sc.department_id = :id
+        and sc.status = 'ACTIVE'
+        """,nativeQuery = true)
+    long countClassOfDepartment(@Param("id") Long id);
 }

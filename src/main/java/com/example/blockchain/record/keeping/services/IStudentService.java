@@ -53,4 +53,7 @@ public interface IStudentService {
             String className,
             String studentCode,
             String studentName);
+
+    long countCertificateOfStudent(Long id);
+    long countDegreeOfStudent(Long id);
 }

@@ -166,4 +166,9 @@ public class DepartmentService  implements IDepartmentService{
         AuditingContext.setDescription("Tạo khoa có tên: " + department.getName());
         return department;
     }
+
+    @Override
+    public long countClassOfDepartment(Long id) {
+        return departmentRepository.countClassOfDepartment(id);
+    }
 }

@@ -26,4 +26,6 @@ public interface IDepartmentService {
     Optional<Department> findByDepartmentNameOfUniversity(Long universityId, String name);
 
     Department create(UserDepartmentRequest request, University university);
+
+    long countClassOfDepartment(Long id);
 }
