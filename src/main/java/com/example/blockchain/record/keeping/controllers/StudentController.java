@@ -45,6 +45,7 @@ public class StudentController {
     private final AuditLogService auditLogService;
     private final HttpServletRequest httpServletRequest;
     private final LogRepository logRepository;
+    private final WalletService walletService;
 
     //---------------------------- PDT -------------------------------------------------------
     //danh sách sinh viên của 1 trường
@@ -399,6 +400,7 @@ public class StudentController {
             Student student = studentService.findById(id);
             Department department = departmentService.findById(student.getStudentClass().getDepartment().getId());
             User user = userService.findByDepartment(department);
+            Wallet wallet= walletService.findByStudent(student);
             StudentDetailResponse studentDetailReponse= new StudentDetailResponse(
                     student.getName(),
                     student.getStudentCode(),
@@ -409,7 +411,10 @@ public class StudentController {
                     student.getStudentClass().getName(),
                     user.getId(),
                     student.getStudentClass().getDepartment().getName(),
-                    student.getStudentClass().getDepartment().getUniversity().getName()
+                    student.getStudentClass().getDepartment().getUniversity().getName(),
+                    wallet != null ? wallet.getWalletAddress() : null,
+                    wallet != null ? wallet.getPublicKey() : null,
+                    wallet != null ? wallet.getPrivateKey() : null
             );
             return ApiResponseBuilder.success("Thông chi tiết một sinh viên",studentDetailReponse);
         } catch (Exception e) {

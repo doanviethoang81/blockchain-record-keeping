@@ -9,6 +9,9 @@ import com.example.blockchain.record.keeping.models.User;
 import jnr.ffi.Struct;
 import org.springframework.data.repository.query.Param;
 
+import java.security.InvalidAlgorithmParameterException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.List;
@@ -22,7 +25,7 @@ public interface IStudentService {
 
     List<Student> searchStudents(Long departmentId, String className, String studentCode, String name, int limit, int offset);
 
-    Student createStudent(StudentRequest studentRequest);
+    Student createStudent(StudentRequest studentRequest) throws Exception;
 
     Student findByEmailStudentCodeOfDepartment(String email, Long departmentId);
 

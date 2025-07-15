@@ -20,4 +20,7 @@ public class StudentDetailResponse {
     private Long departmentId;
     private String departmentName;
     private String universityName;
+    private String walletAddress;
+    private String publicKey;
+    private String privateKey;
 }

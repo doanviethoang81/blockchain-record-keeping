@@ -2,6 +2,7 @@ package com.example.blockchain.record.keeping.controllers;
 
 import com.example.blockchain.record.keeping.dtos.request.TransactionDTO;
 import com.example.blockchain.record.keeping.dtos.request.WalletInfoDTO;
+import com.example.blockchain.record.keeping.dtos.request.WalletSTUInfoDTO;
 import com.example.blockchain.record.keeping.response.ApiResponseBuilder;
 import com.example.blockchain.record.keeping.response.PaginatedData;
 import com.example.blockchain.record.keeping.services.AlchemyService;
@@ -55,4 +56,18 @@ public class WalletController {
             return ApiResponseBuilder.internalError("Không thể lấy thông tin ví!");
         }
     }
+
+    @GetMapping("/pdt/wallet-info-stu")
+    public ResponseEntity<?> getWalletSTUInfo() {
+        String address = EnvUtil.get("METAMASK_ADDRESS");
+        try {
+            WalletSTUInfoDTO info = alchemyService.getWalletInfoSTU(address);
+            return ApiResponseBuilder.success("Lấy thông tin ví thành công", info);
+        } catch (Exception e) {
+            return ApiResponseBuilder.internalError("Không thể lấy thông tin ví!");
+        }
+    }
+
+
+
 }

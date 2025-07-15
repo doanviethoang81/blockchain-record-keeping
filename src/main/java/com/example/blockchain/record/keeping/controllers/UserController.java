@@ -34,6 +34,7 @@ public class UserController {
     private final BrevoApiEmailService brevoApiEmailService;
     private final PasswordEncoder passwordEncoder;
     private final StudentService studentService;
+    private final WalletService walletService;
 
     //---------------------------- ADMIN -------------------------------------------------------
     // khóa/Mở tài khoản của 1 trường
@@ -229,18 +230,21 @@ public class UserController {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             String username = authentication.getName();
             Student student= studentService.findByEmail(username);
-
+            Wallet wallet= walletService.findByStudent(student);
             StudentDetailResponse studentResponse= new StudentDetailResponse(
-                        student.getName(),
-                student.getStudentCode(),
-                student.getEmail(),
-                student.getBirthDate(),
-                student.getCourse(),
-                student.getStudentClass().getId(),
-                student.getStudentClass().getName(),
-                student.getStudentClass().getDepartment().getId(),
-                student.getStudentClass().getDepartment().getName(),
-                student.getStudentClass().getDepartment().getUniversity().getName()
+                    student.getName(),
+                    student.getStudentCode(),
+                    student.getEmail(),
+                    student.getBirthDate(),
+                    student.getCourse(),
+                    student.getStudentClass().getId(),
+                    student.getStudentClass().getName(),
+                    student.getStudentClass().getDepartment().getId(),
+                    student.getStudentClass().getDepartment().getName(),
+                    student.getStudentClass().getDepartment().getUniversity().getName(),
+                    wallet != null ? wallet.getWalletAddress() : null,
+                    wallet != null ? wallet.getPublicKey() : null,
+                    wallet != null ? wallet.getPrivateKey() : null
             );
             return ApiResponseBuilder.success("Thông tin chi tiết của sinh viên", studentResponse);
         } catch (Exception e) {
