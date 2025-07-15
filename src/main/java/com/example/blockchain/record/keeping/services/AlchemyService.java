@@ -240,6 +240,12 @@ public class AlchemyService {
     }
 
     public WalletSTUInfoDTO getWalletInfoSTU(String address) {
+        if (address == null) {
+            WalletSTUInfoDTO dto = new WalletSTUInfoDTO();
+            dto.setStuCoin("0");
+            return dto;
+        }
+
         try {
             Web3j web3j = Web3j.build(new HttpService(ALCHEMY_BASE_URL));
 
@@ -270,7 +276,7 @@ public class AlchemyService {
             BigDecimal stuBalance = new BigDecimal(tokenBalance).divide(BigDecimal.TEN.pow(18), 6, RoundingMode.HALF_UP);
 
             WalletSTUInfoDTO dto = new WalletSTUInfoDTO();
-            dto.setSetStucoinBalance(stuBalance.toPlainString());
+            dto.setStuCoin(stuBalance.toPlainString());
             return dto;
 
         } catch (Exception e) {

@@ -1,15 +1,15 @@
 package com.example.blockchain.record.keeping.response;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
 
 import java.time.LocalDate;
 
-@Getter
-@Setter
-@AllArgsConstructor
-@NoArgsConstructor
 @Data
-public class StudentResponse {
+@Builder
+@AllArgsConstructor
+public class StudentCoinResponse {
     private Long id;
     private String name;
     private String studentCode;
@@ -17,5 +17,5 @@ public class StudentResponse {
     private String className;
     private LocalDate birthDate;
     private String course;
-
+    private String stuCoin;
 }

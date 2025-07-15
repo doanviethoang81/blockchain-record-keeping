@@ -1,9 +1,7 @@
 package com.example.blockchain.record.keeping.controllers;
 
 import com.alibaba.excel.EasyExcel;
-import com.example.blockchain.record.keeping.dtos.request.StudentExcelRowRequest;
-import com.example.blockchain.record.keeping.dtos.request.StudentRequest;
-import com.example.blockchain.record.keeping.dtos.request.UpdateStudentRequest;
+import com.example.blockchain.record.keeping.dtos.request.*;
 import com.example.blockchain.record.keeping.models.*;
 import com.example.blockchain.record.keeping.repositorys.LogRepository;
 import com.example.blockchain.record.keeping.repositorys.StudentRepository;
@@ -46,6 +44,8 @@ public class StudentController {
     private final HttpServletRequest httpServletRequest;
     private final LogRepository logRepository;
     private final WalletService walletService;
+    private final AlchemyService alchemyService;
+
 
     //---------------------------- PDT -------------------------------------------------------
     //danh sách sinh viên của 1 trường
@@ -419,6 +419,81 @@ public class StudentController {
             return ApiResponseBuilder.success("Thông chi tiết một sinh viên",studentDetailReponse);
         } catch (Exception e) {
             return ApiResponseBuilder.internalError("Lỗi " + e.getMessage());
+        }
+    }
+
+    @PreAuthorize("hasAuthority('READ')")
+    @GetMapping("/khoa/list-students-coin")
+    public ResponseEntity<?> getStudentOfClassOfDepartmentCoin(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String className,
+            @RequestParam(required = false) String studentCode,
+            @RequestParam(required = false) String studentName
+    ) {
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String username = authentication.getName();
+
+            User user = userService.findByUser(username);
+
+            long totalItems = studentService.countStudentOdDepartment(
+                    user.getDepartment().getId(),
+                    className == null ? null : className.trim(),
+                    studentCode == null ? null : studentCode.trim(),
+                    studentName == null ? null : studentName.trim()
+            );
+
+            if (totalItems == 0) {
+                PaginationMeta meta = new PaginationMeta(0, 0, size, page, 0);
+                PaginatedData<CertificateResponse> data = new PaginatedData<>(Collections.emptyList(), meta);
+                return ApiResponseBuilder.success("Không có sinh viên nào!", data);
+            }
+
+            int offset = (page - 1) * size;
+
+            if (offset >= totalItems && totalItems > 0) {
+                page = 1;
+                offset = 0;
+            }
+
+            List<Student> studentList = studentService.searchStudents(
+                    user.getDepartment().getId(),
+                    className == null ? null : className.trim(),
+                    studentCode == null ? null : studentCode.trim(),
+                    studentName == null ? null : studentName.trim(),
+                    size,
+                    offset
+            );
+
+            List<StudentCoinResponse> studentResponseList = studentList.stream()
+                    .map(s -> {
+                        Wallet wallet = walletService.findByStudent(s);
+                        String address = wallet != null ? wallet.getWalletAddress() : null;
+
+                        WalletSTUInfoDTO walletInfo = alchemyService.getWalletInfoSTU(address);
+                        String stuCoin = walletInfo != null ? walletInfo.getStuCoin() : "0";
+
+                        return new StudentCoinResponse(
+                                s.getId(),
+                                s.getName(),
+                                s.getStudentCode(),
+                                s.getEmail(),
+                                s.getStudentClass().getName(),
+                                s.getBirthDate(),
+                                s.getCourse(),
+                                stuCoin
+                        );
+                    })
+                    .collect(Collectors.toList());
+
+            int totalPages = (int) Math.ceil((double) totalItems / size);
+            PaginationMeta meta = new PaginationMeta(totalItems, studentList.size(), size, page, totalPages);
+            PaginatedData<StudentCoinResponse> data = new PaginatedData<>(studentResponseList, meta);
+
+            return ApiResponseBuilder.success("Danh sách sinh viên của khoa", data);
+        } catch (Exception e) {
+            return ApiResponseBuilder.internalError("Lỗi: " + e.getMessage());
         }
     }
 }

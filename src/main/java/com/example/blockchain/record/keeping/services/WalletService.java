@@ -34,6 +34,6 @@ public class WalletService implements IWalletService{
 
     @Override
     public Wallet findByStudent(Student student) {
-        return walletRepository.findByStudent(student);
+        return walletRepository.findByStudent(student).orElse(null);
     }
 }

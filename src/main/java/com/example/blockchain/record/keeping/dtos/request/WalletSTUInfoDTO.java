@@ -8,5 +8,5 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class WalletSTUInfoDTO {
-    private String setStucoinBalance;
+    private String stuCoin;
 }

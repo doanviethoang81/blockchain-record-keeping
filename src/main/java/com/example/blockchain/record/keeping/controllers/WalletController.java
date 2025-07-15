@@ -3,17 +3,20 @@ package com.example.blockchain.record.keeping.controllers;
 import com.example.blockchain.record.keeping.dtos.request.TransactionDTO;
 import com.example.blockchain.record.keeping.dtos.request.WalletInfoDTO;
 import com.example.blockchain.record.keeping.dtos.request.WalletSTUInfoDTO;
+import com.example.blockchain.record.keeping.models.Student;
+import com.example.blockchain.record.keeping.models.Wallet;
 import com.example.blockchain.record.keeping.response.ApiResponseBuilder;
 import com.example.blockchain.record.keeping.response.PaginatedData;
 import com.example.blockchain.record.keeping.services.AlchemyService;
+import com.example.blockchain.record.keeping.services.StudentService;
+import com.example.blockchain.record.keeping.services.WalletService;
 import com.example.blockchain.record.keeping.utils.EnvUtil;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -23,6 +26,9 @@ import java.util.List;
 @SecurityRequirement(name = "bearerAuth")
 public class WalletController {
     private final AlchemyService alchemyService;
+    private final StudentService studentService;
+    private final WalletService walletService;
+
 
     @GetMapping("/pdt/transactions")
     public ResponseEntity<?> getWalletTransactions(
@@ -68,6 +74,22 @@ public class WalletController {
         }
     }
 
+    @GetMapping("/student/wallet-coin")
+    public ResponseEntity<?> getWalletSTUStudent() {
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String username = authentication.getName();
+
+            Student student = studentService.findByEmail(username);
+
+            Wallet wallet =walletService.findByStudent(student);
+
+            WalletSTUInfoDTO info = alchemyService.getWalletInfoSTU(wallet.getWalletAddress());
+            return ApiResponseBuilder.success("Lấy thông tin ví thành công", info);
+        } catch (Exception e) {
+            return ApiResponseBuilder.internalError("Không thể lấy thông tin ví!");
+        }
+    }
 
 
 }
