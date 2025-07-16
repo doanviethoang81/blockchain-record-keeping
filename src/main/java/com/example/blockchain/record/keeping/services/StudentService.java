@@ -128,7 +128,7 @@ public class StudentService implements IStudentService{
         );
 
         //gửi token
-        TransactionReceipt receipt = contract.transfer(walletAddress, new BigInteger("1000000000000000000")) // 5 STUcoin (18 decimals)
+        TransactionReceipt receipt = contract.transfer(walletAddress, new BigInteger("1000000000000000000")) // 1 STUcoin (18 decimals)
                 .send();
 
         return student;

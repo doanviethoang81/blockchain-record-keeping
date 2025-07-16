@@ -25,6 +25,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.web3j.protocol.Web3j;
 
+import java.math.BigInteger;
 import java.security.PrivateKey;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -54,6 +55,8 @@ public class DegreeService implements IDegreeService{
     private final UserService userService;
     private final NotificateService notificateService;
     private final NotificationReceiverService notificationReceiverService;
+    private final WalletService walletService;
+    private final STUcoinService stUcoinService;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -501,6 +504,13 @@ public class DegreeService implements IDegreeService{
             notificationReceivers.setCreatedAt(vietnamTime.toLocalDateTime());
             notificationReceiverService.save(notificationReceivers);
 
+            Wallet wallet= walletService.findByStudent(degree.getStudent());
+            if (wallet == null || wallet.getWalletAddress() == null) {
+                throw new RuntimeException("Không tìm thấy ví của sinh viên");
+            }
+            //gửi token
+            stUcoinService.transferToStudent(wallet.getWalletAddress(), new BigInteger("5").multiply(BigInteger.TEN.pow(18))); // 5 STUcoin (18 decimals)
+
             return degree;
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -546,12 +556,12 @@ public class DegreeService implements IDegreeService{
             degree.setBlockchainTxHash(txHash);
 
             //email NÀO CHẠY MỞ
-            brevoApiEmailService.sendEmailsToStudentsExcel(
-                    degree.getStudent().getEmail(),
-                    degree.getStudent().getName(),
-                    user.getUniversity().getName(),
-                    verifyUrl,
-                    "Văn Bằng");
+//            brevoApiEmailService.sendEmailsToStudentsExcel(
+//                    degree.getStudent().getEmail(),
+//                    degree.getStudent().getName(),
+//                    user.getUniversity().getName(),
+//                    verifyUrl,
+//                    "Văn Bằng");
 
             Notifications notifications = new Notifications();
             notifications.setUser(user);
@@ -569,6 +579,13 @@ public class DegreeService implements IDegreeService{
             notificationReceivers.setReceiverId(userDepartment.getId());
             notificationReceivers.setCreatedAt(vietnamTime.toLocalDateTime());
             notificationReceiverService.save(notificationReceivers);
+
+            Wallet wallet= walletService.findByStudent(degree.getStudent());
+            if (wallet == null || wallet.getWalletAddress() == null) {
+                throw new RuntimeException("Không tìm thấy ví của sinh viên");
+            }
+            //gửi token
+            stUcoinService.transferToStudent(wallet.getWalletAddress(), new BigInteger("5").multiply(BigInteger.TEN.pow(18))); // 5 STUcoin (18 decimals)
         }
         List<Degree> degrees = degreeRepository.findAllById(ids);
         degreeRepository.saveAll(degrees);
@@ -624,7 +641,7 @@ public class DegreeService implements IDegreeService{
 
     //từ chối 1 list van bang
     @Transactional
-    public void rejectDegreeList(List<Long> ids, User user) {
+    public void rejectDegreeList(List<Long> ids, User user) throws Exception {
         ZonedDateTime vietnamTime = ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
 
         List<Degree> degrees = degreeRepository.findAllById(ids);
@@ -649,6 +666,7 @@ public class DegreeService implements IDegreeService{
             notificationReceivers.setCreatedAt(vietnamTime.toLocalDateTime());
             notificationReceivers.setCreatedAt(vietnamTime.toLocalDateTime());
             notificationReceiverService.save(notificationReceivers);
+
         }
 
         degreeRepository.saveAll(degrees);

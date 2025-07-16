@@ -59,6 +59,7 @@ public class CertificateService implements ICertificateService{
     private final NotificateService notificateService;
     private final NotificationReceiverService notificationReceiverService;
     private final WalletService walletService;
+    private final STUcoinService stUcoinService;
 
     @Autowired
     private Web3j web3j;
@@ -461,12 +462,13 @@ public class CertificateService implements ICertificateService{
             String txHash = blockChainService.issue(encryptedHex);
             certificate.setBlockchainTxHash(txHash);
 
-            brevoApiEmailService.sendEmailsToStudentsExcel(
-                    certificate.getStudent().getEmail(),
-                    certificate.getStudent().getName(),
-                    university.getName(),
-                    certificateUrl,
-                    "Chứng Chỉ");
+//            brevoApiEmailService.sendEmailsToStudentsExcel(
+//                    certificate.getStudent().getEmail(),
+//                    certificate.getStudent().getName(),
+//                    university.getName(),
+//                    certificateUrl,
+//                    "Chứng Chỉ");
+
             AuditingContext.setDescription("Xác thực chứng chỉ số hiệu bằng: " + certificate.getDiplomaNumber());
 
             User user = userService.findByUser(university.getEmail());
@@ -488,33 +490,12 @@ public class CertificateService implements ICertificateService{
             notificationReceivers.setCreatedAt(vietnamTime.toLocalDateTime());
             notificationReceiverService.save(notificationReceivers);
 
-
-            String METAMASK_PRIVATE_KEY = EnvUtil.get("METAMASK_PRIVATE_KEY");
-
-            Credentials systemCredentials = Credentials.create(METAMASK_PRIVATE_KEY);
-
-            String ALCHEMY_URL = EnvUtil.get("ALCHEMY_URL");
-            String toContract = EnvUtil.get("SMART_CONTRACT_STUCOIN_ADDRESS");
-
-            // tạo Web3j instance
-            Web3j web3j = Web3j.build(new HttpService(ALCHEMY_URL));
-
-            // load contract STUcoin
-            STUcoin_sol_STUcoin contract = STUcoin_sol_STUcoin.load(
-                    toContract,
-                    web3j,
-                    new RawTransactionManager(web3j, systemCredentials),
-                    new DefaultGasProvider()
-            );
-
             Wallet wallet= walletService.findByStudent(certificate.getStudent());
             if (wallet == null || wallet.getWalletAddress() == null) {
                 throw new RuntimeException("Không tìm thấy ví của sinh viên");
             }
-
             //gửi token
-            TransactionReceipt receipt = contract.transfer(wallet.getWalletAddress(), new BigInteger("5000000000000000000")) // 5 STUcoin (18 decimals)
-                    .send();
+            stUcoinService.transferToStudent(wallet.getWalletAddress(), new BigInteger("5").multiply(BigInteger.TEN.pow(18))); // 5 STUcoin (18 decimals)
 
             return certificate;
         } catch (Exception e) {
@@ -584,6 +565,13 @@ public class CertificateService implements ICertificateService{
             notificationReceivers.setReceiverId(userDepartment.getId());
             notificationReceivers.setCreatedAt(vietnamTime.toLocalDateTime());
             notificationReceiverService.save(notificationReceivers);
+
+            Wallet wallet= walletService.findByStudent(certificate.getStudent());
+            if (wallet == null || wallet.getWalletAddress() == null) {
+                throw new RuntimeException("Không tìm thấy ví của sinh viên");
+            }
+            //gửi token
+            stUcoinService.transferToStudent(wallet.getWalletAddress(), new BigInteger("5").multiply(BigInteger.TEN.pow(18))); // 5 STUcoin (18 decimals)
         }
 
         List<Certificate> certificates = certificateRepository.findAllById(ids);

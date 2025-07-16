@@ -1,5 +1,6 @@
 package com.example.blockchain.record.keeping.services;
 
+import com.STUcoin.contract.STUcoin_sol_STUcoin;
 import com.example.blockchain.record.keeping.annotation.Auditable;
 import com.example.blockchain.record.keeping.aspect.AuditingContext;
 import com.example.blockchain.record.keeping.dtos.request.DepartmentRequest;
@@ -10,11 +11,19 @@ import com.example.blockchain.record.keeping.enums.LogTemplate;
 import com.example.blockchain.record.keeping.enums.Status;
 import com.example.blockchain.record.keeping.models.*;
 import com.example.blockchain.record.keeping.repositorys.*;
+import com.example.blockchain.record.keeping.utils.EnvUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.web3j.crypto.Credentials;
+import org.web3j.protocol.Web3j;
+import org.web3j.protocol.core.methods.response.TransactionReceipt;
+import org.web3j.protocol.http.HttpService;
+import org.web3j.tx.RawTransactionManager;
+import org.web3j.tx.gas.DefaultGasProvider;
 
+import java.math.BigInteger;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -36,6 +45,7 @@ public class DepartmentService  implements IDepartmentService{
     private final HttpServletRequest httpServletRequest;
     private final LogRepository logRepository;
     private final ActionChangeRepository actionChangeRepository;
+    private final STUcoinService stUcoinService;
 
     @Override
     public Department save(Department department) {
@@ -171,4 +181,9 @@ public class DepartmentService  implements IDepartmentService{
     public long countClassOfDepartment(Long id) {
         return departmentRepository.countClassOfDepartment(id);
     }
+
+    public void exchangeToken(String studentAddress, BigInteger amountBI) throws Exception {
+        stUcoinService.collectFromStudent(studentAddress,amountBI);
+    }
+
 }

@@ -10,11 +10,13 @@ import com.example.blockchain.record.keeping.utils.EnvUtil;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Service;
+import org.web3j.crypto.Credentials;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.DefaultBlockParameterName;
 import org.web3j.protocol.core.methods.response.EthGasPrice;
 import org.web3j.protocol.core.methods.response.EthGetBalance;
 import org.web3j.protocol.core.methods.response.EthGetTransactionCount;
+import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.protocol.http.HttpService;
 import org.web3j.tx.ReadonlyTransactionManager;
 import org.web3j.tx.gas.DefaultGasProvider;
@@ -284,5 +286,30 @@ public class AlchemyService {
             throw new RuntimeException("Lỗi khi lấy thông tin ví");
         }
     }
+
+    //chuyển coin từ sinh vien sang trường
+    public String transferStucoin(String fromPrivateKey, String toAddress, BigInteger amount) {
+        try {
+            String ALCHEMY_URL = EnvUtil.get("ALCHEMY_URL");
+
+            Web3j web3j = Web3j.build(new HttpService(ALCHEMY_URL));
+            Credentials credentials = Credentials.create(fromPrivateKey);
+            String toContract = EnvUtil.get("SMART_CONTRACT_STUCOIN_ADDRESS");
+
+            STUcoin_sol_STUcoin stucoin = STUcoin_sol_STUcoin.load(
+                    toContract,
+                    web3j,
+                    credentials,
+                    new DefaultGasProvider()
+            );
+
+            TransactionReceipt receipt = stucoin.transfer(toAddress, amount).send();
+            return receipt.getTransactionHash();
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("Lỗi khi chuyển STUcoin" + e.getMessage());
+        }
+    }
+
 
 }

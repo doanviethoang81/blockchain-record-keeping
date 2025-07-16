@@ -475,7 +475,7 @@ public class CertificateController {
         }
     }
 
-    // xác nhận 1 chứng chỉ
+    // xác nhận chứng chỉ
     @PreAuthorize("hasAuthority('READ')")
     @PostMapping("/pdt/certificate-validation/{id}")
     public ResponseEntity<?> certificateValidation(@PathVariable("id") Long id){

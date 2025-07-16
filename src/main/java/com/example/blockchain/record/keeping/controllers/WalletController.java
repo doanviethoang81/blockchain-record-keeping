@@ -63,6 +63,7 @@ public class WalletController {
         }
     }
 
+    //soos STU coin
     @GetMapping("/pdt/wallet-info-stu")
     public ResponseEntity<?> getWalletSTUInfo() {
         String address = EnvUtil.get("METAMASK_ADDRESS");
@@ -73,23 +74,4 @@ public class WalletController {
             return ApiResponseBuilder.internalError("Không thể lấy thông tin ví!");
         }
     }
-
-    @GetMapping("/student/wallet-coin")
-    public ResponseEntity<?> getWalletSTUStudent() {
-        try {
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            String username = authentication.getName();
-
-            Student student = studentService.findByEmail(username);
-
-            Wallet wallet =walletService.findByStudent(student);
-
-            WalletSTUInfoDTO info = alchemyService.getWalletInfoSTU(wallet.getWalletAddress());
-            return ApiResponseBuilder.success("Lấy thông tin ví thành công", info);
-        } catch (Exception e) {
-            return ApiResponseBuilder.internalError("Không thể lấy thông tin ví!");
-        }
-    }
-
-
 }

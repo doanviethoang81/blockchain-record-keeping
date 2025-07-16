@@ -19,8 +19,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.web3j.protocol.core.methods.response.TransactionReceipt;
 
 import java.io.IOException;
+import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.Period;
 import java.util.ArrayList;
@@ -45,7 +47,7 @@ public class StudentController {
     private final LogRepository logRepository;
     private final WalletService walletService;
     private final AlchemyService alchemyService;
-
+    private final STUcoinService stUcoinService;
 
     //---------------------------- PDT -------------------------------------------------------
     //danh sách sinh viên của 1 trường
@@ -422,78 +424,56 @@ public class StudentController {
         }
     }
 
-    @PreAuthorize("hasAuthority('READ')")
-    @GetMapping("/khoa/list-students-coin")
-    public ResponseEntity<?> getStudentOfClassOfDepartmentCoin(
-            @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(required = false) String className,
-            @RequestParam(required = false) String studentCode,
-            @RequestParam(required = false) String studentName
-    ) {
+    //số coin của sinh viên
+    @GetMapping("/student/wallet-coin")
+    public ResponseEntity<?> getWalletSTUStudent() {
         try {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             String username = authentication.getName();
 
-            User user = userService.findByUser(username);
+            Student student = studentService.findByEmail(username);
 
-            long totalItems = studentService.countStudentOdDepartment(
-                    user.getDepartment().getId(),
-                    className == null ? null : className.trim(),
-                    studentCode == null ? null : studentCode.trim(),
-                    studentName == null ? null : studentName.trim()
-            );
+            Wallet wallet =walletService.findByStudent(student);
 
-            if (totalItems == 0) {
-                PaginationMeta meta = new PaginationMeta(0, 0, size, page, 0);
-                PaginatedData<CertificateResponse> data = new PaginatedData<>(Collections.emptyList(), meta);
-                return ApiResponseBuilder.success("Không có sinh viên nào!", data);
-            }
-
-            int offset = (page - 1) * size;
-
-            if (offset >= totalItems && totalItems > 0) {
-                page = 1;
-                offset = 0;
-            }
-
-            List<Student> studentList = studentService.searchStudents(
-                    user.getDepartment().getId(),
-                    className == null ? null : className.trim(),
-                    studentCode == null ? null : studentCode.trim(),
-                    studentName == null ? null : studentName.trim(),
-                    size,
-                    offset
-            );
-
-            List<StudentCoinResponse> studentResponseList = studentList.stream()
-                    .map(s -> {
-                        Wallet wallet = walletService.findByStudent(s);
-                        String address = wallet != null ? wallet.getWalletAddress() : null;
-
-                        WalletSTUInfoDTO walletInfo = alchemyService.getWalletInfoSTU(address);
-                        String stuCoin = walletInfo != null ? walletInfo.getStuCoin() : "0";
-
-                        return new StudentCoinResponse(
-                                s.getId(),
-                                s.getName(),
-                                s.getStudentCode(),
-                                s.getEmail(),
-                                s.getStudentClass().getName(),
-                                s.getBirthDate(),
-                                s.getCourse(),
-                                stuCoin
-                        );
-                    })
-                    .collect(Collectors.toList());
-
-            int totalPages = (int) Math.ceil((double) totalItems / size);
-            PaginationMeta meta = new PaginationMeta(totalItems, studentList.size(), size, page, totalPages);
-            PaginatedData<StudentCoinResponse> data = new PaginatedData<>(studentResponseList, meta);
-
-            return ApiResponseBuilder.success("Danh sách sinh viên của khoa", data);
+            WalletSTUInfoDTO info = alchemyService.getWalletInfoSTU(wallet.getWalletAddress());
+            return ApiResponseBuilder.success("Lấy thông tin ví thành công", info);
         } catch (Exception e) {
-            return ApiResponseBuilder.internalError("Lỗi: " + e.getMessage());
+            return ApiResponseBuilder.internalError("Không thể lấy thông tin ví!");
+        }
+    }
+
+    //sinh viên chuyển coin cho nhau
+    @PostMapping("/student/tokens/student-transfer")
+    public ResponseEntity<?> adminTransferTokenBetweenStudents(
+            @RequestParam String toAddress,
+            @RequestParam String amount
+    ) {
+        try {
+            Authentication authentication= SecurityContextHolder.getContext().getAuthentication();
+            String username= authentication.getName();
+            Student student = studentService.findByEmail(username);
+            Wallet wallet = walletService.findByStudent(student);
+            String fromAddress = wallet.getWalletAddress();
+
+            BigInteger amountBI;
+            try {
+                BigInteger raw = new BigInteger(amount);
+                if (raw.compareTo(BigInteger.ZERO) <= 0) {
+                    return ApiResponseBuilder.badRequest("Số lượng phải lớn hơn 0");
+                }
+                amountBI = raw.multiply(BigInteger.TEN.pow(18));
+            } catch (NumberFormatException e) {
+                return ApiResponseBuilder.badRequest("Số lượng không hợp lệ");
+            }
+
+            TransactionReceipt receipt = stUcoinService.transferFromStudentToAnother(
+                    fromAddress, toAddress, amountBI
+            );
+
+            return ApiResponseBuilder.success("Chuyển token thành công", null);
+
+        } catch (Exception e) {
+            return ApiResponseBuilder.internalError("Lỗi khi chuyển token: " + e.getMessage());
         }
     }
 }

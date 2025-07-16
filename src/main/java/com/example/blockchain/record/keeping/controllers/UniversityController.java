@@ -10,6 +10,7 @@ import com.example.blockchain.record.keeping.repositorys.ActionChangeRepository;
 import com.example.blockchain.record.keeping.repositorys.LogRepository;
 import com.example.blockchain.record.keeping.response.*;
 import com.example.blockchain.record.keeping.services.*;
+import com.example.blockchain.record.keeping.utils.EnvUtil;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -23,7 +24,9 @@ import org.springframework.util.StringUtils;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.web3j.protocol.core.methods.response.TransactionReceipt;
 
+import java.math.BigInteger;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.List;
@@ -42,6 +45,8 @@ public class UniversityController {
     private final LogRepository logRepository;
     private final AuditLogService auditLogService;
     private final HttpServletRequest httpServletRequest;
+    private final STUcoinService stUcoinService;
+
 
     //---------------------------- ADMIN -------------------------------------------------------
     //danh sách university
@@ -242,5 +247,34 @@ public class UniversityController {
         }
     }
 
+    //tạo thêm coin
+    @PostMapping("/pdt/tokens/mint")
+    public ResponseEntity<?> mintToken(
+            @RequestParam String amount
+    ) {
+        try {
+            String toAddress = EnvUtil.get("METAMASK_ADDRESS");
 
+            if (amount == null || amount.isBlank()) {
+                return ApiResponseBuilder.badRequest("Vui lòng nhập số lượng token");
+            }
+            BigInteger amountBI;
+            try {
+                BigInteger raw = new BigInteger(amount);
+                if (raw.compareTo(BigInteger.ZERO) <= 0) {
+                    return ApiResponseBuilder.badRequest("Số lượng phải lớn hơn 0");
+                }
+                amountBI = raw.multiply(BigInteger.TEN.pow(18));
+            } catch (NumberFormatException e) {
+                return ApiResponseBuilder.badRequest("Số lượng token không hợp lệ");
+            }
+
+            TransactionReceipt receipt = stUcoinService.mint(toAddress, amountBI);
+
+            return ApiResponseBuilder.success("Tạo token thành công", null);
+
+        } catch (Exception e) {
+            return ApiResponseBuilder.internalError("Lỗi khi mint token: " + e.getMessage());
+        }
+    }
 }
