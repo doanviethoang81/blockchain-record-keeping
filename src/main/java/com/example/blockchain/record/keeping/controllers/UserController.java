@@ -100,6 +100,7 @@ public class UserController {
             University university = universityService.getUniversityByEmail(username);
 
             UniversityDetaillResponse universityDetailReponse= new UniversityDetaillResponse(
+                    university.getId(),
                     university.getName(),
                     university.getEmail(),
                     university.getAddress(),

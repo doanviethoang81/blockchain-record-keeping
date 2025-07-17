@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class UniversityDetaillResponse {
+    private Long id;
     private String name;
     private String email;
     private String address;
