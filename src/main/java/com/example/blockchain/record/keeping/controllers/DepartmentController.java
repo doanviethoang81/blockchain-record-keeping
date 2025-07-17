@@ -1,6 +1,8 @@
 package com.example.blockchain.record.keeping.controllers;
 
 import com.STUcoin.contract.STUcoin_sol_STUcoin;
+import com.alibaba.excel.EasyExcel;
+import com.example.blockchain.record.keeping.dtos.CertificateExcelRowDTO;
 import com.example.blockchain.record.keeping.dtos.request.ChangePasswordDepartmentRequest;
 import com.example.blockchain.record.keeping.dtos.request.DepartmentRequest;
 import com.example.blockchain.record.keeping.dtos.request.UserDepartmentRequest;
@@ -23,6 +25,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.web3j.crypto.Credentials;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
@@ -30,6 +33,7 @@ import org.web3j.protocol.http.HttpService;
 import org.web3j.tx.RawTransactionManager;
 import org.web3j.tx.gas.DefaultGasProvider;
 
+import java.io.IOException;
 import java.math.BigInteger;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -443,4 +447,41 @@ public class DepartmentController {
             return ApiResponseBuilder.internalError("Lỗi: " + e.getMessage());
         }
     }
+
+    //excel
+//    @PreAuthorize("hasAuthority('WRITE')")
+//    @PostMapping("/pdt/department/create-excel")
+//    public ResponseEntity<?> uploadExcel(
+//            @RequestParam("file") MultipartFile file) throws IOException
+//    {
+//        if(file.isEmpty()){
+//            return ApiResponseBuilder.badRequest("Vui lòng chọn file excel để thêm chứng chỉ!");
+//        }
+//        String contentType = file.getContentType();
+//        String fileName = file.getOriginalFilename();
+//
+//        if (!("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet".equals(contentType)
+//                || "application/vnd.ms-excel".equals(contentType))
+//                || fileName == null
+//                || (!fileName.endsWith(".xlsx") && !fileName.endsWith(".xls"))) {
+//            return ApiResponseBuilder.badRequest("File không đúng định dạng Excel (.xlsx hoặc .xls)");
+//        }
+//        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+//        String username= authentication.getName();
+//        University university = universityService.getUniversityByEmail(username);
+//
+//        EasyExcel.read(
+//                file.getInputStream(),
+//                DepartmentExcelListener.class,
+//                new DepartmentExcelListener(
+//                    departmentService,
+//                    auditLogService,
+//                    logRepository,
+//                    httpServletRequest,
+//                    university
+//                )
+//        ).sheet().doRead();
+//
+//        return ApiResponseBuilder.success("Tạo chứng chỉ thành công" , null);
+//    }
 }

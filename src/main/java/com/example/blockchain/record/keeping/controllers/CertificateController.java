@@ -63,7 +63,7 @@ public class CertificateController {
     private final HttpServletRequest httpServletRequest;
     private final NotificateService notificateService;
     private final NotificationReceiverService notificationReceiverService;
-//    private final NotificationWebSocketSender notificationWebSocketSender;
+    private final NotificationWebSocketSender notificationWebSocketSender;
 
     //---------------------------- ADMIN -------------------------------------------------------
     // xem all chứng chỉ
@@ -1039,7 +1039,8 @@ public class CertificateController {
                         notificateService,
                         notificationReceiverService,
                         user,
-                        userService
+                        userService,
+                        notificationWebSocketSender
                 )
         ).sheet().doRead();
 
@@ -1187,6 +1188,7 @@ public class CertificateController {
         }
     }
 
+    //xuất excel
     @GetMapping("/pdt/export-certificates")
     public void exportCertificates(
             @RequestParam(name = "type", required = false) String type,
@@ -1216,13 +1218,13 @@ public class CertificateController {
             status = "Danh sách tất cả chứng chỉ";
         } else {
             switch (type) {
-                case "APPROVED":
+                case "approved":
                     status = "Danh sách chứng chỉ đã xác nhận";
                     break;
-                case "REJECTED":
+                case "rejected":
                     status = "Danh sách chứng chỉ đã từ chối";
                     break;
-                case "PENDING":
+                case "pending":
                     status = "Danh sách chứng chỉ chờ duyệt";
                     break;
                 default:
@@ -1248,13 +1250,13 @@ public class CertificateController {
                 .doWrite(data);
     }
 
-//    @GetMapping("/pdt/test/send")
-//    public ResponseEntity<?> testSocket() {
-//        NotificationResponse response = new NotificationResponse(
-//                1L, "Thông báo test", "Nội dung test", NotificationType.DEGREE_APPROVED, false, LocalDateTime.now()
-//        );
-//        notificationWebSocketSender.sendNotification(7L, response);
-//        return ResponseEntity.ok("Đã gửi WebSocket!");
-//    }
+    @GetMapping("/pdt/test/send")
+    public ResponseEntity<?> testSocket() {
+        NotificationResponse response = new NotificationResponse(
+                1L, "Thông báo test", "Nội dung test", NotificationType.DEGREE_APPROVED, false,"degree",1L, LocalDateTime.now()
+        );
+        notificationWebSocketSender.sendNotification(7L, response);
+        return ResponseEntity.ok("Đã gửi WebSocket!");
+    }
 
 }

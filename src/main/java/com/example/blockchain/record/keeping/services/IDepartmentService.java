@@ -8,9 +8,11 @@ import com.example.blockchain.record.keeping.models.University;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 public interface IDepartmentService {
     Department save(Department department);
+    List<Department> saveAll(List<Department> department);
 
     boolean existsByNameAndUniversity(String name, Long universityId);
     boolean existsByNameIgnoreCaseAndUniversityIdAndStatusAndIdNot( String name, Long universityId, Long departmentId);
@@ -28,4 +30,7 @@ public interface IDepartmentService {
     Department create(UserDepartmentRequest request, University university);
 
     long countClassOfDepartment(Long id);
+
+    List<Department> findByUniversityIdAndNames(Long universityId, Set<String> names);
+
 }

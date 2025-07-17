@@ -51,7 +51,7 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter {
                     || path.startsWith("/api/v1/verify/")
                     || path.startsWith("/v3/api-docs")
                     || path.startsWith("/swagger-ui")
-//                    || path.startsWith("/ws")
+                    || path.startsWith("/ws")
                     || path.equals("/swagger-ui.html")) {
                 filterChain.doFilter(request, response);
                 return;

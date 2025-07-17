@@ -9,8 +9,10 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 public interface DepartmentRepository extends JpaRepository<Department,Long> {
     Optional<Department> findByName(String name);
@@ -43,4 +45,9 @@ public interface DepartmentRepository extends JpaRepository<Department,Long> {
         and sc.status = 'ACTIVE'
         """,nativeQuery = true)
     long countClassOfDepartment(@Param("id") Long id);
+
+
+    @Query("SELECT d FROM Department d WHERE d.university.id = :universityId AND d.name IN :names AND d.status = 'ACTIVE'")
+    List<Department> findByUniversityIdAndNames(@Param("universityId") Long universityId, @Param("names") Set<String> names);
+
 }

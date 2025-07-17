@@ -60,6 +60,7 @@ public class CertificateService implements ICertificateService{
     private final NotificationReceiverService notificationReceiverService;
     private final WalletService walletService;
     private final STUcoinService stUcoinService;
+    private final NotificationWebSocketSender notificationWebSocketSender;
 
     @Autowired
     private Web3j web3j;
@@ -418,6 +419,19 @@ public class CertificateService implements ICertificateService{
         notificationReceivers.setReceiverId(userUniversity.getId());
         notificationReceivers.setCreatedAt(vietnamTime.toLocalDateTime());
         notificationReceiverService.save(notificationReceivers);
+
+        //gửi WebSocket
+        NotificationResponse response = new NotificationResponse(
+                notificationReceivers.getId(),
+                notifications.getTitle(),
+                notifications.getContent(),
+                notifications.getType(),
+                false,
+                notifications.getDocumentType(),
+                notifications.getDocumentId(),
+                notificationReceivers.getCreatedAt()
+        );
+        notificationWebSocketSender.sendNotification(userUniversity.getId(), response);
     }
 
     // them dau moc 1 ch ch
@@ -497,6 +511,19 @@ public class CertificateService implements ICertificateService{
             //gửi token
             stUcoinService.transferToStudent(wallet.getWalletAddress(), new BigInteger("5").multiply(BigInteger.TEN.pow(18))); // 5 STUcoin (18 decimals)
 
+            //gửi WebSocket
+            NotificationResponse response = new NotificationResponse(
+                    notificationReceivers.getId(),
+                    notifications.getTitle(),
+                    notifications.getContent(),
+                    notifications.getType(),
+                    false,
+                    notifications.getDocumentType(),
+                    notifications.getDocumentId(),
+                    notificationReceivers.getCreatedAt()
+            );
+            notificationWebSocketSender.sendNotification(userDepartment.getId(), response);
+
             return certificate;
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -572,6 +599,20 @@ public class CertificateService implements ICertificateService{
             }
             //gửi token
             stUcoinService.transferToStudent(wallet.getWalletAddress(), new BigInteger("5").multiply(BigInteger.TEN.pow(18))); // 5 STUcoin (18 decimals)
+
+            //gửi WebSocket
+            NotificationResponse response = new NotificationResponse(
+                    notificationReceivers.getId(),
+                    notifications.getTitle(),
+                    notifications.getContent(),
+                    notifications.getType(),
+                    false,
+                    notifications.getDocumentType(),
+                    notifications.getDocumentId(),
+                    notificationReceivers.getCreatedAt()
+            );
+            notificationWebSocketSender.sendNotification(userDepartment.getId(), response);
+
         }
 
         List<Certificate> certificates = certificateRepository.findAllById(ids);
@@ -622,16 +663,18 @@ public class CertificateService implements ICertificateService{
             notificationReceiverService.save(notificationReceivers);
 
             //gửi WebSocket thông báo realtime
-//            NotificationResponse response = new NotificationResponse(
-//                    notificationReceivers.getId(),
-//                    notifications.getTitle(),
-//                    notifications.getContent(),
-//                    notifications.getType(),
-//                    false,
-//                    notificationReceivers.getCreatedAt()
-//            );
-//            notificationWebSocketSender.sendNotification(userDepartment.getId(), response);
-//
+            NotificationResponse response = new NotificationResponse(
+                    notificationReceivers.getId(),
+                    notifications.getTitle(),
+                    notifications.getContent(),
+                    notifications.getType(),
+                    false,
+                    notifications.getDocumentType(),
+                    notifications.getDocumentId(),
+                    notificationReceivers.getCreatedAt()
+            );
+            notificationWebSocketSender.sendNotification(userDepartment.getId(), response);
+
 
             return certificate;
         } catch (Exception e) {
@@ -665,6 +708,20 @@ public class CertificateService implements ICertificateService{
             notificationReceivers.setReceiverId(userDepartment.getId());
             notificationReceivers.setCreatedAt(vietnamTime.toLocalDateTime());
             notificationReceiverService.save(notificationReceivers);
+
+            //gửi WebSocket
+            NotificationResponse response = new NotificationResponse(
+                    notificationReceivers.getId(),
+                    notifications.getTitle(),
+                    notifications.getContent(),
+                    notifications.getType(),
+                    false,
+                    notifications.getDocumentType(),
+                    notifications.getDocumentId(),
+                    notificationReceivers.getCreatedAt()
+            );
+            notificationWebSocketSender.sendNotification(userDepartment.getId(), response);
+
         }
 
         certificateRepository.saveAll(certificates);

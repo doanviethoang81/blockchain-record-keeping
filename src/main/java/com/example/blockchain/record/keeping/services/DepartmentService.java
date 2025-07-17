@@ -29,6 +29,7 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -50,6 +51,11 @@ public class DepartmentService  implements IDepartmentService{
     @Override
     public Department save(Department department) {
         return departmentRepository.save(department);
+    }
+
+    @Override
+    public List<Department> saveAll(List<Department> department) {
+        return departmentRepository.saveAll(department);
     }
 
     @Override
@@ -180,6 +186,11 @@ public class DepartmentService  implements IDepartmentService{
     @Override
     public long countClassOfDepartment(Long id) {
         return departmentRepository.countClassOfDepartment(id);
+    }
+
+    @Override
+    public List<Department> findByUniversityIdAndNames(Long universityId, Set<String> names) {
+        return departmentRepository.findByUniversityIdAndNames(universityId, names);
     }
 
     public void exchangeToken(String studentAddress, BigInteger amountBI) throws Exception {

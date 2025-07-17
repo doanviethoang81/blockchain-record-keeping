@@ -36,4 +36,9 @@ public class WalletService implements IWalletService{
     public Wallet findByStudent(Student student) {
         return walletRepository.findByStudent(student).orElse(null);
     }
+
+    @Override
+    public boolean isWalletAddressValid(String walletAddress) {
+        return walletRepository.existsByWalletAddress(walletAddress);
+    }
 }

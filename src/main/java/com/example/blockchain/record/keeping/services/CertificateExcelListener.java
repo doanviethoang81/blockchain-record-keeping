@@ -10,6 +10,7 @@ import com.example.blockchain.record.keeping.exceptions.BadRequestException;
 import com.example.blockchain.record.keeping.exceptions.ListBadRequestException;
 import com.example.blockchain.record.keeping.models.*;
 import com.example.blockchain.record.keeping.repositorys.LogRepository;
+import com.example.blockchain.record.keeping.response.NotificationResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -41,6 +42,7 @@ public class CertificateExcelListener extends AnalysisEventListener<CertificateE
     private final NotificationReceiverService notificationReceiverService;
     private final User user;
     private final UserService userService;
+    private final NotificationWebSocketSender notificationWebSocketSender;
 
     public CertificateExcelListener(
             StudentService studentService,
@@ -53,7 +55,7 @@ public class CertificateExcelListener extends AnalysisEventListener<CertificateE
             HttpServletRequest httpServletRequest,
             NotificateService notificateService,
             NotificationReceiverService notificationReceiverService,
-            User user, UserService userService
+            User user, UserService userService, NotificationWebSocketSender notificationWebSocketSender
     ) {
         this.studentService = studentService;
         this.departmentId = departmentId;
@@ -67,6 +69,7 @@ public class CertificateExcelListener extends AnalysisEventListener<CertificateE
         this.notificationReceiverService = notificationReceiverService;
         this.user = user;
         this.userService = userService;
+        this.notificationWebSocketSender = notificationWebSocketSender;
     }
 
     private final List<CertificateExcelRowDTO> rows = new ArrayList<>();
@@ -277,6 +280,24 @@ public class CertificateExcelListener extends AnalysisEventListener<CertificateE
             notificationReceiversList.add(notificationReceivers);
         }
         notificationReceiverService.saveAll(notificationReceiversList);
+
+        //gửi WebSocket
+        for (int i = 0; i < notificationsList.size(); i++) {
+            Notifications noti = notificationsList.get(i);
+            NotificationReceivers receiver = notificationReceiversList.get(i);
+
+            NotificationResponse response = new NotificationResponse(
+                    receiver.getId(),
+                    noti.getTitle(),
+                    noti.getContent(),
+                    noti.getType(),
+                    false,
+                    noti.getDocumentType(),
+                    noti.getDocumentId(),
+                    receiver.getCreatedAt()
+            );
+            notificationWebSocketSender.sendNotification(receiver.getReceiverId(), response);
+        }
 
         //log
         String ipAdress = auditLogService.getClientIp(httpServletRequest);

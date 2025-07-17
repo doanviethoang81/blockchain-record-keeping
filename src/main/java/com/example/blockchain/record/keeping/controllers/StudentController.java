@@ -456,6 +456,9 @@ public class StudentController {
             String fromAddress = wallet.getWalletAddress();
 
             BigInteger amountBI;
+            if(!walletService.isWalletAddressValid(toAddress)){
+                return ApiResponseBuilder.badRequest("Địa chỉ ví không hợp lệ!");
+            }
             try {
                 BigInteger raw = new BigInteger(amount);
                 if (raw.compareTo(BigInteger.ZERO) <= 0) {

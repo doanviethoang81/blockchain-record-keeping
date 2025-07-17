@@ -9,8 +9,8 @@ import com.example.blockchain.record.keeping.enums.*;
 import com.example.blockchain.record.keeping.exceptions.BadRequestException;
 import com.example.blockchain.record.keeping.exceptions.ListBadRequestException;
 import com.example.blockchain.record.keeping.models.*;
-import com.example.blockchain.record.keeping.repositorys.ActionChangeRepository;
 import com.example.blockchain.record.keeping.repositorys.LogRepository;
+import com.example.blockchain.record.keeping.response.NotificationResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -41,6 +41,7 @@ public class DegreeExcelListener extends AnalysisEventListener<DegreeExcelRowReq
     private final UserService userService;
     private final NotificateService notificateService;
     private final NotificationReceiverService notificationReceiverService;
+    private final NotificationWebSocketSender notificationWebSocketSender;
 
     public DegreeExcelListener(RatingService ratingService,
                                EducationModelSevice educationModelSevice,
@@ -54,7 +55,7 @@ public class DegreeExcelListener extends AnalysisEventListener<DegreeExcelRowReq
                                LogRepository logRepository,
                                UserService userService,
                                NotificateService notificateService,
-                               NotificationReceiverService notificationReceiverService
+                               NotificationReceiverService notificationReceiverService, NotificationWebSocketSender notificationWebSocketSender
     ) {
         this.ratingService = ratingService;
         this.educationModelSevice = educationModelSevice;
@@ -69,6 +70,7 @@ public class DegreeExcelListener extends AnalysisEventListener<DegreeExcelRowReq
         this.userService = userService;
         this.notificateService = notificateService;
         this.notificationReceiverService = notificationReceiverService;
+        this.notificationWebSocketSender = notificationWebSocketSender;
     }
 
     @Override
@@ -330,6 +332,24 @@ public class DegreeExcelListener extends AnalysisEventListener<DegreeExcelRowReq
             notificationReceiversList.add(notificationReceivers);
         }
         notificationReceiverService.saveAll(notificationReceiversList);
+
+        //gửi WebSocket
+        for (int i = 0; i < notificationsList.size(); i++) {
+            Notifications noti = notificationsList.get(i);
+            NotificationReceivers receiver = notificationReceiversList.get(i);
+
+            NotificationResponse response = new NotificationResponse(
+                    receiver.getId(),
+                    noti.getTitle(),
+                    noti.getContent(),
+                    noti.getType(),
+                    false,
+                    noti.getDocumentType(),
+                    noti.getDocumentId(),
+                    receiver.getCreatedAt()
+            );
+            notificationWebSocketSender.sendNotification(receiver.getReceiverId(), response);
+        }
 
         //log
         String ipAdress = auditLogService.getClientIp(httpServletRequest);

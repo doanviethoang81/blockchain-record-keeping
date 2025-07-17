@@ -14,4 +14,6 @@ public interface IWalletService {
     Wallet findById(Long id);
 
     Wallet findByStudent(Student student);
+
+    boolean isWalletAddressValid(String walletAddress);
 }

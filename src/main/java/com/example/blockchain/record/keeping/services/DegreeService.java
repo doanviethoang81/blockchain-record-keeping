@@ -57,6 +57,7 @@ public class DegreeService implements IDegreeService{
     private final NotificationReceiverService notificationReceiverService;
     private final WalletService walletService;
     private final STUcoinService stUcoinService;
+    private final NotificationWebSocketSender notificationWebSocketSender;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -137,6 +138,20 @@ public class DegreeService implements IDegreeService{
         notificationReceivers.setReceiverId(userUniversity.getId());
         notificationReceivers.setCreatedAt(vietnamTime.toLocalDateTime());
         notificationReceiverService.save(notificationReceivers);
+
+        //gửi WebSocket
+        NotificationResponse response = new NotificationResponse(
+                notificationReceivers.getId(),
+                notifications.getTitle(),
+                notifications.getContent(),
+                notifications.getType(),
+                false,
+                notifications.getDocumentType(),
+                notifications.getDocumentId(),
+                notificationReceivers.getCreatedAt()
+        );
+        notificationWebSocketSender.sendNotification(userUniversity.getId(), response);
+
         return degree;
     }
 
@@ -511,6 +526,19 @@ public class DegreeService implements IDegreeService{
             //gửi token
             stUcoinService.transferToStudent(wallet.getWalletAddress(), new BigInteger("5").multiply(BigInteger.TEN.pow(18))); // 5 STUcoin (18 decimals)
 
+            //gửi WebSocket
+            NotificationResponse response = new NotificationResponse(
+                    notificationReceivers.getId(),
+                    notifications.getTitle(),
+                    notifications.getContent(),
+                    notifications.getType(),
+                    false,
+                    notifications.getDocumentType(),
+                    notifications.getDocumentId(),
+                    notificationReceivers.getCreatedAt()
+            );
+            notificationWebSocketSender.sendNotification(userDepartment.getId(), response);
+
             return degree;
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -586,6 +614,19 @@ public class DegreeService implements IDegreeService{
             }
             //gửi token
             stUcoinService.transferToStudent(wallet.getWalletAddress(), new BigInteger("5").multiply(BigInteger.TEN.pow(18))); // 5 STUcoin (18 decimals)
+
+            //gửi WebSocket
+            NotificationResponse response = new NotificationResponse(
+                    notificationReceivers.getId(),
+                    notifications.getTitle(),
+                    notifications.getContent(),
+                    notifications.getType(),
+                    false,
+                    notifications.getDocumentType(),
+                    notifications.getDocumentId(),
+                    notificationReceivers.getCreatedAt()
+            );
+            notificationWebSocketSender.sendNotification(userDepartment.getId(), response);
         }
         List<Degree> degrees = degreeRepository.findAllById(ids);
         degreeRepository.saveAll(degrees);
@@ -633,6 +674,20 @@ public class DegreeService implements IDegreeService{
             notificationReceivers.setReceiverId(userDepartment.getId());
             notificationReceivers.setCreatedAt(vietnamTime.toLocalDateTime());
             notificationReceiverService.save(notificationReceivers);
+
+            //gửi WebSocket
+            NotificationResponse response = new NotificationResponse(
+                    notificationReceivers.getId(),
+                    notifications.getTitle(),
+                    notifications.getContent(),
+                    notifications.getType(),
+                    false,
+                    notifications.getDocumentType(),
+                    notifications.getDocumentId(),
+                    notificationReceivers.getCreatedAt()
+            );
+            notificationWebSocketSender.sendNotification(userDepartment.getId(), response);
+
             return degree;
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -667,6 +722,18 @@ public class DegreeService implements IDegreeService{
             notificationReceivers.setCreatedAt(vietnamTime.toLocalDateTime());
             notificationReceiverService.save(notificationReceivers);
 
+            //gửi WebSocket
+            NotificationResponse response = new NotificationResponse(
+                    notificationReceivers.getId(),
+                    notifications.getTitle(),
+                    notifications.getContent(),
+                    notifications.getType(),
+                    false,
+                    notifications.getDocumentType(),
+                    notifications.getDocumentId(),
+                    notificationReceivers.getCreatedAt()
+            );
+            notificationWebSocketSender.sendNotification(userDepartment.getId(), response);
         }
 
         degreeRepository.saveAll(degrees);

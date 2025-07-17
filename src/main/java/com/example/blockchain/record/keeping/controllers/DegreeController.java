@@ -59,6 +59,7 @@ public class DegreeController {
     private final LogRepository logRepository;
     private final NotificateService notificateService;
     private final NotificationReceiverService notificationReceiverService;
+    private final NotificationWebSocketSender notificationWebSocketSender;
 
     //---------------------------- KHOA -------------------------------------------------------
     // tạo văn bằng
@@ -158,7 +159,8 @@ public class DegreeController {
                         logRepository,
                         userService,
                         notificateService,
-                        notificationReceiverService
+                        notificationReceiverService,
+                        notificationWebSocketSender
                 )
         ).sheet().doRead();
 
@@ -1135,13 +1137,13 @@ public class DegreeController {
             status = "Danh sách tất cả văn bằng";
         } else {
             switch (type) {
-                case "APPROVED":
+                case "approved":
                     status = "Danh sách văn bằng đã xác nhận";
                     break;
-                case "REJECTED":
+                case "rejected":
                     status = "Danh sách văn bằng đã từ chối";
                     break;
-                case "PENDING":
+                case "pending":
                     status = "Danh sách văn bằng chờ duyệt";
                     break;
                 default:
