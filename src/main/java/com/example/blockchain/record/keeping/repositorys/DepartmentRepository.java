@@ -46,7 +46,7 @@ public interface DepartmentRepository extends JpaRepository<Department,Long> {
         """,nativeQuery = true)
     long countClassOfDepartment(@Param("id") Long id);
 
-
+    //JPQL kiểm tra xem tên khoa đã tồn tại chưa
     @Query("SELECT d FROM Department d WHERE d.university.id = :universityId AND d.name IN :names AND d.status = 'ACTIVE'")
     List<Department> findByUniversityIdAndNames(@Param("universityId") Long universityId, @Param("names") Set<String> names);
 

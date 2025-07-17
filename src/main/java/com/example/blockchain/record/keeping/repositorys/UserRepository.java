@@ -14,6 +14,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Repository
 public interface UserRepository extends JpaRepository<User,Long> {
@@ -205,5 +206,9 @@ public interface UserRepository extends JpaRepository<User,Long> {
                    AND d.status = 'REJECTED') AS degree_rejected
             """, nativeQuery = true)
     StatisticsDepartmentDTO getStatisticsDepartment(@Param("departmentId") Long departmentId);
+
+    //kt email đã tồn tại chưa
+    @Query("SELECT u.email FROM User u WHERE u.university.id = :universityId AND u.email IN :emails")
+    Set<String> findEmailsByUniversityIdAndEmails(@Param("universityId") Long universityId, @Param("emails") Set<String> emails);
 
 }

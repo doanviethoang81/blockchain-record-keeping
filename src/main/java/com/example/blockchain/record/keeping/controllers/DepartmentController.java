@@ -3,6 +3,7 @@ package com.example.blockchain.record.keeping.controllers;
 import com.STUcoin.contract.STUcoin_sol_STUcoin;
 import com.alibaba.excel.EasyExcel;
 import com.example.blockchain.record.keeping.dtos.CertificateExcelRowDTO;
+import com.example.blockchain.record.keeping.dtos.DepartmentExcelRowDTO;
 import com.example.blockchain.record.keeping.dtos.request.ChangePasswordDepartmentRequest;
 import com.example.blockchain.record.keeping.dtos.request.DepartmentRequest;
 import com.example.blockchain.record.keeping.dtos.request.UserDepartmentRequest;
@@ -58,6 +59,9 @@ public class DepartmentController {
     private final AlchemyService alchemyService;
     private final WalletService walletService;
     private final StudentService studentService;
+    private final UserPermissionService userPermissionService;
+    private final PermissionService permissionService;
+    private final RoleService roleService;
 
     //---------------------------- PDT -------------------------------------------------------
     //các khoa của trường đại học
@@ -449,39 +453,44 @@ public class DepartmentController {
     }
 
     //excel
-//    @PreAuthorize("hasAuthority('WRITE')")
-//    @PostMapping("/pdt/department/create-excel")
-//    public ResponseEntity<?> uploadExcel(
-//            @RequestParam("file") MultipartFile file) throws IOException
-//    {
-//        if(file.isEmpty()){
-//            return ApiResponseBuilder.badRequest("Vui lòng chọn file excel để thêm chứng chỉ!");
-//        }
-//        String contentType = file.getContentType();
-//        String fileName = file.getOriginalFilename();
-//
-//        if (!("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet".equals(contentType)
-//                || "application/vnd.ms-excel".equals(contentType))
-//                || fileName == null
-//                || (!fileName.endsWith(".xlsx") && !fileName.endsWith(".xls"))) {
-//            return ApiResponseBuilder.badRequest("File không đúng định dạng Excel (.xlsx hoặc .xls)");
-//        }
-//        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-//        String username= authentication.getName();
-//        University university = universityService.getUniversityByEmail(username);
-//
-//        EasyExcel.read(
-//                file.getInputStream(),
-//                DepartmentExcelListener.class,
-//                new DepartmentExcelListener(
-//                    departmentService,
-//                    auditLogService,
-//                    logRepository,
-//                    httpServletRequest,
-//                    university
-//                )
-//        ).sheet().doRead();
-//
-//        return ApiResponseBuilder.success("Tạo chứng chỉ thành công" , null);
-//    }
+    @PreAuthorize("hasAuthority('WRITE')")
+    @PostMapping("/pdt/department/create-excel")
+    public ResponseEntity<?> uploadExcel(
+            @RequestParam("file") MultipartFile file) throws IOException
+    {
+        if(file.isEmpty()){
+            return ApiResponseBuilder.badRequest("Vui lòng chọn file excel để thêm chứng chỉ!");
+        }
+        String contentType = file.getContentType();
+        String fileName = file.getOriginalFilename();
+
+        if (!("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet".equals(contentType)
+                || "application/vnd.ms-excel".equals(contentType))
+                || fileName == null
+                || (!fileName.endsWith(".xlsx") && !fileName.endsWith(".xls"))) {
+            return ApiResponseBuilder.badRequest("File không đúng định dạng Excel (.xlsx hoặc .xls)");
+        }
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username= authentication.getName();
+        University university = universityService.getUniversityByEmail(username);
+
+        EasyExcel.read(
+                file.getInputStream(),
+                DepartmentExcelRowDTO.class,
+                new DepartmentExcelListener(
+                        departmentService,
+                        auditLogService,
+                        logRepository,
+                        httpServletRequest,
+                        university,
+                        userService,
+                        userPermissionService,
+                        passwordEncoder,
+                        permissionService,
+                        roleService
+                )
+        ).sheet().doRead();
+
+        return ApiResponseBuilder.success("Tạo khoa thành công" , null);
+    }
 }

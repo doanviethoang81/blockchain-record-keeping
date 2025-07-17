@@ -8,4 +8,10 @@ public class DepartmentExcelRowDTO {
 
     @ExcelProperty("Tên khoa")
     private String name;
+
+    @ExcelProperty("Email")
+    private String email;
+
+    @ExcelProperty("Mật khẩu")
+    private String password;
 }

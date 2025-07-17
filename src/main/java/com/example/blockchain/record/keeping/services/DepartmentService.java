@@ -167,6 +167,7 @@ public class DepartmentService  implements IDepartmentService{
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setRole(role);
         user.setDepartment(department);
+        user.setVerified(true);
         user.setCreatedAt(vietnamTime.toLocalDateTime());
         user.setUpdatedAt(vietnamTime.toLocalDateTime());
 

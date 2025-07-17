@@ -162,7 +162,7 @@ public class AuthenticationController {
                 String otp = String.format("%06d", new Random().nextInt(999999));
                 otpService.saveOtp(request.getEmail(), otp);
                 brevoApiEmailService.sendActivationEmail(request.getEmail(), otp);
-                return ApiResponseBuilder.forbidden("Tài khoản của bạn chưa được xác minh. Vui lòng xác minh! Mã OTP: " + otp);
+                return ApiResponseBuilder.forbidden("Tài khoản của bạn chưa được xác minh. Vui lòng xác minh!");
             }
 
             if (user.isLocked()) {

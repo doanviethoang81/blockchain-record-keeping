@@ -10,6 +10,7 @@ import com.example.blockchain.record.keeping.models.User;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 public interface IUserService {
     User findByUser(String email);
@@ -36,4 +37,5 @@ public interface IUserService {
 
     boolean resetPassword(String email, String newPassword);
 
+    public Set<String> findEmailsByUniversityIdAndEmails(Long universityId, Set<String> emails);
 }

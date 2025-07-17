@@ -22,10 +22,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -225,6 +222,11 @@ public class UserService implements IUserService{
         user.setUpdatedAt(vietnamTime.toLocalDateTime());
         userRepository.save(user);
         return true;
+    }
+
+    @Override
+    public Set<String> findEmailsByUniversityIdAndEmails(Long universityId, Set<String> emails) {
+            return userRepository.findEmailsByUniversityIdAndEmails(universityId, emails);
     }
 
     // danh sách user khoa thuộc 1 tr
