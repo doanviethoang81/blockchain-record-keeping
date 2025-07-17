@@ -97,10 +97,11 @@ public class UserController {
         try {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             String username = authentication.getName();
+            User user = userService.findByUser(username);
             University university = universityService.getUniversityByEmail(username);
 
             UniversityDetaillResponse universityDetailReponse= new UniversityDetaillResponse(
-                    university.getId(),
+                    user.getId(),
                     university.getName(),
                     university.getEmail(),
                     university.getAddress(),
@@ -185,6 +186,7 @@ public class UserController {
             universityDetailReponse.setLogo(user.getUniversity().getLogo());
 
             DepartmentDetailResponse departmentDetailResponse= new DepartmentDetailResponse();
+            departmentDetailResponse.setDepartmentId(user.getId());
             departmentDetailResponse.setNameDepartment(user.getDepartment().getName());
             departmentDetailResponse.setEmail(user.getEmail());
             departmentDetailResponse.setUniversityResponse(universityDetailReponse);

@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class DepartmentDetailResponse {
+    private Long departmentId;
     private String nameDepartment;
     private String email;
     private UniversityResponse universityResponse;
