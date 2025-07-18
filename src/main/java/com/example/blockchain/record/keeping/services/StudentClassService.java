@@ -23,6 +23,7 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -57,8 +58,8 @@ public class StudentClassService implements IStudentClassService{
     }
 
     @Override
-    public boolean existsByNameAndDepartmentIdAndStatus(String name, Department department) {
-        return studentClassRepository.existsByNameAndDepartmentAndStatus(name,department,Status.ACTIVE);
+    public boolean existsByNameAndDepartmentIdAndStatus(String name, Long  universityId) {
+        return studentClassRepository.existsByNameAndDepartment_University_IdAndStatus(name,universityId,Status.ACTIVE);
     }
 
     @Override
@@ -172,5 +173,10 @@ public class StudentClassService implements IStudentClassService{
             studentClassResponseList.add(studentClassResponse);
         }
         return studentClassResponseList;
+    }
+
+    @Override
+    public List<StudentClass> findByUniversityIdAndNames(Long universityId, Set<String> names) {
+        return studentClassRepository.findByUniversityIdAndNames(universityId, names);
     }
 }

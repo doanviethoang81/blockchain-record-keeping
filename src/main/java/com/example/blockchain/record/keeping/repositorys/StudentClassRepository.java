@@ -10,6 +10,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Repository
 public interface StudentClassRepository extends JpaRepository<StudentClass,Long> {
@@ -59,8 +60,9 @@ public interface StudentClassRepository extends JpaRepository<StudentClass,Long>
             """, nativeQuery = true)
     List<Department> findAllDeparmentOfUniversity(@Param("universityId") Long universityId);
 
-    //kiểm tra tên lớp tồn tại k
-    boolean existsByNameAndDepartmentAndStatus(String name, Department department, Status status);
+    //kiểm tra tên lớp tồn tại trong tr chưa
+    boolean existsByNameAndDepartment_University_IdAndStatus(String name, Long universityId, Status status);
+//    boolean existsByNameAndDepartmentAndStatus(String name, Department department, Status status);
 
     // ds lớp và tìm lop theo ten
     List<StudentClass> findByNameContainingAndStatus(String keyword, Status status);
@@ -86,5 +88,18 @@ public interface StudentClassRepository extends JpaRepository<StudentClass,Long>
             and s.status = 'ACTIVE'
             """,nativeQuery = true)
     long countStudentOfClass(@Param("id") Long id);
+
+    //kiểm tra xem tên lớp đã tồn tại chưa
+    @Query("""
+    SELECT c
+    FROM StudentClass c 
+    WHERE c.department.university.id = :universityId 
+      AND c.name IN :names 
+      AND c.status = 'ACTIVE'
+""")
+    List<StudentClass> findByUniversityIdAndNames(
+            @Param("universityId") Long universityId,
+            @Param("names") Set<String> names);
+
 
 }

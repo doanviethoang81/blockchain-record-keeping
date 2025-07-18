@@ -1,12 +1,13 @@
 package com.example.blockchain.record.keeping.controllers;
 
+import com.alibaba.excel.EasyExcel;
+import com.example.blockchain.record.keeping.dtos.DepartmentExcelRowDTO;
+import com.example.blockchain.record.keeping.dtos.StudentClassExcelRowDTO;
 import com.example.blockchain.record.keeping.enums.Status;
 import com.example.blockchain.record.keeping.models.*;
+import com.example.blockchain.record.keeping.repositorys.LogRepository;
 import com.example.blockchain.record.keeping.response.*;
-import com.example.blockchain.record.keeping.services.DepartmentService;
-import com.example.blockchain.record.keeping.services.StudentClassService;
-import com.example.blockchain.record.keeping.services.UniversityService;
-import com.example.blockchain.record.keeping.services.UserService;
+import com.example.blockchain.record.keeping.services.*;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -16,7 +17,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.List;
@@ -31,7 +34,9 @@ public class StudentClassController {
     private final UniversityService universityService;
     private final DepartmentService departmentService;
     private final UserService userService;
-
+    private final HttpServletRequest httpServletRequest;
+    private final AuditLogService auditLogService;
+    private final LogRepository logRepository;
 
     //---------------------------- PDT -------------------------------------------------------
     //list lớp của 1 trường vs tìm theo tên lớp
@@ -78,6 +83,10 @@ public class StudentClassController {
     public ResponseEntity<?> createClassOfDepartment(
             HttpServletRequest request) {
         try{
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String username = authentication.getName();
+            University university = universityService.getUniversityByEmail(username);
+
             String id = request.getParameter("id");
             User user = userService.finbById(Long.valueOf(id));
             String name = request.getParameter("name").trim();
@@ -87,8 +96,8 @@ public class StudentClassController {
             if(request == null ||!StringUtils.hasText(name)){
                 return ApiResponseBuilder.badRequest("Vui lòng nhập đầy đủ thông tin!");
             }
-            if (studentClassService.existsByNameAndDepartmentIdAndStatus(name,department)){
-                return ApiResponseBuilder.badRequest("Tên lớp đã tồn tại trong khoa này!");
+            if (studentClassService.existsByNameAndDepartmentIdAndStatus(name,university.getId())){
+                return ApiResponseBuilder.badRequest("Tên lớp đã tồn tại trong trường!");
             }
             studentClassService.create(name,department);
             return ApiResponseBuilder.success("Tạo lớp học thành công", null);
@@ -107,8 +116,8 @@ public class StudentClassController {
             if(!StringUtils.hasText(name)){
                 return ApiResponseBuilder.badRequest("Vui lòng nhập đầy đủ thông tin!");
             }
-            if (studentClassService.existsByNameAndDepartmentIdAndStatus(name,studentClass.getDepartment())){
-                return ApiResponseBuilder.badRequest("Tên lớp đã tồn tại trong khoa này!");
+            if (studentClassService.existsByNameAndDepartmentIdAndStatus(name,studentClass.getDepartment().getUniversity().getId())){
+                return ApiResponseBuilder.badRequest("Tên lớp đã tồn tại trong trường!");
             }
             studentClassService.update(studentClass,name);
             return ApiResponseBuilder.success("Cập nhật thông tin lớp thành công", null);
@@ -207,5 +216,45 @@ public class StudentClassController {
         } catch (Exception e) {
             return ApiResponseBuilder.internalError("Đã xảy ra lỗi: " + e.getMessage());
         }
+    }
+
+    //excel
+    @PreAuthorize("hasAuthority('WRITE')")
+    @PostMapping("/pdt/create-class-excel")
+    public ResponseEntity<?> uploadExcel(
+            @RequestParam(name = "departmentId", required = false) Long departmentId,
+            @RequestParam("file") MultipartFile file) throws IOException
+    {
+        if(departmentId == null ){
+            return ApiResponseBuilder.badRequest("Vui lòng chọn khoa!");
+        }
+        if(file.isEmpty()){
+            return ApiResponseBuilder.badRequest("Vui lòng chọn file excel để thêm chứng chỉ!");
+        }
+        String contentType = file.getContentType();
+        String fileName = file.getOriginalFilename();
+
+        if (!("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet".equals(contentType)
+                || "application/vnd.ms-excel".equals(contentType))
+                || fileName == null
+                || (!fileName.endsWith(".xlsx") && !fileName.endsWith(".xls"))) {
+            return ApiResponseBuilder.badRequest("File không đúng định dạng Excel (.xlsx hoặc .xls)");
+        }
+
+        User user = userService.finbById(departmentId);
+
+        EasyExcel.read(
+                file.getInputStream(),
+                StudentClassExcelRowDTO.class,
+                new StudentClassExcelListener(
+                        studentClassService,
+                        httpServletRequest,
+                        auditLogService,
+                        logRepository,
+                        user.getDepartment()
+                )
+        ).sheet().doRead();
+
+        return ApiResponseBuilder.success("Tạo lớp thành công" , null);
     }
 }

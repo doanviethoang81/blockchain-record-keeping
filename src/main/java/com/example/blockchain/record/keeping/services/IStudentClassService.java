@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 public interface IStudentClassService {
     StudentClass findById(Long id);
@@ -17,7 +18,7 @@ public interface IStudentClassService {
 
     List<Department> findAllDeparmentOfUniversity(Long id);
 
-    boolean existsByNameAndDepartmentIdAndStatus(String name, Department department);
+    boolean existsByNameAndDepartmentIdAndStatus(String name, Long universityId);
 
     StudentClass save(StudentClass studentClass);
 
@@ -34,4 +35,6 @@ public interface IStudentClassService {
     StudentClass update(StudentClass studentClass,String name);
 
     long countStudentOfClass(Long id);
+
+    List<StudentClass> findByUniversityIdAndNames(Long departmentId, Set<String> names);
 }
