@@ -49,6 +49,10 @@ public class StudentClassExcelListener extends AnalysisEventListener<StudentClas
         ZonedDateTime now = ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
         List<String> errors = new ArrayList<>();
 
+        if (rows.isEmpty()) {
+            throw new ListBadRequestException("File Excel không chứa dữ liệu", List.of("Không có dòng nào trong file"));
+        }
+
         //thu thập tên lớp từ file
         Set<String> fileStudentClassNames = rows.stream()
                 .map(StudentClassExcelRowDTO::getName)

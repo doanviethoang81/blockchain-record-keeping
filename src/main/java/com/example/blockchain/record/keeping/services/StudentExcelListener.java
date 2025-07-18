@@ -76,6 +76,10 @@ public class StudentExcelListener extends AnalysisEventListener<StudentExcelRowR
 
         List<String> errors = new ArrayList<>();
 
+        if (rows.isEmpty()) {
+            throw new ListBadRequestException("File Excel không chứa dữ liệu", List.of("Không có dòng nào trong file"));
+        }
+
         if (rows.size() > 1000) {
             throw new BadRequestException("Chỉ cho phép tối đa 1000 sinh viên/lần import");
         }

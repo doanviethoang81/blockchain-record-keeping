@@ -99,6 +99,10 @@ public class CertificateExcelListener extends AnalysisEventListener<CertificateE
         Set<String> duplicateStudentCodes = new HashSet<>();
         Set<String> duplicateDiplomaNumber = new HashSet<>();
 
+        if (rows.isEmpty()) {
+            throw new ListBadRequestException("File Excel không chứa dữ liệu", List.of("Không có dòng nào trong file"));
+        }
+
         if (rows.size() > 1000) {
             throw new BadRequestException("Chỉ cho phép tối đa cấp 1000 chứng chỉ/lần import");
         }

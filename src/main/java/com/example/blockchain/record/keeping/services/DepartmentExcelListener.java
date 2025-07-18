@@ -62,7 +62,9 @@ public class DepartmentExcelListener extends AnalysisEventListener<DepartmentExc
     public void doAfterAllAnalysed(AnalysisContext analysisContext) {
         ZonedDateTime now = ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
         List<String> errors = new ArrayList<>();
-
+        if (rows.isEmpty()) {
+            throw new ListBadRequestException("File Excel không chứa dữ liệu", List.of("Không có dòng nào trong file"));
+        }
         //thu thập tên khoa từ file
         Set<String> fileDepartmentNames = rows.stream()
                 .map(DepartmentExcelRowDTO::getName)

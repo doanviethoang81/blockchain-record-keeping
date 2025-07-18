@@ -56,6 +56,7 @@ public class WalletController {
 //        return ApiResponseBuilder.success("Lấy thành công lịch sử giao dịch", data);
 //    }
 
+    //thông tin ví trường
     @GetMapping("/pdt/wallet-info")
     public ResponseEntity<?> getWalletInfo() {
         String address = EnvUtil.get("METAMASK_ADDRESS");
