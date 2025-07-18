@@ -22,6 +22,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.Period;
@@ -457,6 +458,8 @@ public class StudentController {
             Wallet wallet = walletService.findByStudent(student);
             String fromAddress = wallet.getWalletAddress();
 
+            WalletSTUInfoDTO info = alchemyService.getWalletInfoSTU(fromAddress);
+
             BigInteger amountBI;
             if(!walletService.isWalletAddressValid(toAddress)){
                 return ApiResponseBuilder.badRequest("Địa chỉ ví không hợp lệ!");
@@ -469,6 +472,13 @@ public class StudentController {
                 amountBI = raw.multiply(BigInteger.TEN.pow(18));
             } catch (NumberFormatException e) {
                 return ApiResponseBuilder.badRequest("Số lượng không hợp lệ");
+            }
+
+            BigDecimal stuBalanceDecimal = new BigDecimal(info.getStuCoin());
+            BigInteger stuBalanceRaw = stuBalanceDecimal.multiply(BigDecimal.TEN.pow(18)).toBigInteger();
+
+            if (stuBalanceRaw.compareTo(amountBI) < 0) {
+                return ApiResponseBuilder.badRequest("Số coin không đủ để thực hiện giao dịch!");
             }
 
             TransactionReceipt receipt = stUcoinService.transferFromStudentToAnother(

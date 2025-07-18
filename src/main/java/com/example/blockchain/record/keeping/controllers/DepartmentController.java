@@ -25,6 +25,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -337,7 +338,6 @@ public class DepartmentController {
             @RequestParam(required = false) String amount
     ) {
         try {
-
             if (amount == null || amount.isBlank()) {
                 return ApiResponseBuilder.badRequest("Vui lòng nhập số lượng cần chuyển");
             }
@@ -359,6 +359,15 @@ public class DepartmentController {
                 return ApiResponseBuilder.badRequest("Sinh viên chưa có ví hoặc thiếu private key");
             }
             String studentAddress = wallet.getWalletAddress();
+
+            //kt coin cua sv
+            WalletSTUInfoDTO info = alchemyService.getWalletInfoSTU(studentAddress);
+            BigDecimal stuBalanceDecimal = new BigDecimal(info.getStuCoin());
+            BigInteger stuBalanceRaw = stuBalanceDecimal.multiply(BigDecimal.TEN.pow(18)).toBigInteger();
+            if (stuBalanceRaw.compareTo(amountBI) < 0) {
+                return ApiResponseBuilder.badRequest("Số coin không đủ để thực hiện giao dịch!");
+            }
+
             departmentService.exchangeToken(studentAddress,amountBI);
             return ApiResponseBuilder.success("Chuyển STUcoin thành công", null);
         } catch (Exception e) {
