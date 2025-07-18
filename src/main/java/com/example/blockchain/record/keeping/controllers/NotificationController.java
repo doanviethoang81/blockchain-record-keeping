@@ -11,10 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
@@ -209,4 +206,20 @@ public class NotificationController {
             return ApiResponseBuilder.internalError("Lỗi " + e.getMessage());
         }
     }
+
+    @PreAuthorize("(hasAnyRole('PDT', 'KHOA')) and hasAuthority('READ')")
+    @PostMapping("/notification/read-all")
+    public ResponseEntity<?> markAllNotificationsAsRead() {
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String username = authentication.getName();
+            User user = userService.findByUser(username);
+
+            notificationReceiverService.markAllAsRead(user.getId());
+            return ApiResponseBuilder.success("Đã đánh dấu đã đọc thông báo", null);
+        } catch (Exception e) {
+            return ApiResponseBuilder.internalError("Lỗi: " + e.getMessage());
+        }
+    }
+
 }

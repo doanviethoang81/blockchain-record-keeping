@@ -5,6 +5,7 @@ import com.example.blockchain.record.keeping.models.Notifications;
 import com.example.blockchain.record.keeping.repositorys.NotificationReceiverRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -44,5 +45,10 @@ public class NotificationReceiverService implements INotificationReceiverService
     @Override
     public NotificationReceivers findById(Long id) {
         return notificationReceiverRepository.findById(id).orElse(null);
+    }
+
+    @Transactional
+    public int markAllAsRead(Long userId) {
+        return notificationReceiverRepository.markAllAsRead(userId);
     }
 }

@@ -2,9 +2,11 @@ package com.example.blockchain.record.keeping.repositorys;
 
 import com.example.blockchain.record.keeping.models.NotificationReceivers;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -43,5 +45,11 @@ public interface NotificationReceiverRepository extends JpaRepository<Notificati
                                                  @Param("limit") int limit,
                                                  @Param("offset") int offset
     );
+
+
+    @Modifying
+    @Transactional
+    @Query(value = "UPDATE notification_receivers SET is_read = true WHERE receiver_id =:userId AND is_read = false", nativeQuery = true)
+    int markAllAsRead(@Param("userId") Long userId);
 
 }
