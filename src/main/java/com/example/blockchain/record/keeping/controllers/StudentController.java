@@ -256,7 +256,9 @@ public class StudentController {
                         passwordEncoder,
                         auditLogService,
                         httpServletRequest,
-                        logRepository
+                        logRepository,
+                        stUcoinService,
+                        walletService
                 )
         ).sheet().doRead();
         return ApiResponseBuilder.success("Thêm sinh viên thành công", null);

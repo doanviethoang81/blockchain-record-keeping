@@ -226,7 +226,7 @@ public class AlchemyService {
             BigInteger gasPrice = gasPriceResponse.getGasPrice(); // đơn vị: wei
 
             // Tính gas price theo Gwei
-            BigDecimal gasPriceGwei = new BigDecimal(gasPrice).divide(BigDecimal.TEN.pow(9), 2, RoundingMode.HALF_UP);
+            BigDecimal gasPriceGwei = new BigDecimal(gasPrice).divide(BigDecimal.TEN.pow(9), 6, RoundingMode.HALF_UP);
 
             // Tạo DTO kết quả
             WalletInfoDTO dto = new WalletInfoDTO();

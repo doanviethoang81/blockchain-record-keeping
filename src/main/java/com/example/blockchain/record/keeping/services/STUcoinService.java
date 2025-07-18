@@ -10,7 +10,10 @@ import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.protocol.http.HttpService;
 import org.web3j.tx.RawTransactionManager;
+import org.web3j.tx.gas.ContractGasProvider;
 import org.web3j.tx.gas.DefaultGasProvider;
+import org.web3j.tx.gas.StaticGasProvider;
+import org.web3j.utils.Convert;
 
 import java.math.BigInteger;
 
@@ -19,6 +22,9 @@ import java.math.BigInteger;
 public class STUcoinService {
 
     private final STUcoin_sol_STUcoin contract;
+    BigInteger gasPrice = Convert.toWei("40", Convert.Unit.GWEI).toBigInteger();
+    BigInteger gasLimit = BigInteger.valueOf(200_000);
+    ContractGasProvider gasProvider = new StaticGasProvider(gasPrice, gasLimit);
 
     @Autowired
     public STUcoinService() {
@@ -30,7 +36,7 @@ public class STUcoinService {
                 contractAddress,
                 web3j,
                 new RawTransactionManager(web3j, credentials),
-                new DefaultGasProvider()
+                gasProvider
         );
     }
 

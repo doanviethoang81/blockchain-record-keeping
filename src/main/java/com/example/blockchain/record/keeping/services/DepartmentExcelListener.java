@@ -77,13 +77,13 @@ public class DepartmentExcelListener extends AnalysisEventListener<DepartmentExc
                 .map(d -> d.getName().trim())
                 .collect(Collectors.toSet());
 
-        //lấy danh sách email đã tồn tại theo universityId
+        //lấy danh sách email từ file
         Set<String> fileEmails = rows.stream()
                 .map(DepartmentExcelRowDTO::getEmail)
                 .filter(Objects::nonNull)
                 .map(String::trim)
                 .collect(Collectors.toSet());
-
+        //lấy email bị trùng từ db
         Set<String> existingEmails = userService.findEmailsByUniversityIdAndEmails(university.getId(), fileEmails)
                 .stream()
                 .map(String::trim)

@@ -1,6 +1,5 @@
 package com.example.blockchain.record.keeping.services;
 
-import com.STUcoin.contract.STUcoin_sol_STUcoin;
 import com.example.blockchain.record.keeping.annotation.Auditable;
 import com.example.blockchain.record.keeping.aspect.AuditingContext;
 import com.example.blockchain.record.keeping.dtos.request.ChangePasswordRequest;
@@ -15,24 +14,14 @@ import com.example.blockchain.record.keeping.repositorys.ActionChangeRepository;
 import com.example.blockchain.record.keeping.repositorys.LogRepository;
 import com.example.blockchain.record.keeping.repositorys.StudentClassRepository;
 import com.example.blockchain.record.keeping.repositorys.StudentRepository;
-import com.example.blockchain.record.keeping.utils.EnvUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.web3j.crypto.Credentials;
 import org.web3j.crypto.ECKeyPair;
 import org.web3j.crypto.Keys;
-import org.web3j.protocol.Web3j;
-import org.web3j.protocol.core.methods.response.TransactionReceipt;
-import org.web3j.protocol.http.HttpService;
-import org.web3j.tx.RawTransactionManager;
-import org.web3j.tx.gas.DefaultGasProvider;
 
 import java.math.BigInteger;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.List;
@@ -50,6 +39,7 @@ public class StudentService implements IStudentService{
     private final LogRepository logRepository;
     private final ActionChangeRepository actionChangeRepository;
     private final WalletService walletService;
+    private final STUcoinService stUcoinService;
 
     // danh sách sv của các lớp của 1 khoa
     public List<Student> studentOfClassOfDepartmentList(Long idDepartment){
@@ -91,15 +81,13 @@ public class StudentService implements IStudentService{
         student.setPassword(passwordEncoder.encode(studentRequest.getStudentCode()));
         student.setCreatedAt(vietnamTime.toLocalDateTime());
         student.setUpdatedAt(vietnamTime.toLocalDateTime());
+        AuditingContext.setDescription("Tạo sinh viên có mã số sinh viên: " + student.getStudentCode());
+        studentRepository.save(student);
 
         ECKeyPair ecKeyPair = Keys.createEcKeyPair();
         String privateKey = ecKeyPair.getPrivateKey().toString(16);
         String publicKey = ecKeyPair.getPublicKey().toString(16);
-
         String walletAddress = "0x" + Keys.getAddress(ecKeyPair.getPublicKey());
-
-        AuditingContext.setDescription("Tạo sinh viên có mã số sinh viên: " + student.getStudentCode());
-        studentRepository.save(student);
 
         Wallet wallet = new Wallet();
         wallet.setStudent(student);
@@ -109,27 +97,11 @@ public class StudentService implements IStudentService{
 
         walletService.create(wallet);
 
-        String METAMASK_PRIVATE_KEY = EnvUtil.get("METAMASK_PRIVATE_KEY");
-
-        Credentials systemCredentials = Credentials.create(METAMASK_PRIVATE_KEY);
-
-        String ALCHEMY_URL = EnvUtil.get("ALCHEMY_URL");
-        String toContract = EnvUtil.get("SMART_CONTRACT_STUCOIN_ADDRESS");
-
-        // tạo Web3j instance
-        Web3j web3j = Web3j.build(new HttpService(ALCHEMY_URL));
-
-        // load contract STUcoin
-        STUcoin_sol_STUcoin contract = STUcoin_sol_STUcoin.load(
-                toContract,
-                web3j,
-                new RawTransactionManager(web3j, systemCredentials),
-                new DefaultGasProvider()
-        );
-
+        if (wallet == null || wallet.getWalletAddress() == null) {
+            throw new RuntimeException("Không tìm thấy ví của sinh viên");
+        }
         //gửi token
-        TransactionReceipt receipt = contract.transfer(walletAddress, new BigInteger("1000000000000000000")) // 1 STUcoin (18 decimals)
-                .send();
+        stUcoinService.transferToStudent(wallet.getWalletAddress(), new BigInteger("5").multiply(BigInteger.TEN.pow(18))); // 5 STUcoin (18 decimals)
 
         return student;
     }

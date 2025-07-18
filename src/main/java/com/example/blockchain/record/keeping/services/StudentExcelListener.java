@@ -21,7 +21,13 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
+import org.web3j.crypto.ECKeyPair;
+import org.web3j.crypto.Keys;
 
+import java.math.BigInteger;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -41,6 +47,8 @@ public class StudentExcelListener extends AnalysisEventListener<StudentExcelRowR
     private final AuditLogService auditLogService;
     private final HttpServletRequest httpServletRequest;
     private final LogRepository logRepository;
+    private final STUcoinService stUcoinService;
+    private final WalletService walletService;
 
     private final List<StudentExcelRowRequest> rows = new ArrayList<>();
     @Override
@@ -186,6 +194,33 @@ public class StudentExcelListener extends AnalysisEventListener<StudentExcelRowR
             student.setCreatedAt(now.toLocalDateTime());
             student.setUpdatedAt(now.toLocalDateTime());
             studentRepository.save(student);
+
+            ECKeyPair ecKeyPair = null;
+            try {
+                ecKeyPair = Keys.createEcKeyPair();
+            } catch (InvalidAlgorithmParameterException e) {
+                throw new RuntimeException(e);
+            } catch (NoSuchAlgorithmException e) {
+                throw new RuntimeException(e);
+            } catch (NoSuchProviderException e) {
+                throw new RuntimeException(e);
+            }
+            String privateKey = ecKeyPair.getPrivateKey().toString(16);
+            String publicKey = ecKeyPair.getPublicKey().toString(16);
+            String walletAddress = "0x" + Keys.getAddress(ecKeyPair.getPublicKey());
+
+            Wallet wallet = new Wallet();
+            wallet.setStudent(student);
+            wallet.setWalletAddress(walletAddress);
+            wallet.setPrivateKey(privateKey);
+            wallet.setPublicKey(publicKey);
+            walletService.create(wallet);
+            //gửi token
+            try {
+                stUcoinService.transferToStudent(wallet.getWalletAddress(), new BigInteger("5").multiply(BigInteger.TEN.pow(18))); // 5 STUcoin (18 decimals)
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
         }
 
         //log

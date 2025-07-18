@@ -30,8 +30,8 @@ public class BlockchainConfig {
 
     @Bean
     public ContractGasProvider contractGasProvider() {
-        BigInteger gasPrice = BigInteger.valueOf(30_000_000_000L); // 30 Gwei
-        BigInteger gasLimit = BigInteger.valueOf(600_000);
+        BigInteger gasPrice = BigInteger.valueOf(50_000_000_000L); // 30 Gwei
+        BigInteger gasLimit = BigInteger.valueOf(200_000);
         return new StaticGasProvider(gasPrice, gasLimit);
     }
 }

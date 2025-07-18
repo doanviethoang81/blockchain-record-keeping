@@ -609,7 +609,7 @@ public class CertificateController {
         }
     }
 
-    // xác nhan chung chi
+    // giả mã chung chi
     @PostMapping("/verify/decrypt")
     public ResponseEntity<?> decryptData(@RequestBody DecryptRequest request) {
         try {
@@ -1248,15 +1248,6 @@ public class CertificateController {
                 .registerWriteHandler(ExcelStyleUtil.certificateStyleStrategy())
                 .sheet("Danh sách chứng chỉ " + type)
                 .doWrite(data);
-    }
-
-    @GetMapping("/pdt/test/send")
-    public ResponseEntity<?> testSocket() {
-        NotificationResponse response = new NotificationResponse(
-                1L, "Thông báo test", "Nội dung test", NotificationType.DEGREE_APPROVED, false,"degree",1L, LocalDateTime.now()
-        );
-        notificationWebSocketSender.sendNotification(7L, response);
-        return ResponseEntity.ok("Đã gửi WebSocket!");
     }
 
 }
