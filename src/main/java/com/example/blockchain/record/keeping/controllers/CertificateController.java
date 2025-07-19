@@ -1252,7 +1252,7 @@ public class CertificateController {
 
     //xóa 1 ch ch
     @PreAuthorize("hasAuthority('READ')")
-    @DeleteMapping("/pdt/delete-certificate/{id}")
+    @DeleteMapping("/khoa/delete-certificate/{id}")
     public ResponseEntity<?> deleteCertificate(
             @PathVariable("id")  Long id)
     {
@@ -1270,7 +1270,7 @@ public class CertificateController {
 
     //xóa 1 list ch ch
     @PreAuthorize("hasAuthority('READ')")
-    @DeleteMapping("/pdt/delete-certificate-list")
+    @DeleteMapping("/khoa/delete-certificate-list")
     public ResponseEntity<?> deleteCertificateList(@RequestBody ListValidationRequest request) {
         try {
             if (request == null || request.getIds() == null || request.getIds().isEmpty()) {

@@ -1170,7 +1170,7 @@ public class DegreeController {
 
     //xóa 1 ch ch
     @PreAuthorize("hasAuthority('READ')")
-    @DeleteMapping("/pdt/delete-degree/{id}")
+    @DeleteMapping("/khoa/delete-degree/{id}")
     public ResponseEntity<?> deleteDegree(
             @PathVariable("id")  Long id)
     {
@@ -1188,7 +1188,7 @@ public class DegreeController {
 
     //xóa 1 list ch ch
     @PreAuthorize("hasAuthority('READ')")
-    @DeleteMapping("/pdt/delete-degree-list")
+    @DeleteMapping("/khoa/delete-degree-list")
     public ResponseEntity<?> deleteDegreeList(@RequestBody ListValidationRequest request) {
         try {
             if (request == null || request.getIds() == null || request.getIds().isEmpty()) {
