@@ -294,8 +294,8 @@ public class DegreeService implements IDegreeService{
     }
 
     @Override
-    public Degree findByIdAndStatus(Long id) {
-        return degreeRepository.findByIdAndStatus(id, Status.APPROVED);
+    public Degree findByIdAndStatus(Long id, Status status) {
+        return degreeRepository.findByIdAndStatus(id, status);
     }
 
     @Override
@@ -428,6 +428,11 @@ public class DegreeService implements IDegreeService{
     @Override
     public long countDegreeOfDepartmentAndStatus(Long departmentId, String className, String studentCode, String studentName, String graduationYear, String diplomaNumber, String status) {
         return degreeRepository.countDegreeOfDepartmentAndStatus(departmentId, className, studentCode, studentName, graduationYear, diplomaNumber, status);
+    }
+
+    @Override
+    public int delete(Long id) {
+        return degreeRepository.delete(id);
     }
 
 

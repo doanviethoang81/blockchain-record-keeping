@@ -76,4 +76,6 @@ public interface ICertificateService {
 
     List<Certificate> findByStatus(String status);
 
+    int delete(Long id);
+
 }

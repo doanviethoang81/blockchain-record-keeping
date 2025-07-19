@@ -4,7 +4,9 @@ import com.example.blockchain.record.keeping.dtos.request.CountCertificateTypeRe
 import com.example.blockchain.record.keeping.enums.Status;
 import com.example.blockchain.record.keeping.models.Certificate;
 import com.example.blockchain.record.keeping.models.Student;
+import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -27,7 +29,7 @@ public interface CertificateRepository extends JpaRepository<Certificate,Long> {
             WHERE  c.student_id = :studentId
             and ct.id = :certificateTypeId
             and ct.status ='ACTIVE'
-            and (c.status ='PENDING' OR c.status ='APPROVED')
+            AND c.status IN ('PENDING', 'APPROVED', 'DELETED')
             """,nativeQuery = true)
     Optional<Certificate> existingStudentOfCertificate(@Param("studentId") Long studentId,
                                                        @Param("certificateTypeId") Long certificateTypeId);
@@ -43,6 +45,7 @@ public interface CertificateRepository extends JpaRepository<Certificate,Long> {
             where d.id= :departmentId
             and s.status ='ACTIVE'
             and sc.status ='ACTIVE'      
+            AND c.status NOT LIKE 'DELETED'            
             AND (:className IS NULL OR sc.name LIKE CONCAT('%', :className, '%'))
             AND (:studentCode IS NULL OR s.student_code LIKE CONCAT('%', :studentCode, '%'))
             AND (:studentName IS NULL OR s.name LIKE CONCAT('%', :studentName, '%'))
@@ -69,6 +72,7 @@ public interface CertificateRepository extends JpaRepository<Certificate,Long> {
         AND s.status = 'ACTIVE'
         AND sc.status = 'ACTIVE'
         AND d.status = 'ACTIVE'
+        AND c.status NOT LIKE 'DELETED'
         AND (:className IS NULL OR sc.name LIKE CONCAT('%', :className, '%'))
         AND (:studentCode IS NULL OR s.student_code LIKE CONCAT('%', :studentCode, '%'))
         AND (:studentName IS NULL OR s.name LIKE CONCAT('%', :studentName, '%'))
@@ -113,13 +117,13 @@ public interface CertificateRepository extends JpaRepository<Certificate,Long> {
             join departments d on sc.department_id = d.id
             where d.id= :departmentId
             and s.status ='ACTIVE'
-            and sc.status ='ACTIVE'      
+            and sc.status ='ACTIVE'
             and c.status = :status
             AND (:className IS NULL OR sc.name LIKE CONCAT('%', :className, '%'))
             AND (:studentCode IS NULL OR s.student_code LIKE CONCAT('%', :studentCode, '%'))
             AND (:studentName IS NULL OR s.name LIKE CONCAT('%', :studentName, '%'))
             AND (:diplomaNumber IS NULL OR c.diploma_number LIKE CONCAT('%', :diplomaNumber, '%'))
-            ORDER BY c.updated_at DESC   
+            ORDER BY c.updated_at DESC
             LIMIT :limit OFFSET :offset 
             """,nativeQuery = true)
     List<Certificate> listCertificateOfDepartmentAndStatus(@Param("departmentId") Long departmentId,
@@ -170,6 +174,7 @@ public interface CertificateRepository extends JpaRepository<Certificate,Long> {
           AND s.status = 'ACTIVE'
           AND sc.status = 'ACTIVE'
           AND d.status = 'ACTIVE'
+          AND c.status NOT LIKE 'DELETED'          
           AND (:departmentName IS NULL OR d.name LIKE CONCAT('%', :departmentName, '%'))
           AND (:className IS NULL OR sc.name LIKE CONCAT('%', :className, '%'))
           AND (:studentCode IS NULL OR s.student_code LIKE CONCAT('%', :studentCode, '%'))
@@ -200,6 +205,7 @@ public interface CertificateRepository extends JpaRepository<Certificate,Long> {
           AND s.status = 'ACTIVE'
           AND sc.status = 'ACTIVE'
           AND d.status = 'ACTIVE'
+          AND c.status NOT LIKE 'DELETED'
           AND (:departmentName IS NULL OR d.name LIKE CONCAT('%', :departmentName, '%'))
           AND (:className IS NULL OR sc.name LIKE CONCAT('%', :className, '%'))
           AND (:studentCode IS NULL OR s.student_code LIKE CONCAT('%', :studentCode, '%'))
@@ -225,7 +231,7 @@ public interface CertificateRepository extends JpaRepository<Certificate,Long> {
             where u.id= :universityId
             and s.status ='ACTIVE'
             and sc.status ='ACTIVE'
-            and d.status ='ACTIVE'          
+            and d.status ='ACTIVE'
             and c.status = :status
             AND (:departmentName IS NULL OR d.name LIKE CONCAT('%', :departmentName, '%'))
             AND (:className IS NULL OR sc.name LIKE CONCAT('%', :className, '%'))
@@ -293,6 +299,7 @@ public interface CertificateRepository extends JpaRepository<Certificate,Long> {
             SELECT c.diploma_number
             FROM certificates c
             WHERE c.diploma_number IN :diplomaNumbers
+            AND c.status IN ('PENDING', 'APPROVED')
             """,nativeQuery = true)
     List<String> findExistingDiplomaNumbers(@Param("diplomaNumbers") Collection<String> diplomaNumbers);
 
@@ -435,6 +442,7 @@ public interface CertificateRepository extends JpaRepository<Certificate,Long> {
                         and sc.status ='ACTIVE'
                         and d.status ='ACTIVE'        
                         and c.status = 'APPROVED'
+                        and c.status NOT LIKE 'DELETED'
                         ORDER BY c.updated_at DESC
             """, nativeQuery = true)
     long countCertificateOfStudent(@Param("studentId") Long studentId,
@@ -449,7 +457,7 @@ public interface CertificateRepository extends JpaRepository<Certificate,Long> {
         JOIN universitys u ON uct.university_id = u.id
         WHERE u.id = :universityId
         AND c.diploma_number = :diplomaNumber
-        AND (c.status LIKE 'APPROVED' OR c.status LIKE 'PENDING');
+        AND c.status IN ('PENDING', 'APPROVED')
         """,nativeQuery = true)
     Certificate existByDiplomaNumber(@Param("universityId") Long universityId,
                                      @Param("diplomaNumber") String diplomaNumber
@@ -463,7 +471,7 @@ public interface CertificateRepository extends JpaRepository<Certificate,Long> {
     WHERE u.id = :universityId
       AND c.diploma_number = :diplomaNumber
       AND c.id != :certificateId
-      AND (c.status = 'APPROVED' OR c.status = 'PENDING')
+      AND c.status IN ('PENDING', 'APPROVED')
     """, nativeQuery = true)
     Certificate existByDiplomaNumberIgnoreId(
             @Param("universityId") Long universityId,
@@ -478,4 +486,8 @@ public interface CertificateRepository extends JpaRepository<Certificate,Long> {
     """, nativeQuery = true)
     List<Certificate> findByStatus(@Param("status") String status);
 
+    @Modifying
+    @Transactional
+    @Query(value = "update certificates set status = 'DELETED' where id =:id", nativeQuery = true)
+    int delete(@Param("id") Long id);
 }

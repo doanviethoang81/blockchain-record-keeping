@@ -6,7 +6,9 @@ import com.example.blockchain.record.keeping.enums.Status;
 import com.example.blockchain.record.keeping.models.Certificate;
 import com.example.blockchain.record.keeping.models.Degree;
 import com.example.blockchain.record.keeping.models.Student;
+import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -35,6 +37,7 @@ public interface DegreeRepository extends JpaRepository<Degree,Long> {
             SELECT d.diploma_number
             FROM degrees d
             WHERE d.diploma_number IN :diplomaNumbers
+            AND d.status IN ('PENDING', 'APPROVED')
             """,nativeQuery = true)
     List<String> findExistingDiplomaNumbers(@Param("diplomaNumbers") Collection<String> diplomaNumbers);
 
@@ -42,6 +45,7 @@ public interface DegreeRepository extends JpaRepository<Degree,Long> {
             SELECT d.lottery_number
             FROM degrees d
             WHERE d.lottery_number IN :lotteryNumbers
+            AND d.status IN ('PENDING', 'APPROVED')
             """,nativeQuery = true)
     List<String> findExistingLotteryNumbers(@Param("lotteryNumbers") Collection<String> lotteryNumbers);
 
@@ -56,6 +60,7 @@ public interface DegreeRepository extends JpaRepository<Degree,Long> {
             and s.status ='ACTIVE'
             and sc.status ='ACTIVE'
             and dp.status ='ACTIVE'
+            and d.status NOT LIKE 'DELETED'
             AND (:departmentName IS NULL OR dp.name LIKE CONCAT('%', :departmentName, '%'))
             AND (:className IS NULL OR sc.name LIKE CONCAT('%', :className, '%'))
             AND (:studentCode IS NULL OR s.student_code LIKE CONCAT('%', :studentCode, '%'))
@@ -82,7 +87,8 @@ public interface DegreeRepository extends JpaRepository<Degree,Long> {
             WHERE dp.university_id = :universityId
             and s.status ='ACTIVE'
             and sc.status ='ACTIVE'
-            and dp.status ='ACTIVE'          
+            and dp.status ='ACTIVE'
+            and d.status NOT LIKE 'DELETED'
             AND (:departmentName IS NULL OR dp.name LIKE CONCAT('%', :departmentName, '%'))
             AND (:className IS NULL OR sc.name LIKE CONCAT('%', :className, '%'))
             AND (:studentCode IS NULL OR s.student_code LIKE CONCAT('%', :studentCode, '%'))
@@ -173,6 +179,7 @@ public interface DegreeRepository extends JpaRepository<Degree,Long> {
             WHERE dp.id = :departmentId
             and s.status ='ACTIVE'
             and sc.status ='ACTIVE'
+            and d.status NOT LIKE 'DELETED'
             AND (:className IS NULL OR sc.name LIKE CONCAT('%', :className, '%'))
             AND (:studentCode IS NULL OR s.student_code LIKE CONCAT('%', :studentCode, '%'))
             AND (:studentName IS NULL OR s.name LIKE CONCAT('%', :studentName, '%'))
@@ -198,6 +205,7 @@ public interface DegreeRepository extends JpaRepository<Degree,Long> {
             WHERE dp.id = :departmentId
             and s.status ='ACTIVE'
             and sc.status ='ACTIVE'
+            and d.status NOT LIKE 'DELETED'
             AND (:className IS NULL OR sc.name LIKE CONCAT('%', :className, '%'))
             AND (:studentCode IS NULL OR s.student_code LIKE CONCAT('%', :studentCode, '%'))
             AND (:studentName IS NULL OR s.name LIKE CONCAT('%', :studentName, '%'))
@@ -281,6 +289,7 @@ public interface DegreeRepository extends JpaRepository<Degree,Long> {
             WHERE s.status ='ACTIVE'
             and sc.status ='ACTIVE'
             and dp.status ='ACTIVE'         
+            and d.status NOT LIKE 'DELETED'
             AND (:universityName IS NULL OR u.name LIKE CONCAT('%', :universityName, '%'))
             AND (:departmentName IS NULL OR dp.name LIKE CONCAT('%', :departmentName, '%'))
             AND (:className IS NULL OR sc.name LIKE CONCAT('%', :className, '%'))
@@ -413,6 +422,7 @@ public interface DegreeRepository extends JpaRepository<Degree,Long> {
             join students s on d.student_id= s.id
             WHERE d.status = 'APPROVED'
             and s.id = :studentId
+            and d.status NOT LIKE 'DELETED'
             ORDER BY d.updated_at DESC
             """,nativeQuery = true)
     Optional<Degree> degreeOfStudent(@Param("studentId") Long studentId);
@@ -490,5 +500,10 @@ public interface DegreeRepository extends JpaRepository<Degree,Long> {
     WHERE (:status IS NULL OR d.status = :status)
     """, nativeQuery = true)
     List<Degree> findByStatus(@Param("status") String status);
+
+    @Modifying
+    @Transactional
+    @Query(value = "update degrees set status = 'DELETED' where id =:id", nativeQuery = true)
+    int delete(@Param("id") Long id);
 
 }

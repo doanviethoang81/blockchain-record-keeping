@@ -928,7 +928,7 @@ public class DegreeController {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             String username = authentication.getName();
             User user = userService.findByUser(username);
-            Degree degree = degreeService.findByIdAndStatus(id);
+            Degree degree = degreeService.findByIdAndStatus(id, Status.APPROVED);
             if(degree != null){
                 return ApiResponseBuilder.badRequest("Văn bằng này đã được xác nhận rồi!");
             }
@@ -948,7 +948,7 @@ public class DegreeController {
             String username = authentication.getName();
             User user = userService.findByUser(username);
 
-            Degree degree = degreeService.findByIdAndStatus(id);
+            Degree degree = degreeService.findByIdAndStatus(id, Status.APPROVED);
             if(degree != null){
                 return ApiResponseBuilder.badRequest("Văn bằng này đã được xác nhận rồi!");
             }
@@ -976,7 +976,7 @@ public class DegreeController {
             List<String> alreadyValidated = new ArrayList<>();
 
             for (Long id : ids) {
-                Degree degree = degreeService.findByIdAndStatus(id);
+                Degree degree = degreeService.findByIdAndStatus(id, Status.APPROVED);
                 if (degree != null) {
                     alreadyValidated.add("Văn bằng ID " + id + " đã được xác nhận!");
                 }
@@ -1012,7 +1012,7 @@ public class DegreeController {
             List<String> alreadyValidated = new ArrayList<>();
 
             for (Long id : ids) {
-                Degree degree = degreeService.findByIdAndStatus(id);
+                Degree degree = degreeService.findByIdAndStatus(id, Status.APPROVED);
                 if (degree != null) {
                     alreadyValidated.add("Văn bằng ID " + id + " đã được xác nhận!");
                 }
@@ -1166,5 +1166,59 @@ public class DegreeController {
                 .registerWriteHandler(ExcelStyleUtil.certificateStyleStrategy())
                 .sheet("Danh sách văn bằng " + type)
                 .doWrite(data);
+    }
+
+    //xóa 1 ch ch
+    @PreAuthorize("hasAuthority('READ')")
+    @DeleteMapping("/pdt/delete-degree/{id}")
+    public ResponseEntity<?> deleteDegree(
+            @PathVariable("id")  Long id)
+    {
+        try {
+            Degree degree= degreeService.findByIdAndStatus(id,Status.PENDING);
+            if(degree == null){
+                return ApiResponseBuilder.badRequest("Không xóa được văn bằng này!");
+            }
+            degreeService.delete(id);
+            return ApiResponseBuilder.success("Xóa văn bàng thành công", null);
+        } catch (Exception e) {
+            return ApiResponseBuilder.badRequest(e.getMessage());
+        }
+    }
+
+    //xóa 1 list ch ch
+    @PreAuthorize("hasAuthority('READ')")
+    @DeleteMapping("/pdt/delete-degree-list")
+    public ResponseEntity<?> deleteDegreeList(@RequestBody ListValidationRequest request) {
+        try {
+            if (request == null || request.getIds() == null || request.getIds().isEmpty()) {
+                return ApiResponseBuilder.badRequest("Vui lòng chọn văn bằng cần xóa!");
+            }
+
+            List<Long> ids = request.getIds();
+
+            List<String> alreadyValidated = new ArrayList<>();
+
+            for (Long id : ids) {
+                Degree degree= degreeService.findByIdAndStatus(id,Status.PENDING);
+                if(degree == null){
+                    alreadyValidated.add("Không xóa được văn bằng!");
+                }
+            }
+
+            if (!alreadyValidated.isEmpty()) {
+                return ApiResponseBuilder.listBadRequest(
+                        "Không thể xóa văn bằng!",
+                        alreadyValidated
+                );
+            }
+
+            for (Long id :ids){
+                degreeService.delete(id);
+            }
+            return ApiResponseBuilder.success("Xóa list văn bằng thành công", null);
+        } catch (Exception e) {
+            return ApiResponseBuilder.internalError("Lỗi: " + e.getMessage());
+        }
     }
 }

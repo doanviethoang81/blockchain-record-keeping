@@ -1250,4 +1250,57 @@ public class CertificateController {
                 .doWrite(data);
     }
 
+    //xóa 1 ch ch
+    @PreAuthorize("hasAuthority('READ')")
+    @DeleteMapping("/pdt/delete-certificate/{id}")
+    public ResponseEntity<?> deleteCertificate(
+            @PathVariable("id")  Long id)
+    {
+        try {
+            Certificate certificate= certificateService.findByIdAndStatus(id,Status.PENDING);
+            if(certificate == null){
+                return ApiResponseBuilder.badRequest("Không xóa được chứng chỉ này!");
+            }
+            certificateService.delete(id);
+            return ApiResponseBuilder.success("Xóa chứng chỉ thành công", null);
+        } catch (Exception e) {
+            return ApiResponseBuilder.badRequest(e.getMessage());
+        }
+    }
+
+    //xóa 1 list ch ch
+    @PreAuthorize("hasAuthority('READ')")
+    @DeleteMapping("/pdt/delete-certificate-list")
+    public ResponseEntity<?> deleteCertificateList(@RequestBody ListValidationRequest request) {
+        try {
+            if (request == null || request.getIds() == null || request.getIds().isEmpty()) {
+                return ApiResponseBuilder.badRequest("Vui lòng chọn chứng chỉ cần xóa!");
+            }
+
+            List<Long> ids = request.getIds();
+
+            List<String> alreadyValidated = new ArrayList<>();
+
+            for (Long id : ids) {
+                Certificate certificate= certificateService.findByIdAndStatus(id,Status.PENDING);
+                if(certificate == null){
+                    alreadyValidated.add("Không xóa được chứng chỉ!");
+                }
+            }
+
+            if (!alreadyValidated.isEmpty()) {
+                return ApiResponseBuilder.listBadRequest(
+                        "Không thể xóa chứng chỉ!",
+                        alreadyValidated
+                );
+            }
+
+            for (Long id :ids){
+                certificateService.delete(id);
+            }
+            return ApiResponseBuilder.success("Xóa list chứng chỉ thành công", null);
+        } catch (Exception e) {
+            return ApiResponseBuilder.internalError("Lỗi: " + e.getMessage());
+        }
+    }
 }

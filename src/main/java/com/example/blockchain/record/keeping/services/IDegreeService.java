@@ -1,6 +1,7 @@
 package com.example.blockchain.record.keeping.services;
 
 import com.example.blockchain.record.keeping.dtos.request.DegreeRequest;
+import com.example.blockchain.record.keeping.enums.Status;
 import com.example.blockchain.record.keeping.models.Degree;
 import com.example.blockchain.record.keeping.models.Student;
 import com.example.blockchain.record.keeping.response.DegreeClassificationByYearResponse;
@@ -41,7 +42,7 @@ public interface IDegreeService {
 
     List<Degree> listAllDegree(String universityName, String departmentName, String className, String studentCode, String studentName,String graduationYear, String diplomaNumber);
 
-    Degree findByIdAndStatus(Long id);
+    Degree findByIdAndStatus(Long id, Status status);
 
     Degree findByIpfsUrl(String ipfsUrl);
 
@@ -95,4 +96,6 @@ public interface IDegreeService {
             String graduationYear,
             String diplomaNumber,
             String status);
+
+    int delete(Long id);
 }

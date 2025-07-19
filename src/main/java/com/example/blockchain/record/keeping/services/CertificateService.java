@@ -1,6 +1,4 @@
 package com.example.blockchain.record.keeping.services;
-import com.STUcoin.contract.STUcoin_sol_STUcoin;
-import com.alibaba.excel.EasyExcel;
 import com.example.blockchain.record.keeping.annotation.Auditable;
 import com.example.blockchain.record.keeping.aspect.AuditingContext;
 import com.example.blockchain.record.keeping.configs.Constants;
@@ -11,7 +9,6 @@ import com.example.blockchain.record.keeping.exceptions.BadRequestException;
 import com.example.blockchain.record.keeping.models.*;
 import com.example.blockchain.record.keeping.repositorys.*;
 import com.example.blockchain.record.keeping.response.*;
-import com.example.blockchain.record.keeping.utils.EnvUtil;
 import com.example.blockchain.record.keeping.utils.PinataUploader;
 import com.example.blockchain.record.keeping.utils.QrCodeUtil;
 import com.example.blockchain.record.keeping.utils.RSAUtil;
@@ -22,12 +19,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.web3j.crypto.Credentials;
 import org.web3j.protocol.Web3j;
-import org.web3j.protocol.core.methods.response.TransactionReceipt;
-import org.web3j.protocol.http.HttpService;
-import org.web3j.tx.RawTransactionManager;
-import org.web3j.tx.gas.DefaultGasProvider;
 
 import java.math.BigInteger;
 import java.security.PrivateKey;
@@ -270,6 +262,11 @@ public class CertificateService implements ICertificateService{
     @Override
     public List<Certificate> findByStatus(String status) {
         return certificateRepository.findByStatus(status);
+    }
+
+    @Override
+    public int delete(Long id) {
+        return certificateRepository.delete(id);
     }
 
     @Override

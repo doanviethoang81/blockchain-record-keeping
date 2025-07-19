@@ -46,7 +46,6 @@ public interface NotificationReceiverRepository extends JpaRepository<Notificati
                                                  @Param("offset") int offset
     );
 
-
     @Modifying
     @Transactional
     @Query(value = "UPDATE notification_receivers SET is_read = true WHERE receiver_id =:userId AND is_read = false", nativeQuery = true)
