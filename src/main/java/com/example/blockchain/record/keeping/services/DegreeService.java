@@ -431,10 +431,13 @@ public class DegreeService implements IDegreeService{
     }
 
     @Override
-    public int delete(Long id) {
-        return degreeRepository.delete(id);
+    @Auditable(action = ActionType.DELETED, entity = Entity.degrees)
+    public Degree delete(Long id) {
+        Degree degree = degreeRepository.findById(id).orElse(null);
+        AuditingContext.setDescription("Xóa văn bằng có số hệu :" + degree.getDiplomaNumber());
+        degreeRepository.delete(id);
+        return degree;
     }
-
 
     public Map<String, Boolean> checkStudentsGrantedDegree(Set<String> studentCodes) {
         List<String> existingCodes = degreeRepository.findStudentCodesWithDegree(studentCodes);
@@ -785,6 +788,23 @@ public class DegreeService implements IDegreeService{
         return degreeList.stream()
                 .map(certificate -> {
                     DegreeExcelDTO dto = convertToDTO(certificate);
+                    dto.setStt(counter.getAndIncrement());
+                    return dto;
+                })
+                .toList();
+    }
+
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
+    public List<DegreeExcelDTO> getDegreeWithIdDTOs(List<Long> ids) {
+        List<Degree> degreeList = new ArrayList<>();
+        for (Long id :ids){
+            Degree degree = degreeRepository.findById(id).orElse(null);
+            degreeList.add(degree);
+        }
+        AtomicInteger counter = new AtomicInteger(1);
+        return degreeList.stream()
+                .map(degree -> {
+                    DegreeExcelDTO dto = convertToDTO(degree);
                     dto.setStt(counter.getAndIncrement());
                     return dto;
                 })

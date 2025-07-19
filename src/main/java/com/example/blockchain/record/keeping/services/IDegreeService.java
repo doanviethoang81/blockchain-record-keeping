@@ -97,5 +97,5 @@ public interface IDegreeService {
             String diplomaNumber,
             String status);
 
-    int delete(Long id);
+    Degree delete(Long id);
 }

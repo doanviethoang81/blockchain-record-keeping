@@ -27,6 +27,8 @@ public enum LogTemplate {
     UPDATE_UNIVERCITY_SEAL("Cập nhật dấu mộc của trường"),
 
     EXPORT_EXCEL("Xuất file excel: %s"),
+    EXPORT_EXCEL_CERTIFICATE_LIST("Xuất chứng chỉ ra file excel"),
+    EXPORT_EXCEL_DEGREE_LIST("Xuất văn bằng ra file excel"),
 
     CREATE_CERTIFICATE("Tạo chứng chỉ cho sinh viên, số hiệu chứng chỉ: %s"),
     UPDATE_CERTIFICATE("Cập nhật chứng chỉ có số hệu: %s"),

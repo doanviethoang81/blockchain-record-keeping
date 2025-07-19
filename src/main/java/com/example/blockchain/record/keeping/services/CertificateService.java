@@ -265,8 +265,12 @@ public class CertificateService implements ICertificateService{
     }
 
     @Override
-    public int delete(Long id) {
-        return certificateRepository.delete(id);
+    @Auditable(action = ActionType.DELETED, entity = Entity.certificates)
+    public Certificate delete(Long id) {
+        Certificate certificate = certificateRepository.findById(id).orElse(null);
+        AuditingContext.setDescription("Xóa chứng chỉ có số hệu :" + certificate.getDiplomaNumber());
+        certificateRepository.delete(id);
+        return certificate;
     }
 
     @Override
@@ -752,7 +756,23 @@ public class CertificateService implements ICertificateService{
                     return dto;
                 })
                 .toList();
+    }
 
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
+    public List<CertificateExcelDTO> getAllCertificateWithIdDTOs(List<Long> ids) {
+        List<Certificate> certificates = new ArrayList<>();
+        for (Long id :ids){
+            Certificate certificate = certificateRepository.findById(id).orElse(null);
+            certificates.add(certificate);
+        }
+        AtomicInteger counter = new AtomicInteger(1);
+        return certificates.stream()
+                .map(certificate -> {
+                    CertificateExcelDTO dto = convertToDTO(certificate);
+                    dto.setStt(counter.getAndIncrement());
+                    return dto;
+                })
+                .toList();
     }
 
     public CertificateExcelDTO convertToDTO(Certificate entity) {

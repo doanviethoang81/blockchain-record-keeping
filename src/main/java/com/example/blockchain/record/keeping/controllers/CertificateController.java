@@ -1303,4 +1303,46 @@ public class CertificateController {
             return ApiResponseBuilder.internalError("Lỗi: " + e.getMessage());
         }
     }
+
+
+    //xuất excel khi chọn
+    @PostMapping("/pdt/export-certificates-list")
+    public void exportCertificatesList(
+            @RequestBody ListValidationRequest request,
+            HttpServletResponse response) throws IOException
+    {
+        if (request.getIds() == null || request.getIds().isEmpty()) {
+            throw new IllegalArgumentException("Vui lòng chọn chứng chỉ cần xuất file!");
+        }
+
+        List<Long> ids = request.getIds();
+
+        response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        response.setCharacterEncoding("UTF-8");
+
+        String fileName = URLEncoder.encode("chung_chi"  , StandardCharsets.UTF_8)
+                .replaceAll("\\+", "%20");
+        response.setHeader("Content-Disposition", "attachment; filename=" + fileName + ".xlsx");
+
+        List<CertificateExcelDTO> data = certificateService.getAllCertificateWithIdDTOs(ids);
+
+        ZonedDateTime vietnamTime = ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
+
+        // ghi log
+        String ipAdress = auditLogService.getClientIp(httpServletRequest);
+        Log log = new Log();
+        log.setUser(auditLogService.getCurrentUser());
+        log.setActionType(ActionType.EXPORT_EXCEL);
+        log.setEntityName(Entity.certificates);
+        log.setEntityId(null);
+        log.setDescription(LogTemplate.EXPORT_EXCEL_CERTIFICATE_LIST.getName());
+        log.setCreatedAt(vietnamTime.toLocalDateTime());
+        log.setIpAddress(ipAdress);
+        logRepository.save(log);
+
+        EasyExcel.write(response.getOutputStream(), CertificateExcelDTO.class)
+                .registerWriteHandler(ExcelStyleUtil.certificateStyleStrategy())
+                .sheet("Danh sách chứng chỉ ")
+                .doWrite(data);
+    }
 }
