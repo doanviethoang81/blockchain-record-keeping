@@ -423,15 +423,15 @@ public class DepartmentController {
             List<StudentCoinResponse> studentResponseList = studentList.stream()
                     .map(s -> {
                         Wallet wallet = walletService.findByStudent(s);
-                        String address = wallet != null ? wallet.getWalletAddress() : null;
 
-                        String stuCoin = wallet.getCoin() != null ? String.valueOf(wallet.getCoin()) : "0";
+                        String stuCoin = "0";
+                        if (wallet != null && wallet.getCoin() != null) {
+                            stuCoin = wallet.getCoin().toString();
+                        }
 
-                        String trimmed = new BigDecimal(stuCoin)
-                                .stripTrailingZeros()
-                                .toPlainString();
                         BigDecimal amount = new BigDecimal(stuCoin).divide(new BigDecimal("1000000000000000000")); // chia 10^18
 
+                        String walletAddress = wallet != null ? wallet.getWalletAddress() : "0";
                         return new StudentCoinResponse(
                                 s.getId(),
                                 s.getName(),
@@ -442,7 +442,7 @@ public class DepartmentController {
                                 s.getCourse(),
                                 amount.stripTrailingZeros()
                                         .toPlainString(),
-                                wallet.getWalletAddress()
+                                walletAddress
                         );
                     })
                     .collect(Collectors.toList());
