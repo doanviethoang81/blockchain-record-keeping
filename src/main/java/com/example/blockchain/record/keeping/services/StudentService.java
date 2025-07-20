@@ -92,6 +92,7 @@ public class StudentService implements IStudentService{
         Wallet wallet = new Wallet();
         wallet.setStudent(student);
         wallet.setWalletAddress(walletAddress);
+        wallet.setCoin(BigInteger.valueOf(5_000_000_000_000_000_000L));
         wallet.setPrivateKey(privateKey);
         wallet.setPublicKey(publicKey);
 

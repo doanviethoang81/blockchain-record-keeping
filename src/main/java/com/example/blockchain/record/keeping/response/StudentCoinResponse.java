@@ -18,4 +18,5 @@ public class StudentCoinResponse {
     private LocalDate birthDate;
     private String course;
     private String stuCoin;
+    private String walletAddress;
 }

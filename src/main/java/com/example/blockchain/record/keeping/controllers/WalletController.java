@@ -20,6 +20,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigInteger;
 import java.util.Collections;
 import java.util.List;
 
@@ -33,74 +34,6 @@ public class WalletController {
     private final WalletService walletService;
     private final EtherscanService etherscanService;
 
-
-//    @GetMapping("/pdt/transactions")
-//    public ResponseEntity<?> getWalletTransactions(
-//            @RequestParam(defaultValue = "all") String type,
-//            @RequestParam(defaultValue = "1") int page,
-//            @RequestParam(defaultValue = "10") int size)
-//    {
-//        String toContract = EnvUtil.get("SMART_CONTRACT_CERTIFICATE_ADDRESS");
-//        String address = EnvUtil.get("METAMASK_ADDRESS");
-//        if (address == null || address.isBlank()) {
-//            return ApiResponseBuilder.badRequest("Địa chỉ ví không hợp lệ!");
-//        }
-//
-//        if (!List.of("in", "out", "all").contains(type.toLowerCase())) {
-//            return ApiResponseBuilder.badRequest("Type không hợp lệ!");
-//        }
-//
-//        int offset = (page - 1) * size;
-//
-//        PaginatedData<TransactionDTO> data = alchemyService.getAllTransactions(address,toContract, type, offset, size);
-//        return ApiResponseBuilder.success("Lấy thành công lịch sử giao dịch", data);
-//    }
-
-    //thông tin ví trường
-    @GetMapping("/pdt/wallet-info")
-    public ResponseEntity<?> getWalletInfo() {
-        String address = EnvUtil.get("METAMASK_ADDRESS");
-        try {
-            WalletInfoDTO info = alchemyService.getWalletInfo(address);
-            return ApiResponseBuilder.success("Lấy thông tin ví thành công", info);
-        } catch (Exception e) {
-            return ApiResponseBuilder.internalError("Không thể lấy thông tin ví!");
-        }
-    }
-
-    //số STU coin
-    @GetMapping("/pdt/wallet-info-stu")
-    public ResponseEntity<?> getWalletSTUInfo() {
-        String address = EnvUtil.get("METAMASK_ADDRESS");
-        try {
-            WalletSTUInfoDTO info = alchemyService.getWalletInfoSTU(address);
-            return ApiResponseBuilder.success("Lấy thông tin ví thành công", info);
-        } catch (Exception e) {
-            return ApiResponseBuilder.internalError("Không thể lấy thông tin ví!");
-        }
-    }
-
-//    @GetMapping("/pdt/etherscan/transactions")
-//    public ResponseEntity<?> getEtherscanTx(
-//            @RequestParam String address,
-////            @RequestParam String walletAddress
-//            @RequestParam(defaultValue = "1") int page,
-//            @RequestParam(defaultValue = "10") int size
-//    ) {
-//        try {
-////            String data = etherscanService.getTokenTransactions(address);
-////            List<TransactionDTO> data = etherscanService.getTokenTransactionsFromEtherscan(address, walletAddress);
-//            List<TransactionDTO> data = etherscanService.getTokenTx(address);
-//            int offset = (page - 1) * size;
-//
-//            return ApiResponseBuilder.success("Lấy thành công lịch sử giao dịch", data);
-//
-//        } catch (Exception e) {
-//            return ResponseEntity.status(500).body("Lỗi khi gọi Etherscan: " + e.getMessage());
-//        }
-//    }
-
-//    @GetMapping("/pdt/etherscan/transactions")
     @GetMapping("/pdt/transactions")
     public ResponseEntity<?> getTransactions(
             @RequestParam(defaultValue = "all") String type,
@@ -136,5 +69,27 @@ public class WalletController {
         }
     }
 
+    //thông tin ví trường
+    @GetMapping("/pdt/wallet-info")
+    public ResponseEntity<?> getWalletInfo() {
+        String address = EnvUtil.get("METAMASK_ADDRESS");
+        try {
+            WalletInfoDTO info = alchemyService.getWalletInfo(address);
+            return ApiResponseBuilder.success("Lấy thông tin ví thành công", info);
+        } catch (Exception e) {
+            return ApiResponseBuilder.internalError("Không thể lấy thông tin ví!");
+        }
+    }
 
+    //số STU coin
+    @GetMapping("/pdt/wallet-info-stu")
+    public ResponseEntity<?> getWalletSTUInfo() {
+        String address = EnvUtil.get("METAMASK_ADDRESS");
+        try {
+            WalletSTUInfoDTO info = alchemyService.getWalletInfoSTU(address);
+            return ApiResponseBuilder.success("Lấy thông tin ví thành công", info);
+        } catch (Exception e) {
+            return ApiResponseBuilder.internalError("Không thể lấy thông tin ví!");
+        }
+    }
 }

@@ -9,6 +9,7 @@ import com.example.blockchain.record.keeping.response.PaginationMeta;
 import com.example.blockchain.record.keeping.utils.EnvUtil;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.web3j.crypto.Credentials;
 import org.web3j.protocol.Web3j;
@@ -33,11 +34,13 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 @Service
+@AllArgsConstructor
 public class AlchemyService {
     private static final String ALCHEMY_BASE_URL = EnvUtil.get("ALCHEMY_URL");
 //    private static final String ALCHEMY_BASE_URL = "https://eth-sepolia.g.alchemy.com/v2/" + ALCHEMY_API_KEY;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
+    private final WalletService walletService;
 
     public PaginatedData<TransactionDTO> getAllTransactions(String walletAddress, String toContract, String type, int offset, int limit) {
         List<TransactionDTO> all = new ArrayList<>();
@@ -279,6 +282,8 @@ public class AlchemyService {
 
             WalletSTUInfoDTO dto = new WalletSTUInfoDTO();
             dto.setStuCoin(stuBalance.toPlainString());
+            BigDecimal stuCoin = new BigDecimal(walletService.getTotalCoin()).divide(new BigDecimal("1000000000000000000")); // chia 10^18
+            dto.setStuCoinOfStudent(stuCoin.toString());
             return dto;
 
         } catch (Exception e) {

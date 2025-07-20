@@ -26,6 +26,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -259,13 +260,14 @@ public class UniversityController {
                 return ApiResponseBuilder.badRequest("Vui lòng nhập số lượng token");
             }
             BigInteger amountBI;
+            BigDecimal rawDecimal;
             try {
-                BigInteger raw = new BigInteger(amount);
-                if (raw.compareTo(BigInteger.ZERO) <= 0) {
+                rawDecimal = new BigDecimal(amount);
+                if (rawDecimal.compareTo(BigDecimal.ZERO) <= 0) {
                     return ApiResponseBuilder.badRequest("Số lượng phải lớn hơn 0");
                 }
-                amountBI = raw.multiply(BigInteger.TEN.pow(18));
-            } catch (NumberFormatException e) {
+                amountBI = rawDecimal.multiply(BigDecimal.TEN.pow(18)).toBigIntegerExact();
+            } catch (NumberFormatException | ArithmeticException e) {
                 return ApiResponseBuilder.badRequest("Số lượng token không hợp lệ");
             }
 

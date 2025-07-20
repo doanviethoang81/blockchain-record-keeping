@@ -464,15 +464,17 @@ public class StudentController {
             if(!walletService.isWalletAddressValid(toAddress)){
                 return ApiResponseBuilder.badRequest("Địa chỉ ví không hợp lệ!");
             }
+            BigDecimal rawDecimal;
             try {
-                BigInteger raw = new BigInteger(amount);
-                if (raw.compareTo(BigInteger.ZERO) <= 0) {
+                rawDecimal = new BigDecimal(amount);
+                if (rawDecimal.compareTo(BigDecimal.ZERO) <= 0) {
                     return ApiResponseBuilder.badRequest("Số lượng phải lớn hơn 0");
                 }
-                amountBI = raw.multiply(BigInteger.TEN.pow(18));
-            } catch (NumberFormatException e) {
-                return ApiResponseBuilder.badRequest("Số lượng không hợp lệ");
+                amountBI = rawDecimal.multiply(BigDecimal.TEN.pow(18)).toBigIntegerExact();
+            } catch (NumberFormatException | ArithmeticException e) {
+                return ApiResponseBuilder.badRequest("Số lượng token không hợp lệ");
             }
+
 
             BigDecimal stuBalanceDecimal = new BigDecimal(info.getStuCoin());
             BigInteger stuBalanceRaw = stuBalanceDecimal.multiply(BigDecimal.TEN.pow(18)).toBigInteger();
@@ -484,6 +486,10 @@ public class StudentController {
             TransactionReceipt receipt = stUcoinService.transferFromStudentToAnother(
                     fromAddress, toAddress, amountBI
             );
+
+            walletService.updateWalletCoinAmount(wallet,amountBI,false);
+            Wallet receivingWallet = walletService.findByWalletAddress(toAddress);
+            walletService.updateWalletCoinAmount(receivingWallet,amountBI,true);
 
             return ApiResponseBuilder.success("Chuyển token thành công", null);
 

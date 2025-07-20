@@ -6,6 +6,8 @@ import com.example.blockchain.record.keeping.repositorys.WalletRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.math.BigInteger;
+
 @Service
 @RequiredArgsConstructor
 public class WalletService implements IWalletService{
@@ -18,8 +20,8 @@ public class WalletService implements IWalletService{
     }
 
     @Override
-    public Wallet update(Long id) {
-        return null;
+    public Wallet update(Wallet wallet) {
+        return walletRepository.save(wallet);
     }
 
     @Override
@@ -41,4 +43,33 @@ public class WalletService implements IWalletService{
     public boolean isWalletAddressValid(String walletAddress) {
         return walletRepository.existsByWalletAddress(walletAddress);
     }
+
+    @Override
+    public BigInteger getTotalCoin() {
+        return walletRepository.getTotalCoin();
+    }
+
+    @Override
+    public Wallet findByWalletAddress(String address) {
+        return walletRepository.findByWalletAddress(address);
+    }
+
+    public void updateWalletCoinAmount(Wallet wallet, BigInteger coinDelta, boolean isIncrease) {
+        if (wallet == null || coinDelta == null) {
+            throw new IllegalArgumentException("Wallet hoặc số lượng coin không được null");
+        }
+
+        BigInteger currentBalance = wallet.getCoin();
+        BigInteger newBalance;
+
+        if (isIncrease) {
+            newBalance = currentBalance.add(coinDelta);
+        } else {
+            newBalance = currentBalance.subtract(coinDelta);
+        }
+
+        wallet.setCoin(newBalance);
+        walletRepository.save(wallet);
+    }
+
 }

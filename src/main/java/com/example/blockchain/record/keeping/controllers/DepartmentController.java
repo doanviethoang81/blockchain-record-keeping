@@ -10,6 +10,7 @@ import com.example.blockchain.record.keeping.enums.ActionType;
 import com.example.blockchain.record.keeping.enums.Entity;
 import com.example.blockchain.record.keeping.models.*;
 import com.example.blockchain.record.keeping.repositorys.LogRepository;
+import com.example.blockchain.record.keeping.repositorys.WalletRepository;
 import com.example.blockchain.record.keeping.response.*;
 import com.example.blockchain.record.keeping.services.*;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -342,13 +343,14 @@ public class DepartmentController {
                 return ApiResponseBuilder.badRequest("Vui lòng nhập số lượng cần chuyển");
             }
             BigInteger amountBI;
+            BigDecimal rawDecimal;
             try {
-                BigInteger raw = new BigInteger(amount);
-                if (raw.compareTo(BigInteger.ZERO) <= 0) {
+                rawDecimal = new BigDecimal(amount);
+                if (rawDecimal.compareTo(BigDecimal.ZERO) <= 0) {
                     return ApiResponseBuilder.badRequest("Số lượng phải lớn hơn 0");
                 }
-                amountBI = raw.multiply(BigInteger.TEN.pow(18));
-            } catch (NumberFormatException e) {
+                amountBI = rawDecimal.multiply(BigDecimal.TEN.pow(18)).toBigIntegerExact();
+            } catch (NumberFormatException | ArithmeticException e) {
                 return ApiResponseBuilder.badRequest("Số lượng token không hợp lệ");
             }
 
@@ -361,14 +363,12 @@ public class DepartmentController {
             String studentAddress = wallet.getWalletAddress();
 
             //kt coin cua sv
-            WalletSTUInfoDTO info = alchemyService.getWalletInfoSTU(studentAddress);
-            BigDecimal stuBalanceDecimal = new BigDecimal(info.getStuCoin());
-            BigInteger stuBalanceRaw = stuBalanceDecimal.multiply(BigDecimal.TEN.pow(18)).toBigInteger();
-            if (stuBalanceRaw.compareTo(amountBI) < 0) {
+            if (amountBI.compareTo(wallet.getCoin()) > 0) {
                 return ApiResponseBuilder.badRequest("Số coin không đủ để thực hiện giao dịch!");
             }
 
-            departmentService.exchangeToken(studentAddress,amountBI);
+
+            departmentService.exchangeToken(studentAddress,amountBI, wallet);
             return ApiResponseBuilder.success("Chuyển STUcoin thành công", null);
         } catch (Exception e) {
             return ApiResponseBuilder.internalError("Lỗi: " + e.getMessage());
@@ -425,8 +425,12 @@ public class DepartmentController {
                         Wallet wallet = walletService.findByStudent(s);
                         String address = wallet != null ? wallet.getWalletAddress() : null;
 
-                        WalletSTUInfoDTO walletInfo = alchemyService.getWalletInfoSTU(address);
-                        String stuCoin = walletInfo != null ? walletInfo.getStuCoin() : "0";
+                        String stuCoin = wallet.getCoin() != null ? String.valueOf(wallet.getCoin()) : "0";
+
+                        String trimmed = new BigDecimal(stuCoin)
+                                .stripTrailingZeros()
+                                .toPlainString();
+                        BigDecimal amount = new BigDecimal(stuCoin).divide(new BigDecimal("1000000000000000000")); // chia 10^18
 
                         return new StudentCoinResponse(
                                 s.getId(),
@@ -436,7 +440,9 @@ public class DepartmentController {
                                 s.getStudentClass().getName(),
                                 s.getBirthDate(),
                                 s.getCourse(),
-                                stuCoin
+                                amount.stripTrailingZeros()
+                                        .toPlainString(),
+                                wallet.getWalletAddress()
                         );
                     })
                     .collect(Collectors.toList());

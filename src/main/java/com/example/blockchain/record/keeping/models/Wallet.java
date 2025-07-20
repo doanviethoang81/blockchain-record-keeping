@@ -3,6 +3,8 @@ package com.example.blockchain.record.keeping.models;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.math.BigInteger;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -21,6 +23,9 @@ public class Wallet {
 
     @Column(name = "wallet_address ")
     private String walletAddress ;
+
+    @Column(name = "coin ")
+    private BigInteger coin ;
 
     @Column(name = "private_key")
     private String privateKey;
