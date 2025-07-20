@@ -511,6 +511,8 @@ public class CertificateService implements ICertificateService{
             }
             //gửi token
             stUcoinService.transferToStudent(wallet.getWalletAddress(), new BigInteger("5").multiply(BigInteger.TEN.pow(18))); // 5 STUcoin (18 decimals)
+            BigInteger amountBI = BigInteger.valueOf(5).multiply(BigInteger.TEN.pow(18));
+            walletService.updateWalletCoinAmount(wallet,amountBI,true);
 
             //gửi WebSocket
             NotificationResponse response = new NotificationResponse(
@@ -569,13 +571,13 @@ public class CertificateService implements ICertificateService{
             certificate.setBlockchainTxHash(txHash);
 
             // NÀO CHAY THI MO
-            brevoApiEmailService.sendEmailsToStudentsExcel(
-                    certificate.getStudent().getEmail(),
-                    certificate.getStudent().getName(),
-                    user.getUniversity().getName(),
-                    certificateUrl,
-                    "Chứng Chỉ"
-            );
+//            brevoApiEmailService.sendEmailsToStudentsExcel(
+//                    certificate.getStudent().getEmail(),
+//                    certificate.getStudent().getName(),
+//                    user.getUniversity().getName(),
+//                    certificateUrl,
+//                    "Chứng Chỉ"
+//            );
 
             Notifications notifications = new Notifications();
             notifications.setUser(user);
@@ -600,6 +602,8 @@ public class CertificateService implements ICertificateService{
             }
             //gửi token
             stUcoinService.transferToStudent(wallet.getWalletAddress(), new BigInteger("5").multiply(BigInteger.TEN.pow(18))); // 5 STUcoin (18 decimals)
+            BigInteger amountBI = BigInteger.valueOf(5).multiply(BigInteger.TEN.pow(18));
+            walletService.updateWalletCoinAmount(wallet,amountBI,true);
 
             //gửi WebSocket
             NotificationResponse response = new NotificationResponse(

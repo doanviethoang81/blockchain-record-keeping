@@ -533,7 +533,8 @@ public class DegreeService implements IDegreeService{
             }
             //gửi token
             stUcoinService.transferToStudent(wallet.getWalletAddress(), new BigInteger("5").multiply(BigInteger.TEN.pow(18))); // 5 STUcoin (18 decimals)
-
+            BigInteger amountBI = BigInteger.valueOf(5).multiply(BigInteger.TEN.pow(18));
+            walletService.updateWalletCoinAmount(wallet,amountBI,true);
             //gửi WebSocket
             NotificationResponse response = new NotificationResponse(
                     notificationReceivers.getId(),
@@ -622,7 +623,8 @@ public class DegreeService implements IDegreeService{
             }
             //gửi token
             stUcoinService.transferToStudent(wallet.getWalletAddress(), new BigInteger("5").multiply(BigInteger.TEN.pow(18))); // 5 STUcoin (18 decimals)
-
+            BigInteger amountBI = BigInteger.valueOf(5).multiply(BigInteger.TEN.pow(18));
+            walletService.updateWalletCoinAmount(wallet,amountBI,true);
             //gửi WebSocket
             NotificationResponse response = new NotificationResponse(
                     notificationReceivers.getId(),
