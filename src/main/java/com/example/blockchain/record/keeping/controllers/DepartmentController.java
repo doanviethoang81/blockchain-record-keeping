@@ -367,7 +367,6 @@ public class DepartmentController {
                 return ApiResponseBuilder.badRequest("Số coin không đủ để thực hiện giao dịch!");
             }
 
-
             departmentService.exchangeToken(studentAddress,amountBI, wallet);
             return ApiResponseBuilder.success("Chuyển STUcoin thành công", null);
         } catch (Exception e) {

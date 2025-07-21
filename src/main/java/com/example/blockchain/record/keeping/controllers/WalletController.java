@@ -92,4 +92,43 @@ public class WalletController {
             return ApiResponseBuilder.internalError("Không thể lấy thông tin ví!");
         }
     }
+
+    @GetMapping("/student/transactions")
+    public ResponseEntity<?> getTransactionStudent(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        try {
+            Authentication authentication= SecurityContextHolder.getContext().getAuthentication();
+            String username= authentication.getName();
+            Student student = studentService.findByEmail(username);
+            Wallet wallet = walletService.findByStudent(student);
+            String walletAddress = wallet.getWalletAddress();
+//            String walletAddress = EnvUtil.get("METAMASK_ADDRESS");
+
+            List<TransactionDTO> allTxs = etherscanService.getAllTransactions(walletAddress);
+            int totalItems = allTxs.size();
+            int totalPages = (int) Math.ceil((double) totalItems / size);
+            if (page < 1) page = 1;
+
+            int fromIndex = (page - 1) * size;
+            int toIndex = Math.min(fromIndex + size, totalItems);
+
+            if (fromIndex >= totalItems) {
+                PaginatedData<TransactionDTO> data = new PaginatedData<>(Collections.emptyList(),
+                        new PaginationMeta(totalItems, 0, size, page, totalPages));
+                return ApiResponseBuilder.success("Không có giao dịch nào", data);
+            }
+
+            List<TransactionDTO> pageList = allTxs.subList(fromIndex, toIndex);
+
+            PaginationMeta meta = new PaginationMeta(totalItems, pageList.size(), size, page, totalPages);
+            PaginatedData<TransactionDTO> data = new PaginatedData<>(pageList, meta);
+
+            return ApiResponseBuilder.success("Lấy lịch sử giao dịch thành công", data);
+
+        } catch (Exception e) {
+            return ApiResponseBuilder.internalError("Lỗi: " + e.getMessage());
+        }
+    }
 }

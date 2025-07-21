@@ -452,18 +452,80 @@ public class StudentController {
             @RequestParam String amount
     ) {
         try {
-            Authentication authentication= SecurityContextHolder.getContext().getAuthentication();
-            String username= authentication.getName();
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String username = authentication.getName();
             Student student = studentService.findByEmail(username);
             Wallet wallet = walletService.findByStudent(student);
             String fromAddress = wallet.getWalletAddress();
 
             WalletSTUInfoDTO info = alchemyService.getWalletInfoSTU(fromAddress);
 
-            BigInteger amountBI;
-            if(!walletService.isWalletAddressValid(toAddress)){
+            // Validate địa chỉ ví
+            if (!walletService.isWalletAddressValid(toAddress)) {
                 return ApiResponseBuilder.badRequest("Địa chỉ ví không hợp lệ!");
             }
+            if (fromAddress.equals(toAddress)) {
+                return ApiResponseBuilder.badRequest("Không thể chuyển cho chính mình!");
+            }
+
+            BigInteger amountBI, feeBI;
+            try {
+                BigDecimal amountDecimal = new BigDecimal(amount);
+                if (amountDecimal.compareTo(BigDecimal.ZERO) <= 0) {
+                    return ApiResponseBuilder.badRequest("Số lượng phải lớn hơn 0");
+                }
+                amountBI = amountDecimal.multiply(BigDecimal.TEN.pow(18)).toBigIntegerExact();
+            } catch (Exception e) {
+                return ApiResponseBuilder.badRequest("Số lượng token không hợp lệ");
+            }
+
+            try {
+                BigDecimal feeDecimal = new BigDecimal("0.5");
+                feeBI = feeDecimal.multiply(BigDecimal.TEN.pow(18)).toBigIntegerExact();
+            } catch (Exception e) {
+                return ApiResponseBuilder.badRequest("Phí giao dịch không hợp lệ");
+            }
+
+            // Kiểm tra tổng tiền >= amount + fee
+            BigDecimal stuBalanceDecimal = new BigDecimal(info.getStuCoin());
+            BigInteger stuBalanceRaw = stuBalanceDecimal.multiply(BigDecimal.TEN.pow(18)).toBigInteger();
+            BigInteger totalCost = amountBI.add(feeBI);
+
+            if (stuBalanceRaw.compareTo(totalCost) < 0) {
+                return ApiResponseBuilder.badRequest("Số dư không đủ để thực hiện giao dịch (bao gồm cả phí giao dịch)");
+            }
+
+            // Thực hiện chuyển
+            TransactionReceipt receipt = stUcoinService.transferFromStudentToAnother(
+                    fromAddress, toAddress, amountBI
+            );
+
+            // Cập nhật ví
+            walletService.updateWalletCoinAmount(wallet, amountBI, false); // Trừ amount
+            Wallet receivingWallet = walletService.findByWalletAddress(toAddress);
+            walletService.updateWalletCoinAmount(receivingWallet, amountBI, true); // Cộng vào ví nhận
+
+            departmentService.exchangeToken(fromAddress,feeBI, wallet);
+
+            return ApiResponseBuilder.success("Chuyển token thành công", null);
+
+        } catch (Exception e) {
+            return ApiResponseBuilder.internalError("Lỗi khi chuyển token: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/student/payments/pdf")
+    public ResponseEntity<?> exchangeToken(
+    ) {
+        try {
+            Authentication authentication= SecurityContextHolder.getContext().getAuthentication();
+            String username= authentication.getName();
+            Student student = studentService.findByEmail(username);
+            Wallet wallet = walletService.findByStudent(student);
+
+            String amount = "0.5";
+
+            BigInteger amountBI;
             BigDecimal rawDecimal;
             try {
                 rawDecimal = new BigDecimal(amount);
@@ -475,26 +537,20 @@ public class StudentController {
                 return ApiResponseBuilder.badRequest("Số lượng token không hợp lệ");
             }
 
+            if (wallet == null || wallet.getPrivateKey() == null) {
+                return ApiResponseBuilder.badRequest("Sinh viên chưa có ví hoặc thiếu private key");
+            }
+            String studentAddress = wallet.getWalletAddress();
 
-            BigDecimal stuBalanceDecimal = new BigDecimal(info.getStuCoin());
-            BigInteger stuBalanceRaw = stuBalanceDecimal.multiply(BigDecimal.TEN.pow(18)).toBigInteger();
-
-            if (stuBalanceRaw.compareTo(amountBI) < 0) {
+            //kt coin cua sv
+            if (amountBI.compareTo(wallet.getCoin()) > 0) {
                 return ApiResponseBuilder.badRequest("Số coin không đủ để thực hiện giao dịch!");
             }
-
-            TransactionReceipt receipt = stUcoinService.transferFromStudentToAnother(
-                    fromAddress, toAddress, amountBI
-            );
-
-            walletService.updateWalletCoinAmount(wallet,amountBI,false);
-            Wallet receivingWallet = walletService.findByWalletAddress(toAddress);
-            walletService.updateWalletCoinAmount(receivingWallet,amountBI,true);
-
-            return ApiResponseBuilder.success("Chuyển token thành công", null);
-
+            departmentService.exchangeToken(studentAddress,amountBI, wallet);
+            return ApiResponseBuilder.success("Trả phí xuất thành công", null);
         } catch (Exception e) {
-            return ApiResponseBuilder.internalError("Lỗi khi chuyển token: " + e.getMessage());
+            return ApiResponseBuilder.internalError("Lỗi: " + e.getMessage());
         }
     }
+
 }
