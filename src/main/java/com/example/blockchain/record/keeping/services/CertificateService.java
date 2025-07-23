@@ -3,6 +3,8 @@ import com.example.blockchain.record.keeping.annotation.Auditable;
 import com.example.blockchain.record.keeping.aspect.AuditingContext;
 import com.example.blockchain.record.keeping.configs.Constants;
 import com.example.blockchain.record.keeping.dtos.CertificateExcelDTO;
+import com.example.blockchain.record.keeping.dtos.StatisticsSummaryDTO;
+import com.example.blockchain.record.keeping.dtos.StatisticsSummaryOfDepartmentDTO;
 import com.example.blockchain.record.keeping.dtos.request.*;
 import com.example.blockchain.record.keeping.enums.*;
 import com.example.blockchain.record.keeping.exceptions.BadRequestException;
@@ -53,6 +55,7 @@ public class CertificateService implements ICertificateService{
     private final WalletService walletService;
     private final STUcoinService stUcoinService;
     private final NotificationWebSocketSender notificationWebSocketSender;
+    private final DegreeRepository degreeRepository;
 
     @Autowired
     private Web3j web3j;
@@ -791,6 +794,24 @@ public class CertificateService implements ICertificateService{
         dto.setDiplomaNumber(entity.getDiplomaNumber());
         dto.setStatus(entity.getStatus().getLabel());
         return dto;
+    }
+
+    public StatisticsSummaryDTO getUniversityStatistics(Long universityId) {
+        Map<String, Object> topDepCerts = certificateRepository.getTopDepartmentWithMostCertificates(universityId);
+        Map<String, Object> topDepDegrees = degreeRepository.getTopDepartmentWithMostDegrees(universityId);
+        Map<String, Object> topClassCerts = certificateRepository.getTopClassWithMostCertificates(universityId);
+        Map<String, Object> topClassDegrees = degreeRepository.getTopClassWithMostDegrees(universityId);
+        Map<String, Object> topCertificateType = certificateRepository.getTopCertificateType(universityId);
+
+        return new StatisticsSummaryDTO(topDepCerts, topDepDegrees, topClassCerts, topClassDegrees,topCertificateType);
+    }
+
+    public StatisticsSummaryOfDepartmentDTO getDeparmentStatistics(Long universityId) {
+        Map<String, Object> topClassCerts = certificateRepository.getTopClassWithMostCertificatesOfDepartment(universityId);
+        Map<String, Object> topClassDegrees = degreeRepository.getTopClassWithMostDegreesOfDepartment(universityId);
+        Map<String, Object> topCertificateType = certificateRepository.getTopCertificateTypeOfDepartment(universityId);
+
+        return new StatisticsSummaryOfDepartmentDTO(topClassCerts, topClassDegrees,topCertificateType);
     }
 
 }

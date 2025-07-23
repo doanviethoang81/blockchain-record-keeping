@@ -11,10 +11,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Stream;
 
 @Repository
@@ -486,8 +483,87 @@ public interface CertificateRepository extends JpaRepository<Certificate,Long> {
     """, nativeQuery = true)
     List<Certificate> findByStatus(@Param("status") String status);
 
+
+    // xoa ch ch
     @Modifying
     @Transactional
     @Query(value = "update certificates set status = 'DELETED' where id =:id", nativeQuery = true)
     int delete(@Param("id") Long id);
+
+    // khoa có nhiều chứng chỉ nhất (pdt)
+    @Query(value = """
+            SELECT dp.id AS departmentId, dp.name AS departmentName, COUNT(c.id) AS total
+            FROM departments dp
+            LEFT JOIN student_class sc ON sc.department_id = dp.id
+            LEFT JOIN students s ON s.student_class_id = sc.id
+            LEFT JOIN certificates c ON c.student_id = s.id AND c.status = 'APPROVED'
+            WHERE dp.university_id = :universityId
+            GROUP BY dp.id, dp.name
+            ORDER BY total DESC
+            LIMIT 1;
+            """,nativeQuery = true)
+    Map<String, Object> getTopDepartmentWithMostCertificates(@Param("universityId") Long universityId);
+
+    //lớp có nhiều chứng chỉ nhất
+    @Query(value = """
+                    SELECT sc.id AS classId, sc.name AS className,
+                    COUNT(c.id) AS total
+                    FROM student_class sc
+                    JOIN departments d ON sc.department_id = d.id
+                    LEFT JOIN students s ON s.student_class_id = sc.id
+                    LEFT JOIN certificates c ON c.student_id = s.id AND c.status = 'APPROVED'
+                    WHERE d.university_id = :universityId
+                    GROUP BY sc.id, sc.name
+                    ORDER BY total DESC
+                    LIMIT 1;
+            """,nativeQuery = true)
+    Map<String, Object> getTopClassWithMostCertificates(@Param("universityId") Long universityId);
+
+    //chứng chỉ đc cấp nhiều nhất (pdt)
+    @Query(value = """
+            select ct.id, count(ct.id) as total,  ct.name AS certificateTypeName from certificate_types ct
+            JOIN university_certificate_types uct on ct.id = uct.certificate_type_id
+            join certificates c on uct.id = c.university_certificate_type_id
+            WHERE uct.university_id = :universityId
+            and c.status = 'APPROVED'
+            GROUP by ct.id, ct.name
+            ORDER BY total DESC
+            LIMIT 1
+            """,nativeQuery = true)
+    Map<String, Object> getTopCertificateType(@Param("universityId") Long universityId);
+
+    // chứng chỉ đc cấp nhiều nhất trong 1 khoa
+    @Query(value = """
+            SELECT ct.id, ct.name AS certificateTypeName, COUNT(*) AS total
+            FROM departments d
+            JOIN student_class sc ON sc.department_id = d.id
+            JOIN students s ON s.student_class_id = sc.id
+            JOIN certificates c ON c.student_id = s.id AND c.status = 'APPROVED'
+            JOIN university_certificate_types uct ON uct.id = c.university_certificate_type_id
+            JOIN certificate_types ct ON uct.certificate_type_id = ct.id
+            WHERE d.id = :departmentId
+            GROUP BY ct.id, ct.name
+            ORDER BY total DESC
+            LIMIT 1
+            """,nativeQuery = true)
+    Map<String, Object> getTopCertificateTypeOfDepartment(@Param("departmentId") Long departmentId);
+
+    // lớp được cấp nhiều chứng chỉ nhất trong 1 khoa
+    @Query(value = """
+            SELECT sc.id AS classId, sc.name AS className,
+            COUNT(sc.id) AS total
+            FROM departments d
+            join student_class sc on d.id = sc.department_id
+            join students s on sc.id = s.student_class_id
+            join degrees dg on s.id = dg.student_id
+            WHERE d.id = :departmentId
+            and dg.status = 'APPROVED'
+            GROUP BY sc.id, sc.name
+            ORDER BY total DESC
+            LIMIT 1
+            """,nativeQuery = true)
+    Map<String, Object> getTopClassWithMostCertificatesOfDepartment(@Param("departmentId") Long departmentId);
+
+
 }
+

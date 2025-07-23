@@ -232,7 +232,6 @@ public interface DegreeRepository extends JpaRepository<Degree,Long> {
             join departments dp on sc.department_id = dp.id
             WHERE dp.id = :departmentId
             and d.status = :status
-            and s.status ='ACTIVE'
             and sc.status ='ACTIVE'
             AND (:className IS NULL OR sc.name LIKE CONCAT('%', :className, '%'))
             AND (:studentCode IS NULL OR s.student_code LIKE CONCAT('%', :studentCode, '%'))
@@ -258,7 +257,6 @@ public interface DegreeRepository extends JpaRepository<Degree,Long> {
             join departments dp on sc.department_id = dp.id
             WHERE dp.id = :departmentId
             and d.status = :status
-            and s.status ='ACTIVE'
             and sc.status ='ACTIVE'
             AND (:className IS NULL OR sc.name LIKE CONCAT('%', :className, '%'))
             AND (:studentCode IS NULL OR s.student_code LIKE CONCAT('%', :studentCode, '%'))
@@ -314,12 +312,12 @@ public interface DegreeRepository extends JpaRepository<Degree,Long> {
     // thống kee sô luong hvan bang theo các khoa cua 1 truong
     @Query(value = """
     SELECT dp.name AS department_name,
-           COUNT(CASE WHEN d.status = 'PENDING' THEN 1 END) AS degree_pending,
-           COUNT(CASE WHEN d.status = 'APPROVED' THEN 1 END) AS degree_approved,
-           COUNT(CASE WHEN d.status = 'REJECTED' THEN 1 END) AS degree_rejected,
-           COUNT(CASE WHEN c.status = 'PENDING' THEN 1 END) AS certificate_peding,
-           COUNT(CASE WHEN c.status = 'APPROVED' THEN 1 END) AS certificate_approved,
-           COUNT(CASE WHEN c.status = 'REJECTED' THEN 1 END) AS certificate_rejected
+           COUNT(DISTINCT CASE WHEN d.status = 'PENDING' THEN d.id END) AS degree_pending,
+           COUNT(DISTINCT CASE WHEN d.status = 'APPROVED' THEN d.id END) AS degree_approved,
+           COUNT(DISTINCT CASE WHEN d.status = 'REJECTED' THEN d.id END) AS degree_rejected,
+           COUNT(DISTINCT CASE WHEN c.status = 'PENDING' THEN c.id END) AS certificate_peding,
+           COUNT(DISTINCT CASE WHEN c.status = 'APPROVED' THEN c.id END) AS certificate_approved,
+           COUNT(DISTINCT CASE WHEN c.status = 'REJECTED' THEN c.id END) AS certificate_rejected
     FROM departments dp
     JOIN universitys u ON dp.university_id = u.id
     LEFT JOIN student_class sc ON sc.department_id = dp.id
@@ -327,6 +325,7 @@ public interface DegreeRepository extends JpaRepository<Degree,Long> {
     LEFT JOIN degrees d ON d.student_id = s.id
     LEFT JOIN certificates c on s.id = c.student_id
     WHERE u.id = :universityId
+    AND dp.status NOT LIKE 'DELETED'
     GROUP BY dp.id, dp.name
     """, nativeQuery = true)
     List<FacultyDegreeStatisticRequest> getFacultyDegreeStatistics(@Param("universityId") Long universityId);
@@ -505,5 +504,55 @@ public interface DegreeRepository extends JpaRepository<Degree,Long> {
     @Transactional
     @Query(value = "update degrees set status = 'DELETED' where id =:id", nativeQuery = true)
     int delete(@Param("id") Long id);
+
+    // khoa có nhiều văn bằng nhất (pdt)
+    @Query(value = """
+            SELECT dp.id AS departmentId, dp.name AS departmentName, COUNT(d.id) AS total
+                    FROM departments dp
+                    LEFT JOIN student_class sc ON sc.department_id = dp.id
+                    LEFT JOIN students s ON s.student_class_id = sc.id
+                    LEFT JOIN degrees d ON d.student_id = s.id AND d.status = 'APPROVED'
+                    WHERE dp.university_id = :universityId
+                    GROUP BY dp.id, dp.name
+                    ORDER BY total DESC
+                    LIMIT 1;
+            """,nativeQuery = true)
+    Map<String, Object> getTopDepartmentWithMostDegrees(@Param("universityId") Long universityId);
+
+
+    //lớp có nhiều văn bằng nhất
+    @Query(value = """
+            SELECT sc.id AS classId,
+                           sc.name AS className,
+                           COUNT(c.id) AS total
+                    FROM student_class sc
+                    JOIN departments d ON sc.department_id = d.id
+                    LEFT JOIN students s ON s.student_class_id = sc.id
+                    LEFT JOIN certificates c ON c.student_id = s.id AND c.status = 'APPROVED'
+                    WHERE d.university_id = :universityId
+                    GROUP BY sc.id, sc.name
+                    ORDER BY total DESC
+                    LIMIT 1;
+            """,nativeQuery = true)
+    Map<String, Object> getTopClassWithMostDegrees(@Param("universityId") Long universityId);
+
+    //lớp có nhiều văn bằng nhất (khoa)
+    @Query(value = """
+            SELECT sc.id AS classId, sc.name AS className,
+            COUNT(sc.id) AS total
+            FROM departments d
+            join student_class sc on d.id = sc.department_id
+            join students s on sc.id = s.student_class_id
+            join degrees dg on s.id = dg.student_id
+            WHERE d.id = :departmentId
+            and dg.status = 'APPROVED'
+            GROUP BY sc.id, sc.name
+            ORDER BY total DESC
+            LIMIT 1
+            """,nativeQuery = true)
+    Map<String, Object> getTopClassWithMostDegreesOfDepartment(@Param("departmentId") Long departmentId);
+
+
+
 
 }

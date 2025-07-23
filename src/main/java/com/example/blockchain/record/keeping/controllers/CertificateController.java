@@ -31,6 +31,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.security.InvalidKeyException;
 import java.security.PublicKey;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -617,13 +618,29 @@ public class CertificateController {
                     !StringUtils.hasText(request.getPublicKeyBase64())) {
                 return ApiResponseBuilder.badRequest("Vui lòng nhập đầy đủ thông tin!");
             }
+
             String encryptedData = blockChainService.extractEncryptedData(request.getTransactionHash());
-            PublicKey publicKey = RSAKeyPairGenerator.getPublicKeyFromBase64(request.getPublicKeyBase64());
-            String decrypted = rsaUtil.decryptWithPublicKeyFromHex(encryptedData, publicKey);
+
+            PublicKey publicKey;
+            try {
+                publicKey = RSAKeyPairGenerator.getPublicKeyFromBase64(request.getPublicKeyBase64());
+            } catch (IllegalArgumentException | InvalidKeyException e) {
+                return ApiResponseBuilder.badRequest("Khóa công khai không hợp lệ. Vui lòng kiểm tra lại.");
+            }
+            String decrypted;
+            try {
+                decrypted = rsaUtil.decryptWithPublicKeyFromHex(encryptedData, publicKey);
+            } catch (Exception e) {
+                return ApiResponseBuilder.badRequest("Giải mã thất bại. Dữ liệu mã hóa có thể không tương ứng với khóa công khai.");
+            }
+
             Object jsonObject = objectMapper.readValue(decrypted, Object.class);
             return ApiResponseBuilder.success("Giải mã thành công", jsonObject);
+
+        } catch (IOException e) {
+            return ApiResponseBuilder.internalError("Dữ liệu sau khi giải mã không phải JSON hợp lệ.");
         } catch (Exception e) {
-            return ApiResponseBuilder.internalError("Giải mã thất bại: " + e.getMessage());
+            return ApiResponseBuilder.internalError("Lỗi hệ thống: " + e.getMessage());
         }
     }
 

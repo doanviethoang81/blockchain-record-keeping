@@ -1,8 +1,7 @@
 package com.example.blockchain.record.keeping.controllers;
 
-import com.example.blockchain.record.keeping.dtos.StatisticsAdminDTO;
-import com.example.blockchain.record.keeping.dtos.StatisticsDepartmentDTO;
-import com.example.blockchain.record.keeping.dtos.StatisticsUniversityDTO;
+import com.example.blockchain.record.keeping.dtos.*;
+import com.example.blockchain.record.keeping.models.Department;
 import com.example.blockchain.record.keeping.models.University;
 import com.example.blockchain.record.keeping.models.User;
 import com.example.blockchain.record.keeping.response.*;
@@ -16,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -213,5 +213,23 @@ public class DashboardController {
         }
     }
 
+    //top khoa, lớp chch/vb
+    @GetMapping("/pdt/statistics")
+    public ResponseEntity<?> getUniversityStatistics() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username= authentication.getName();
+        University university = universityService.getUniversityByEmail(username);
+        StatisticsSummaryDTO statisticsSummaryDTO = certificateService.getUniversityStatistics(university.getId());
+        return ApiResponseBuilder.success("Lấy thông tin thành công",statisticsSummaryDTO);
+    }
 
+    //top khoa, lớp chch/vb
+    @GetMapping("/khoa/statistics")
+    public ResponseEntity<?> getUniversityStatisticsOfDepartment() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username= authentication.getName();
+        User user = userService.findByUser(username);
+        StatisticsSummaryOfDepartmentDTO statisticsSummaryDTO = certificateService.getDeparmentStatistics(user.getDepartment().getId());
+        return ApiResponseBuilder.success("Lấy thông tin thành công",statisticsSummaryDTO);
+    }
 }
