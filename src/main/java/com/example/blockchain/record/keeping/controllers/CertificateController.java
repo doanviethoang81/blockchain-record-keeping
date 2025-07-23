@@ -1321,7 +1321,6 @@ public class CertificateController {
         }
     }
 
-
     //xuất excel khi chọn
     @PostMapping("/pdt/export-certificates-list")
     public void exportCertificatesList(

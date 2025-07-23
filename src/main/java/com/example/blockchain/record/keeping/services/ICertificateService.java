@@ -7,12 +7,14 @@ import com.example.blockchain.record.keeping.models.Certificate;
 import com.example.blockchain.record.keeping.models.Student;
 import com.example.blockchain.record.keeping.response.CertificateOfStudentResponse;
 import com.example.blockchain.record.keeping.response.CountCertificateTypeResponse;
+import com.example.blockchain.record.keeping.response.DegreeClassificationByYearResponse;
 import com.example.blockchain.record.keeping.response.MonthlyCertificateStatisticsResponse;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public interface ICertificateService {
 
@@ -78,4 +80,7 @@ public interface ICertificateService {
 
     Certificate delete(Long id);
 
+    List<DegreeClassificationByYearResponse> getCertificateClassificationByUniversityAndLast5Years(Long universityId);
+
+    List<DegreeClassificationByYearResponse> getCertificateClassificationByDepartmentAndLast5Years(Long universityId);
 }

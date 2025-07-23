@@ -368,7 +368,8 @@ public interface CertificateRepository extends JpaRepository<Certificate,Long> {
                 and s.status ='ACTIVE'
             ) total ON total.university_id = u.id
             WHERE u.id = :universityId AND ct.status = 'ACTIVE'
-            GROUP BY ct.name, total.total_students;
+            GROUP BY ct.name, total.total_students
+            ORDER by approved DESC
             """,nativeQuery = true)
     List<CountCertificateTypeRequest> countCertificateTypeOfUniversity(@Param("universityId")Long universityId);
 
@@ -564,6 +565,52 @@ public interface CertificateRepository extends JpaRepository<Certificate,Long> {
             """,nativeQuery = true)
     Map<String, Object> getTopClassWithMostCertificatesOfDepartment(@Param("departmentId") Long departmentId);
 
+    //thống kê chứng chỉ trong 5 năm của pdt
+    @Query(value = """
+            SELECT
+                y.year,
+                COALESCE(SUM(CASE WHEN c.status = 'PENDING' THEN 1 ELSE 0 END), 0) AS pending,
+                COALESCE(SUM(CASE WHEN c.status = 'APPROVED' THEN 1 ELSE 0 END), 0) AS approved,
+                COALESCE(SUM(CASE WHEN c.status = 'REJECTED' THEN 1 ELSE 0 END), 0) AS rejected
+            FROM (
+                SELECT YEAR(CURDATE()) AS year
+                UNION ALL SELECT YEAR(CURDATE()) - 1
+                UNION ALL SELECT YEAR(CURDATE()) - 2
+                UNION ALL SELECT YEAR(CURDATE()) - 3
+                UNION ALL SELECT YEAR(CURDATE()) - 4
+            ) AS y
+            LEFT JOIN certificates c ON YEAR(c.issue_date) = y.year
+            LEFT JOIN students s ON c.student_id = s.id
+            LEFT JOIN student_class sc ON s.student_class_id = sc.id
+            LEFT JOIN departments dp ON sc.department_id = dp.id
+            LEFT JOIN universitys u ON dp.university_id = u.id AND u.id = :universityId
+            GROUP BY y.year
+            ORDER BY y.year;
+            """,nativeQuery = true)
+    List<Object[]> getCertificateClassificationByUniversityAndLast5Years(@Param("universityId") Long universityId);
 
+
+    //thống kê chứng chỉ trong 5 năm của khoa
+    @Query(value = """
+        SELECT
+            y.year,
+            COALESCE(SUM(CASE WHEN c.status = 'PENDING' AND dp.id = :departmentId  THEN 1 ELSE 0 END), 0) AS pending,
+            COALESCE(SUM(CASE WHEN c.status = 'APPROVED' AND dp.id = :departmentId  THEN 1 ELSE 0 END), 0) AS approved,
+            COALESCE(SUM(CASE WHEN c.status = 'REJECTED' AND dp.id = :departmentId THEN 1 ELSE 0 END), 0) AS rejected
+        FROM (
+            SELECT YEAR(CURDATE()) AS year
+            UNION ALL SELECT YEAR(CURDATE()) - 1
+            UNION ALL SELECT YEAR(CURDATE()) - 2
+            UNION ALL SELECT YEAR(CURDATE()) - 3
+            UNION ALL SELECT YEAR(CURDATE()) - 4
+        ) AS y
+        LEFT JOIN certificates c ON YEAR(c.issue_date) = y.year
+        LEFT JOIN students s ON c.student_id = s.id
+        LEFT JOIN student_class sc ON s.student_class_id = sc.id
+        LEFT JOIN departments dp ON sc.department_id = dp.id
+        GROUP BY y.year
+        ORDER BY y.year;
+        """,nativeQuery = true)
+    List<Object[]> getCertificateClassificationByDepartmentAndLast5Years(@Param("departmentId") Long departmentId);
 }
 

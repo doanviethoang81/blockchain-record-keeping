@@ -380,7 +380,7 @@ public interface DegreeRepository extends JpaRepository<Degree,Long> {
                 UNION ALL SELECT YEAR(CURDATE()) - 3
                 UNION ALL SELECT YEAR(CURDATE()) - 4
             ) AS y
-            LEFT JOIN degrees d ON YEAR(d.updated_at) = y.year
+            LEFT JOIN degrees d ON YEAR(d.issue_date) = y.year
             LEFT JOIN students s ON d.student_id = s.id
             LEFT JOIN student_class sc ON s.student_class_id = sc.id
             LEFT JOIN departments dp ON sc.department_id = dp.id
@@ -405,7 +405,7 @@ public interface DegreeRepository extends JpaRepository<Degree,Long> {
             UNION ALL SELECT YEAR(CURDATE()) - 3
             UNION ALL SELECT YEAR(CURDATE()) - 4
         ) AS y
-        LEFT JOIN degrees d ON YEAR(d.updated_at) = y.year
+        LEFT JOIN degrees d ON YEAR(d.issue_date) = y.year
         LEFT JOIN students s ON d.student_id = s.id
         LEFT JOIN student_class sc ON s.student_class_id = sc.id
         LEFT JOIN departments dp ON sc.department_id = dp.id

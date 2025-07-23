@@ -277,6 +277,30 @@ public class CertificateService implements ICertificateService{
     }
 
     @Override
+    public List<DegreeClassificationByYearResponse> getCertificateClassificationByUniversityAndLast5Years(Long universityId) {
+        List<Object[]> raw =  certificateRepository.getCertificateClassificationByUniversityAndLast5Years(universityId);
+
+        return raw.stream().map(row -> new DegreeClassificationByYearResponse(
+                ((Number) row[0]).intValue(),
+                ((Number) row[1]).longValue(),
+                ((Number) row[2]).longValue(),
+                ((Number) row[3]).longValue()
+        )).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<DegreeClassificationByYearResponse> getCertificateClassificationByDepartmentAndLast5Years(Long universityId) {
+        List<Object[]> raw =  certificateRepository.getCertificateClassificationByDepartmentAndLast5Years(universityId);
+
+        return raw.stream().map(row -> new DegreeClassificationByYearResponse(
+                ((Number) row[0]).intValue(),
+                ((Number) row[1]).longValue(),
+                ((Number) row[2]).longValue(),
+                ((Number) row[3]).longValue()
+        )).collect(Collectors.toList());
+    }
+
+    @Override
     public List<Certificate> listCertificateOfUniversity(Long universittyId, String departmentName, String className, String studentCode, String studentName, String diplomaNumber, int limit, int offset){
         return certificateRepository.findPagedCertificates(universittyId,departmentName,className,studentCode,studentName, diplomaNumber, limit, offset);
     }
