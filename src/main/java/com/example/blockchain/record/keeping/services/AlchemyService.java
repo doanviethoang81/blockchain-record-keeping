@@ -245,43 +245,50 @@ public class AlchemyService {
         }
     }
 
+    public WalletSTUInfoDTO getWalletInfoSTUOfUniversity(String address) {
+        try {
+            Web3j web3j = Web3j.build(new HttpService(ALCHEMY_BASE_URL));
+
+            // Lấy số dư ETH
+            EthGetBalance balanceWei = web3j.ethGetBalance(address, DefaultBlockParameterName.LATEST).send();
+            BigDecimal eth = new BigDecimal(balanceWei.getBalance()).divide(BigDecimal.TEN.pow(18), 6, RoundingMode.HALF_UP);
+
+            // Lấy số lần giao dịch (nonce)
+            EthGetTransactionCount txCount = web3j.ethGetTransactionCount(address, DefaultBlockParameterName.LATEST).send();
+
+            String SMART_CONTRACT_STUCOIN_ADDRESS = EnvUtil.get("SMART_CONTRACT_STUCOIN_ADDRESS");
+
+            // Load smart contract STUcoi (dùng ví bất kỳ để call, không cần ký)
+            STUcoin_sol_STUcoin stucoi = STUcoin_sol_STUcoin.load(
+                    SMART_CONTRACT_STUCOIN_ADDRESS,  // ví dụ: "0xabc123..."
+                    web3j,
+                    new ReadonlyTransactionManager(web3j, address),
+                    new DefaultGasProvider()
+            );
+
+            // Gọi balanceOf để lấy số dư STUcoin
+            BigInteger tokenBalance = stucoi.balanceOf(address).send();
+            BigDecimal stuBalance = new BigDecimal(tokenBalance).divide(BigDecimal.TEN.pow(18), 6, RoundingMode.HALF_UP);
+
+            WalletSTUInfoDTO dto = new WalletSTUInfoDTO();
+            dto.setStuCoin(stuBalance.toString());
+            BigDecimal stuCoin = new BigDecimal(walletService.getTotalCoin()).divide(new BigDecimal("1000000000000000000")); // chia 10^18
+            dto.setStuCoinOfStudent(stuCoin.toString());
+            return dto;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("Lỗi khi lấy thông tin ví");
+        }
+    }
+
     public WalletSTUInfoDTO getWalletInfoSTU(String address) {
         if (address == null) {
             WalletSTUInfoDTO dto = new WalletSTUInfoDTO();
             dto.setStuCoin("0");
             return dto;
         }
-
-
         try {
-//            Web3j web3j = Web3j.build(new HttpService(ALCHEMY_BASE_URL));
-//
-//            // Lấy số dư ETH
-//            EthGetBalance balanceWei = web3j.ethGetBalance(address, DefaultBlockParameterName.LATEST).send();
-//            BigDecimal eth = new BigDecimal(balanceWei.getBalance()).divide(BigDecimal.TEN.pow(18), 6, RoundingMode.HALF_UP);
-//
-//            // Lấy số lần giao dịch (nonce)
-//            EthGetTransactionCount txCount = web3j.ethGetTransactionCount(address, DefaultBlockParameterName.LATEST).send();
-//            BigInteger nonce = txCount.getTransactionCount();
-//
-//            // Lấy gas price
-//            BigDecimal gasPriceGwei = new BigDecimal(web3j.ethGasPrice().send().getGasPrice())
-//                    .divide(BigDecimal.TEN.pow(9), 2, RoundingMode.HALF_UP);
-//
-//            String SMART_CONTRACT_STUCOIN_ADDRESS = EnvUtil.get("SMART_CONTRACT_STUCOIN_ADDRESS");
-//
-//            // Load smart contract STUcoi (dùng ví bất kỳ để call, không cần ký)
-//            STUcoin_sol_STUcoin stucoi = STUcoin_sol_STUcoin.load(
-//                    SMART_CONTRACT_STUCOIN_ADDRESS,  // ví dụ: "0xabc123..."
-//                    web3j,
-//                    new ReadonlyTransactionManager(web3j, address),
-//                    new DefaultGasProvider()
-//            );
-//
-//            // Gọi balanceOf để lấy số dư STUcoin
-//            BigInteger tokenBalance = stucoi.balanceOf(address).send();
-//            BigDecimal stuBalance = new BigDecimal(tokenBalance).divide(BigDecimal.TEN.pow(18), 6, RoundingMode.HALF_UP);
-//
             Wallet wallet = walletService.findByWalletAddress(address);
 
             WalletSTUInfoDTO dto = new WalletSTUInfoDTO();

@@ -86,7 +86,7 @@ public class WalletController {
     public ResponseEntity<?> getWalletSTUInfo() {
         String address = EnvUtil.get("METAMASK_ADDRESS");
         try {
-            WalletSTUInfoDTO info = alchemyService.getWalletInfoSTU(address);
+            WalletSTUInfoDTO info = alchemyService.getWalletInfoSTUOfUniversity(address);
             return ApiResponseBuilder.success("Lấy thông tin ví thành công", info);
         } catch (Exception e) {
             return ApiResponseBuilder.internalError("Không thể lấy thông tin ví!");
