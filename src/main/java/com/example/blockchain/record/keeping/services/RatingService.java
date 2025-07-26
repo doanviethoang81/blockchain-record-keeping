@@ -33,8 +33,8 @@ public class RatingService implements IRatingService {
 
     @Override
     public Rating findByName(String name) {
-        return ratingRepository.findByName(name)
-                .orElseThrow(()-> new RuntimeException("Không tìm thấy loại xếp hạng này!"));
+        return ratingRepository.findByNameAndStatus(name,Status.ACTIVE)
+                .orElse(null);
     }
 
     @Override
@@ -106,5 +106,10 @@ public class RatingService implements IRatingService {
         ratingRepository.save(rating);
         AuditingContext.setDescription("Tạo loại xếp loại của văn bằng có tên: " + rating.getName());
         return rating;
+    }
+
+    @Override
+    public boolean existsByNameAndStatusAndIdNot(String name, Status status, Long id) {
+        return ratingRepository.existsByNameAndStatusAndIdNot(name, status, id);
     }
 }

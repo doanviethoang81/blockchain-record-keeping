@@ -85,10 +85,14 @@ public class DegreeTitleController {
             if(request.getName() == null || !StringUtils.hasText(request.getName())){
                 return ApiResponseBuilder.badRequest("Vui lòng nhập đầy đủ thông tin!");
             }
+            DegreeTitle degreeTitle = degreeTitleSevice.findById(id);
+
+            if(request.getName().trim().equals(degreeTitle.getName().trim())){
+                return ApiResponseBuilder.badRequest("Dữ liệu nhập vào chưa được thay đổi!");
+            }
             if(degreeTitleSevice.findByNameAndStatus(request.name.trim(), Status.ACTIVE)){
                 return ApiResponseBuilder.badRequest("Tên danh hiệu này đã tồn tại");
             }
-            DegreeTitle degreeTitle = degreeTitleSevice.findById(id);
 
             degreeTitleSevice.update(degreeTitle, request.getName());
             return ApiResponseBuilder.success("Cập nhật thành công", null);
@@ -106,6 +110,9 @@ public class DegreeTitleController {
     {
         try {
             DegreeTitle degreeTitle = degreeTitleSevice.findById(id);
+            if(degreeTitle.getStatus().equals(Status.DELETED)){
+                return ApiResponseBuilder.badRequest("Danh hiệu này đã bị xóa rồi");
+            }
             degreeTitleSevice.delete(degreeTitle);
             return ApiResponseBuilder.success("Xóa thành công", null);
         } catch (Exception e) {

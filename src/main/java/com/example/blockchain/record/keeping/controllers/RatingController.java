@@ -92,11 +92,13 @@ public class RatingController {
             if(request.getName() == null || !StringUtils.hasText(request.getName())){
                 return ApiResponseBuilder.badRequest("Vui lòng nhập đầy đủ thông tin!");
             }
+            Rating rating = ratingService.findById(id);
+            if(request.getName().trim().equals(rating.getName().trim())){
+                return ApiResponseBuilder.badRequest("Dữ liệu nhập vào chưa được thay đổi!");
+            }
             if(ratingService.findByNameAndStatus(request.name.trim(), Status.ACTIVE)){
                 return ApiResponseBuilder.badRequest("Tên xếp loại này đã tồn tại");
             }
-            Rating rating = ratingService.findById(id);
-
             ratingService.update(rating, request.getName());
             return ApiResponseBuilder.success("Cập nhật thành công", null);
 
@@ -113,6 +115,9 @@ public class RatingController {
     {
         try {
             Rating rating = ratingService.findById(id);
+            if(rating.getStatus().equals(Status.DELETED)){
+                return ApiResponseBuilder.badRequest("Xếp loại này đã bị xóa rồi");
+            }
             ratingService.delete(rating);
             return ApiResponseBuilder.success("Xóa thành công", null);
         } catch (Exception e) {

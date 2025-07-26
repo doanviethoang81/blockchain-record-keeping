@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface    CertificateTypeRepository extends JpaRepository<CertificateType,Long> {
+public interface CertificateTypeRepository extends JpaRepository<CertificateType,Long> {
     Optional<CertificateType> findByIdAndStatus(Long id, Status status);
 
     boolean existsByNameAndStatus(String name, Status status);

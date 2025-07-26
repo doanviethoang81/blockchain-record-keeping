@@ -244,8 +244,20 @@ public class DegreeExcelListener extends AnalysisEventListener<DegreeExcelRowReq
             }
 
             Rating rating =ratingService.findByName(row.getRatingName());
+            if(rating == null){
+                errors.add("Dòng " + rowIndex + ": Không tìm thấy loại xếp hạng này!");
+                continue;
+            }
             DegreeTitle degreeTitle = degreeTitleSevice.findByName(row.getDegreeTitleName());
+            if(degreeTitle == null){
+                errors.add("Dòng " + rowIndex + ": Không tìm thấy loại văn bằng này!");
+                continue;
+            }
             EducationMode educationMode = educationModelSevice.findByName(row.getEducationModeName());
+            if(educationMode == null){
+                errors.add("Dòng " + rowIndex + ": Không tìm thấy hình thức đào tạo này !");
+                continue;
+            }
 
             Degree degree = new Degree();
             degree.setStudent(student);

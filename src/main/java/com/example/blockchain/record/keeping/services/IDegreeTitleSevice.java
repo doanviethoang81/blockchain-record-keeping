@@ -21,4 +21,7 @@ public interface IDegreeTitleSevice {
     boolean findByNameAndStatus(String name, Status status);
 
     DegreeTitle add(DegreeTitleRequest request);
+
+    boolean existsByNameAndStatusAndIdNot(String name, Status status, Long id);
+
 }

@@ -11,10 +11,12 @@ import java.util.Optional;
 
 @Repository
 public interface EducationModelRepository extends JpaRepository<EducationMode,Long> {
-    Optional<EducationMode> findByName(String name);
+    Optional<EducationMode> findByNameAndStatus(String name,Status status);
 
     List<EducationMode> findByStatus(Status status);
 
     boolean existsByNameAndStatus(String name, Status status);
+
+    boolean existsByNameAndStatusAndIdNot(String name, Status status, Long id);
 
 }

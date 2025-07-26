@@ -3,6 +3,7 @@ package com.example.blockchain.record.keeping.services;
 import com.example.blockchain.record.keeping.annotation.Auditable;
 import com.example.blockchain.record.keeping.aspect.AuditingContext;
 import com.example.blockchain.record.keeping.dtos.CertificateTypeDTO;
+import com.example.blockchain.record.keeping.dtos.request.CertificateTypeRequest;
 import com.example.blockchain.record.keeping.enums.ActionType;
 import com.example.blockchain.record.keeping.enums.Entity;
 import com.example.blockchain.record.keeping.enums.LogTemplate;
@@ -111,5 +112,4 @@ public class CertificateTypeService implements ICertificateTypeService{
     public boolean existsByNameAndStatus(String name) {
         return certificateTypeRepository.existsByNameAndStatus(name, Status.ACTIVE);
     }
-
 }

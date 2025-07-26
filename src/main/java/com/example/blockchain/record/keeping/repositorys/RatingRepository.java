@@ -14,9 +14,11 @@ import java.util.Optional;
 
 @Repository
 public interface RatingRepository extends JpaRepository<Rating,Long> {
-    Optional<Rating> findByName(String name);
+    Optional<Rating> findByNameAndStatus(String name,Status status);
 
     List<Rating> findByStatus(Status status);
 
     boolean existsByNameAndStatus(String name, Status status);
+
+    boolean existsByNameAndStatusAndIdNot(String name, Status status, Long id);
 }

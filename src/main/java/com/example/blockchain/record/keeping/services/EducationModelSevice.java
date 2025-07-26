@@ -34,8 +34,8 @@ public class EducationModelSevice implements IEducationModelSevice {
 
     @Override
     public EducationMode findByName(String name) {
-        return educationModelRepository.findByName(name)
-                .orElseThrow(()-> new RuntimeException("Không tìm thấy hình thức đào tạo!"));
+        return educationModelRepository.findByNameAndStatus( name,Status.ACTIVE)
+                .orElse(null);
     }
 
     @Override
@@ -109,5 +109,10 @@ public class EducationModelSevice implements IEducationModelSevice {
         educationModelRepository.save(educationMode);
         AuditingContext.setDescription("Tạo hình thức đào tạo của văn bằng có tên: " + educationMode.getName());
         return educationMode;
+    }
+
+    @Override
+    public boolean existsByNameAndStatusAndIdNot(String name, Status status, Long id) {
+        return educationModelRepository.existsByNameAndStatusAndIdNot(name, status, id);
     }
 }

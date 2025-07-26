@@ -86,10 +86,13 @@ public class EducationModeController {
             if(request.getName() == null || !StringUtils.hasText(request.getName())){
                 return ApiResponseBuilder.badRequest("Vui lòng nhập đầy đủ thông tin!");
             }
+            EducationMode educationMode = educationModelSevice.findById(id);
+            if(request.getName().trim().equals(educationMode.getName().trim())){
+                return ApiResponseBuilder.badRequest("Dữ liệu nhập vào chưa được thay đổi!");
+            }
             if(educationModelSevice.findByNameAndStatus(request.name.trim(), Status.ACTIVE)){
                 return ApiResponseBuilder.badRequest("Tên hình thức đào tạo này đã tồn tại");
             }
-            EducationMode educationMode = educationModelSevice.findById(id);
 
             educationModelSevice.update(educationMode, request.getName());
             return ApiResponseBuilder.success("Cập nhật thành công", null);
@@ -107,6 +110,9 @@ public class EducationModeController {
     {
         try {
             EducationMode educationMode = educationModelSevice.findById(id);
+            if(educationMode.getStatus().equals(Status.DELETED)){
+                return ApiResponseBuilder.badRequest("Hình thức đào tạo này đã bị xóa rồi");
+            }
             educationModelSevice.delete(educationMode);
             return ApiResponseBuilder.success("Xóa thành công", null);
         } catch (Exception e) {

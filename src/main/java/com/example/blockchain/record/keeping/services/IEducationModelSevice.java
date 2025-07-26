@@ -21,4 +21,7 @@ public interface IEducationModelSevice {
     boolean findByNameAndStatus(String name, Status status);
 
     EducationMode add(EducationModeRequest request);
+
+    boolean existsByNameAndStatusAndIdNot(String name, Status status, Long id);
+
 }

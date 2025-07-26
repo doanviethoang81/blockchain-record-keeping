@@ -31,8 +31,8 @@ public class DegreeTitleSevice implements IDegreeTitleSevice {
 
     @Override
     public DegreeTitle findByName(String name) {
-        return degreeTitleRepository.findByName(name)
-                .orElseThrow(()-> new RuntimeException("Không tìm thấy loại văn bằng!"));
+        return degreeTitleRepository.findByNameAndStatus(name,Status.ACTIVE)
+                .orElse(null);
     }
 
     @Override
@@ -104,5 +104,10 @@ public class DegreeTitleSevice implements IDegreeTitleSevice {
         degreeTitleRepository.save(degreeTitle);
         AuditingContext.setDescription("Tạo danh hiệu của văn bằng có tên: " + degreeTitle.getName());
         return degreeTitle;
+    }
+
+    @Override
+    public boolean existsByNameAndStatusAndIdNot(String name, Status status, Long id) {
+        return degreeTitleRepository.existsByNameAndStatusAndIdNot(name, status, id);
     }
 }

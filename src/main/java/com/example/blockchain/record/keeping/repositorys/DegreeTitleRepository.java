@@ -12,9 +12,12 @@ import java.util.Optional;
 @Repository
 public interface DegreeTitleRepository extends JpaRepository<DegreeTitle,Long> {
 
-    Optional<DegreeTitle> findByName(String name);
+    Optional<DegreeTitle> findByNameAndStatus(String name,Status status);
 
     List<DegreeTitle> findByStatus(Status status);
 
     boolean existsByNameAndStatus(String name, Status status);
+
+    boolean existsByNameAndStatusAndIdNot(String name, Status status, Long id);
+
 }

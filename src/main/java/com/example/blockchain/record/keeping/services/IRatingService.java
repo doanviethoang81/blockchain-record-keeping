@@ -21,4 +21,5 @@ public interface IRatingService {
 
     Rating add(RatingRequest request);
 
+    boolean existsByNameAndStatusAndIdNot(String name, Status status, Long id);
 }
