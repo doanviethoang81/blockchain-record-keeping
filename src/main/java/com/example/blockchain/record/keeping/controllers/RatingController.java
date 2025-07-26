@@ -1,9 +1,10 @@
 package com.example.blockchain.record.keeping.controllers;
 
 import com.example.blockchain.record.keeping.dtos.CertificateTypeDTO;
-import com.example.blockchain.record.keeping.models.CertificateType;
-import com.example.blockchain.record.keeping.models.Rating;
-import com.example.blockchain.record.keeping.models.User;
+import com.example.blockchain.record.keeping.dtos.request.CertificateTypeRequest;
+import com.example.blockchain.record.keeping.dtos.request.RatingRequest;
+import com.example.blockchain.record.keeping.enums.Status;
+import com.example.blockchain.record.keeping.models.*;
 import com.example.blockchain.record.keeping.response.ApiResponseBuilder;
 import com.example.blockchain.record.keeping.response.PaginatedData;
 import com.example.blockchain.record.keeping.response.PaginationMeta;
@@ -15,11 +16,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.util.StringUtils;
+import org.springframework.web.bind.annotation.*;
 
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,8 +31,8 @@ import java.util.List;
 public class RatingController {
     private final RatingService ratingService;
 
-    @PreAuthorize("hasAuthority('READ')")
-    @GetMapping("/khoa/rating")
+    @PreAuthorize("(hasAnyRole('PDT', 'KHOA')) and hasAuthority('READ')")
+    @GetMapping("/rating")
     public ResponseEntity<?> getRating(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "100") int size
@@ -60,6 +61,62 @@ public class RatingController {
             return ApiResponseBuilder.success("Danh sách các loại xếp loại", data);
         } catch (Exception e) {
             return ApiResponseBuilder.internalError("Lỗi: " + e.getMessage());
+        }
+    }
+
+    //thêm
+    @PreAuthorize("hasAuthority('WRITE')")
+    @PostMapping("/pdt/rating")
+    public ResponseEntity<?> createCertificateType(@RequestBody RatingRequest request) {
+        try {
+            if(request.getName() == null || !StringUtils.hasText(request.getName())){
+                return ApiResponseBuilder.badRequest("Vui lòng nhập đầy đủ thông tin!");
+            }
+            if(ratingService.findByNameAndStatus(request.name.trim(), Status.ACTIVE)){
+                return ApiResponseBuilder.badRequest("Tên xếp loại này đã tồn tại");
+            }
+            ratingService.add(request);
+            return ApiResponseBuilder.success("Thêm thành công", null);
+        } catch (Exception e) {
+            return ApiResponseBuilder.internalError("Có lỗi xảy ra: " + e.getMessage());
+        }
+    }
+
+    //sửa
+    @PostMapping("/pdt/rating/{id}")
+    public ResponseEntity<?> update(
+            @PathVariable("id")  Long id,
+            @RequestBody RatingRequest request
+    ){
+        try{
+            if(request.getName() == null || !StringUtils.hasText(request.getName())){
+                return ApiResponseBuilder.badRequest("Vui lòng nhập đầy đủ thông tin!");
+            }
+            if(ratingService.findByNameAndStatus(request.name.trim(), Status.ACTIVE)){
+                return ApiResponseBuilder.badRequest("Tên xếp loại này đã tồn tại");
+            }
+            Rating rating = ratingService.findById(id);
+
+            ratingService.update(rating, request.getName());
+            return ApiResponseBuilder.success("Cập nhật thành công", null);
+
+        } catch (Exception e) {
+            return ApiResponseBuilder.badRequest("Cập nhật thất bại!");
+        }
+    }
+
+    //xóa
+    @PreAuthorize("hasAuthority('READ')")
+    @DeleteMapping("/pdt/rating/{id}")
+    public ResponseEntity<?> delete(
+            @PathVariable("id")  Long id)
+    {
+        try {
+            Rating rating = ratingService.findById(id);
+            ratingService.delete(rating);
+            return ApiResponseBuilder.success("Xóa thành công", null);
+        } catch (Exception e) {
+            return ApiResponseBuilder.badRequest(e.getMessage());
         }
     }
 }

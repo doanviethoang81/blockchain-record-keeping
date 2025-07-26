@@ -1,5 +1,8 @@
 package com.example.blockchain.record.keeping.controllers;
 
+import com.example.blockchain.record.keeping.dtos.request.EducationModeRequest;
+import com.example.blockchain.record.keeping.dtos.request.RatingRequest;
+import com.example.blockchain.record.keeping.enums.Status;
 import com.example.blockchain.record.keeping.models.EducationMode;
 import com.example.blockchain.record.keeping.models.Rating;
 import com.example.blockchain.record.keeping.response.*;
@@ -8,10 +11,8 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.util.StringUtils;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,8 +25,8 @@ public class EducationModeController {
 
     private final EducationModelSevice educationModelSevice;
 
-    @PreAuthorize("hasAuthority('READ')")
-    @GetMapping("/khoa/education-mode")
+    @PreAuthorize("(hasAnyRole('PDT', 'KHOA')) and hasAuthority('READ')")
+    @GetMapping("/education-mode")
     public ResponseEntity<?> getEducationMode(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "100") int size
@@ -56,4 +57,61 @@ public class EducationModeController {
             return ApiResponseBuilder.internalError("Lỗi: " + e.getMessage());
         }
     }
+
+    //thêm
+    @PreAuthorize("hasAuthority('WRITE')")
+    @PostMapping("/pdt/education-mode")
+    public ResponseEntity<?> createCertificateType(@RequestBody EducationModeRequest request) {
+        try {
+            if(request.getName() == null || !StringUtils.hasText(request.getName())){
+                return ApiResponseBuilder.badRequest("Vui lòng nhập đầy đủ thông tin!");
+            }
+            if(educationModelSevice.findByNameAndStatus(request.name.trim(), Status.ACTIVE)){
+                return ApiResponseBuilder.badRequest("Tên hình thức đào tạo này đã tồn tại");
+            }
+            educationModelSevice.add(request);
+            return ApiResponseBuilder.success("Thêm thành công", null);
+        } catch (Exception e) {
+            return ApiResponseBuilder.internalError("Có lỗi xảy ra: " + e.getMessage());
+        }
+    }
+
+    //sửa
+    @PostMapping("/pdt/education-mode/{id}")
+    public ResponseEntity<?> update(
+            @PathVariable("id")  Long id,
+            @RequestBody EducationModeRequest request
+    ){
+        try{
+            if(request.getName() == null || !StringUtils.hasText(request.getName())){
+                return ApiResponseBuilder.badRequest("Vui lòng nhập đầy đủ thông tin!");
+            }
+            if(educationModelSevice.findByNameAndStatus(request.name.trim(), Status.ACTIVE)){
+                return ApiResponseBuilder.badRequest("Tên hình thức đào tạo này đã tồn tại");
+            }
+            EducationMode educationMode = educationModelSevice.findById(id);
+
+            educationModelSevice.update(educationMode, request.getName());
+            return ApiResponseBuilder.success("Cập nhật thành công", null);
+
+        } catch (Exception e) {
+            return ApiResponseBuilder.badRequest("Cập nhật thất bại!");
+        }
+    }
+
+    //xóa
+    @PreAuthorize("hasAuthority('READ')")
+    @DeleteMapping("/pdt/education-mode/{id}")
+    public ResponseEntity<?> delete(
+            @PathVariable("id")  Long id)
+    {
+        try {
+            EducationMode educationMode = educationModelSevice.findById(id);
+            educationModelSevice.delete(educationMode);
+            return ApiResponseBuilder.success("Xóa thành công", null);
+        } catch (Exception e) {
+            return ApiResponseBuilder.badRequest(e.getMessage());
+        }
+    }
+
 }

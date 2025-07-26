@@ -1252,7 +1252,7 @@ public class DegreeController {
         log.setActionType(ActionType.EXPORT_EXCEL);
         log.setEntityName(Entity.degrees);
         log.setEntityId(null);
-        log.setDescription(LogTemplate.EXPORT_EXCEL_DEGREE_LIST.name());
+        log.setDescription(LogTemplate.EXPORT_EXCEL_DEGREE_LIST.getName());
         log.setCreatedAt(vietnamTime.toLocalDateTime());
         log.setIpAddress(ipAdress);
         logRepository.save(log);

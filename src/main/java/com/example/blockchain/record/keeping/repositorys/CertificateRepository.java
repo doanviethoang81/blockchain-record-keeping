@@ -402,7 +402,8 @@ public interface CertificateRepository extends JpaRepository<Certificate,Long> {
             )
         WHERE ct.status = 'ACTIVE'
           AND d.id = :departmentId
-        GROUP BY ct.name, total.total_students;
+        GROUP BY ct.name, total.total_students
+        ORDER by approved DESC
         """,nativeQuery = true)
     List<CountCertificateTypeRequest> countCertificateTypeOfDepartment(@Param("departmentId")Long departmentId);
 

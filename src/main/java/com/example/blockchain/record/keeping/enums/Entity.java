@@ -8,5 +8,9 @@ public enum Entity {
     students,
     student_class,
     universitys,
-    user
+    user,
+    rating,
+    educationMode,
+    degreeTitle,
+
 }

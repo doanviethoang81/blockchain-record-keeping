@@ -200,7 +200,7 @@ public class DashboardController {
         }
     }
 
-    // thống kê số lượng chứng chỉ trong 5 năm của tr
+    // thống kê số lượng chứng chỉ trong 5 năm của khoa
     @GetMapping("/khoa/dashboard/certificate-statistics-by-year")
     public ResponseEntity<?> getCertificateClassificationByDepartmentAndLast5Years() {
         try {
@@ -208,7 +208,7 @@ public class DashboardController {
             String username = authentication.getName();
             User user = userService.findByUser(username);
 
-            List<DegreeClassificationByYearResponse> result = certificateService.getCertificateClassificationByUniversityAndLast5Years(user.getUniversity().getId());
+            List<DegreeClassificationByYearResponse> result = certificateService.getCertificateClassificationByDepartmentAndLast5Years(user.getDepartment().getId());
             return ApiResponseBuilder.success("Thống kê chứng chỉ trong năm 5 của khoa", result);
         } catch (Exception e) {
             return ApiResponseBuilder.internalError("Lỗi: " + e.getMessage());

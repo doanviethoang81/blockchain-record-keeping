@@ -1,5 +1,8 @@
 package com.example.blockchain.record.keeping.controllers;
 
+import com.example.blockchain.record.keeping.dtos.request.DegreeTitleRequest;
+import com.example.blockchain.record.keeping.dtos.request.EducationModeRequest;
+import com.example.blockchain.record.keeping.enums.Status;
 import com.example.blockchain.record.keeping.models.DegreeTitle;
 import com.example.blockchain.record.keeping.models.EducationMode;
 import com.example.blockchain.record.keeping.response.*;
@@ -8,10 +11,8 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.util.StringUtils;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,8 +24,8 @@ import java.util.List;
 public class DegreeTitleController {
     private final DegreeTitleSevice degreeTitleSevice;
 
-    @PreAuthorize("hasAuthority('READ')")
-    @GetMapping("/khoa/degree-title")
+    @PreAuthorize("(hasAnyRole('PDT', 'KHOA')) and hasAuthority('READ')")
+    @GetMapping("/degree-title")
     public ResponseEntity<?> getDegreeTitle(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "100") int size
@@ -53,6 +54,62 @@ public class DegreeTitleController {
             return ApiResponseBuilder.success("Danh sách các loại danh hiệu văn bằng", data);
         } catch (Exception e) {
             return ApiResponseBuilder.internalError("Lỗi: " + e.getMessage());
+        }
+    }
+
+    //thêm
+    @PreAuthorize("hasAuthority('WRITE')")
+    @PostMapping("/pdt/degree-title")
+    public ResponseEntity<?> createCertificateType(@RequestBody DegreeTitleRequest request) {
+        try {
+            if(request.getName() == null || !StringUtils.hasText(request.getName())){
+                return ApiResponseBuilder.badRequest("Vui lòng nhập đầy đủ thông tin!");
+            }
+            if(degreeTitleSevice.findByNameAndStatus(request.name.trim(), Status.ACTIVE)){
+                return ApiResponseBuilder.badRequest("Tên danh hiệu này đã tồn tại");
+            }
+            degreeTitleSevice.add(request);
+            return ApiResponseBuilder.success("Thêm thành công", null);
+        } catch (Exception e) {
+            return ApiResponseBuilder.internalError("Có lỗi xảy ra: " + e.getMessage());
+        }
+    }
+
+    //sửa
+    @PostMapping("/pdt/degree-title/{id}")
+    public ResponseEntity<?> update(
+            @PathVariable("id")  Long id,
+            @RequestBody EducationModeRequest request
+    ){
+        try{
+            if(request.getName() == null || !StringUtils.hasText(request.getName())){
+                return ApiResponseBuilder.badRequest("Vui lòng nhập đầy đủ thông tin!");
+            }
+            if(degreeTitleSevice.findByNameAndStatus(request.name.trim(), Status.ACTIVE)){
+                return ApiResponseBuilder.badRequest("Tên danh hiệu này đã tồn tại");
+            }
+            DegreeTitle degreeTitle = degreeTitleSevice.findById(id);
+
+            degreeTitleSevice.update(degreeTitle, request.getName());
+            return ApiResponseBuilder.success("Cập nhật thành công", null);
+
+        } catch (Exception e) {
+            return ApiResponseBuilder.badRequest("Cập nhật thất bại!");
+        }
+    }
+
+    //xóa
+    @PreAuthorize("hasAuthority('READ')")
+    @DeleteMapping("/pdt/degree-title/{id}")
+    public ResponseEntity<?> delete(
+            @PathVariable("id")  Long id)
+    {
+        try {
+            DegreeTitle degreeTitle = degreeTitleSevice.findById(id);
+            degreeTitleSevice.delete(degreeTitle);
+            return ApiResponseBuilder.success("Xóa thành công", null);
+        } catch (Exception e) {
+            return ApiResponseBuilder.badRequest(e.getMessage());
         }
     }
 }

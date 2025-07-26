@@ -222,6 +222,23 @@ public class AuditLogService {
         return clone;
     }
 
+    public Rating cloneRating(Rating source) {
+        Rating clone = new Rating();
+        clone.setName(source.getName());
+        return clone;
+    }
+
+    public EducationMode cloneEducationMode(EducationMode source) {
+        EducationMode clone = new EducationMode();
+        clone.setName(source.getName());
+        return clone;
+    }
+
+    public DegreeTitle cloneDegreeTitle(DegreeTitle source) {
+        DegreeTitle clone = new DegreeTitle();
+        clone.setName(source.getName());
+        return clone;
+    }
 
     public User getCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
