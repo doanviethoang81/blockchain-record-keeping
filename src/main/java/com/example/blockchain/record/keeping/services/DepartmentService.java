@@ -194,4 +194,17 @@ public class DepartmentService  implements IDepartmentService{
         walletService.update(wallet);
     }
 
+    public void logSTUcoin( Student student, String amount){
+        ZonedDateTime vietnamTime = ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
+        String ipAdress = auditLogService.getClientIp(httpServletRequest);
+            Log log = new Log();
+            log.setUser(auditLogService.getCurrentUser());
+            log.setActionType(ActionType.COIN);
+            log.setEntityName(Entity.students);
+            log.setEntityId(null);
+            log.setDescription(LogTemplate.COIN.format(amount, student.getStudentCode()));
+            log.setIpAddress(ipAdress);
+            log.setCreatedAt(vietnamTime.toLocalDateTime());
+            logRepository.save(log);
+    }
 }

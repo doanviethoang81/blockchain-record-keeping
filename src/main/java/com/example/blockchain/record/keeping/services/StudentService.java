@@ -40,6 +40,7 @@ public class StudentService implements IStudentService{
     private final ActionChangeRepository actionChangeRepository;
     private final WalletService walletService;
     private final STUcoinService stUcoinService;
+    private final UserService userService;
 
     // danh sách sv của các lớp của 1 khoa
     public List<Student> studentOfClassOfDepartmentList(Long idDepartment){
@@ -245,5 +246,20 @@ public class StudentService implements IStudentService{
             }
         }
         return false;
+    }
+
+    public void logSTUcoin( Student student, String amount, String studentCode){
+        ZonedDateTime vietnamTime = ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
+        User user = userService.findByDepartment(student.getStudentClass().getDepartment());
+        String ipAdress = auditLogService.getClientIp(httpServletRequest);
+        Log log = new Log();
+        log.setUser(user);
+        log.setActionType(ActionType.COIN);
+        log.setEntityName(Entity.students);
+        log.setEntityId(null);
+        log.setDescription(LogTemplate.COIN_STUDENT.format(student.getStudentCode(),amount,studentCode));
+        log.setIpAddress(ipAdress);
+        log.setCreatedAt(vietnamTime.toLocalDateTime());
+        logRepository.save(log);
     }
 }

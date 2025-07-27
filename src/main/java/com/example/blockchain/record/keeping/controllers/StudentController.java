@@ -467,6 +467,7 @@ public class StudentController {
             if (fromAddress.equals(toAddress)) {
                 return ApiResponseBuilder.badRequest("Không thể chuyển cho chính mình!");
             }
+            Wallet walletReceiver = walletService.findByWalletAddress(toAddress);
 
             BigInteger amountBI, feeBI;
             try {
@@ -506,9 +507,9 @@ public class StudentController {
             walletService.updateWalletCoinAmount(receivingWallet, amountBI, true); // Cộng vào ví nhận
 
             departmentService.exchangeToken(fromAddress,feeBI, wallet);
+            studentService.logSTUcoin(student,amount,walletReceiver.getStudent().getStudentCode());
 
             return ApiResponseBuilder.success("Chuyển token thành công", null);
-
         } catch (Exception e) {
             return ApiResponseBuilder.internalError("Lỗi khi chuyển token: " + e.getMessage());
         }

@@ -21,6 +21,9 @@ public enum LogTemplate {
 
     UPDATE_DEGREE_TITLE("Cập nhật thông tin danh hiệu văn bằng: %s"),
 
+    COIN("Đã đổi %s STUcoin thành tiền cho sinh viên: %s"),
+    COIN_STUDENT("Sinh viên: %s đã chuyển %s STUcoin cho sinh viên: %s"),
+
     UPDATE_CERTIFICATE_TYPE("Cập nhật thông tin loại chứng chỉ: %s"),
 
     CHANGE_PASSWORD_DEPARTMENT("Thay đổi mật khẩu của khoa: %s"),

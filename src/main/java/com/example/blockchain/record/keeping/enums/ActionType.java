@@ -16,6 +16,7 @@ public enum ActionType {
     LOCK_DEPARTMENT("Khóa tài khoản khoa"),
     UNLOCK_DEPARTMENT("Mở khóa tài khoản khoa"),
     EXPORT_EXCEL("Xuất file excel"),
+    COIN("Coin"),
     VERIFIED("Xác thực");
 
 

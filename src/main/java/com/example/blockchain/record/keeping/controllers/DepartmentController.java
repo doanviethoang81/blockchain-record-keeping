@@ -368,6 +368,7 @@ public class DepartmentController {
             }
 
             departmentService.exchangeToken(studentAddress,amountBI, wallet);
+            departmentService.logSTUcoin(student, amount);
             return ApiResponseBuilder.success("Chuyển STUcoin thành công", null);
         } catch (Exception e) {
             return ApiResponseBuilder.internalError("Lỗi: " + e.getMessage());
