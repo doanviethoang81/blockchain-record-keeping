@@ -23,4 +23,5 @@ public class StudentDetailResponse {
     private String walletAddress;
     private String publicKey;
     private String privateKey;
+    private String coin;
 }

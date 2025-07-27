@@ -15,6 +15,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.security.NoSuchAlgorithmException;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -234,6 +235,13 @@ public class UserController {
             String username = authentication.getName();
             Student student= studentService.findByEmail(username);
             Wallet wallet= walletService.findByStudent(student);
+            BigDecimal stuCoin;
+            if(wallet == null){
+                stuCoin = BigDecimal.valueOf(0);
+            }
+            else {
+                stuCoin = new BigDecimal(wallet.getCoin()).divide(new BigDecimal("1000000000000000000")); // chia 10^18
+            }
             StudentDetailResponse studentResponse= new StudentDetailResponse(
                     student.getName(),
                     student.getStudentCode(),
@@ -247,7 +255,8 @@ public class UserController {
                     student.getStudentClass().getDepartment().getUniversity().getName(),
                     wallet != null ? wallet.getWalletAddress() : null,
                     wallet != null ? wallet.getPublicKey() : null,
-                    wallet != null ? wallet.getPrivateKey() : null
+                    wallet != null ? wallet.getPrivateKey() : null,
+                    stuCoin.toString()
             );
             return ApiResponseBuilder.success("Thông tin chi tiết của sinh viên", studentResponse);
         } catch (Exception e) {

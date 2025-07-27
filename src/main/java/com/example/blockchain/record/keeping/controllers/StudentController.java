@@ -406,6 +406,13 @@ public class StudentController {
             Department department = departmentService.findById(student.getStudentClass().getDepartment().getId());
             User user = userService.findByDepartment(department);
             Wallet wallet= walletService.findByStudent(student);
+            BigDecimal stuCoin;
+            if(wallet == null){
+                stuCoin = BigDecimal.valueOf(0);
+            }
+            else {
+                stuCoin = new BigDecimal(wallet.getCoin()).divide(new BigDecimal("1000000000000000000")); // chia 10^18
+            }
             StudentDetailResponse studentDetailReponse= new StudentDetailResponse(
                     student.getName(),
                     student.getStudentCode(),
@@ -419,7 +426,8 @@ public class StudentController {
                     student.getStudentClass().getDepartment().getUniversity().getName(),
                     wallet != null ? wallet.getWalletAddress() : null,
                     wallet != null ? wallet.getPublicKey() : null,
-                    wallet != null ? wallet.getPrivateKey() : null
+                    wallet != null ? wallet.getPrivateKey() : null,
+                    stuCoin.toString()
             );
             return ApiResponseBuilder.success("Thông chi tiết một sinh viên",studentDetailReponse);
         } catch (Exception e) {
