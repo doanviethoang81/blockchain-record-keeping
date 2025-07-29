@@ -358,6 +358,7 @@ public class DegreeExcelListener extends AnalysisEventListener<DegreeExcelRowReq
                     receiver.getId(),
                     noti.getTitle(),
                     noti.getContent(),
+                    null,
                     noti.getType(),
                     false,
                     noti.getDocumentType(),

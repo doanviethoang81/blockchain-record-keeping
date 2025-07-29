@@ -26,6 +26,9 @@ public class Notifications {
     @Column(name = "content")
     private String content;
 
+    @Column(name = "rejected_note")
+    private String rejectedNote;
+
     @ManyToOne
     @JoinColumn(name = "sender_id")
     private User user;

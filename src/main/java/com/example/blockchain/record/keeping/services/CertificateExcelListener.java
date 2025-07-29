@@ -294,6 +294,7 @@ public class CertificateExcelListener extends AnalysisEventListener<CertificateE
                     receiver.getId(),
                     noti.getTitle(),
                     noti.getContent(),
+                    null,
                     noti.getType(),
                     false,
                     noti.getDocumentType(),

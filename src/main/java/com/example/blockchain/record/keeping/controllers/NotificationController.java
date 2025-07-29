@@ -85,6 +85,7 @@ public class NotificationController {
                     s.getId(),
                     s.getNotification().getTitle(),
                     s.getNotification().getContent(),
+                    s.getNotification().getRejectedNote(),
                     s.getNotification().getType(),
                     s.isRead(),
                     s.getNotification().getDocumentType(),

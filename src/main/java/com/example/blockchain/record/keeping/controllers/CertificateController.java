@@ -4,9 +4,7 @@ import com.alibaba.excel.EasyExcel;
 import com.example.blockchain.record.keeping.configs.Constants;
 import com.example.blockchain.record.keeping.dtos.CertificateExcelDTO;
 import com.example.blockchain.record.keeping.dtos.CertificateExcelRowDTO;
-import com.example.blockchain.record.keeping.dtos.request.CertificateRequest;
-import com.example.blockchain.record.keeping.dtos.request.DecryptRequest;
-import com.example.blockchain.record.keeping.dtos.request.ListValidationRequest;
+import com.example.blockchain.record.keeping.dtos.request.*;
 import com.example.blockchain.record.keeping.enums.*;
 import com.example.blockchain.record.keeping.models.*;
 import com.example.blockchain.record.keeping.repositorys.LogRepository;
@@ -1112,7 +1110,7 @@ public class CertificateController {
     // từ chối 1 chứng chỉ
     @PreAuthorize("hasAuthority('READ')")
     @PostMapping("/pdt/certificate-rejected/{id}")
-    public ResponseEntity<?> certificateRejected(@PathVariable("id") Long id){
+    public ResponseEntity<?> certificateRejected(@PathVariable("id") Long id, @RequestBody RejectedNoteRequest request){
         try{
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             String username = authentication.getName();
@@ -1122,7 +1120,7 @@ public class CertificateController {
             if(certificate != null){
                 return ApiResponseBuilder.badRequest("Chứng chỉ này đã được xác nhận rồi!");
             }
-            certificateService.certificateRejected(id, user);
+            certificateService.certificateRejected(id, user, request);
             return ApiResponseBuilder.success("Từ chối xác nhận thành công ", null);
         } catch (Exception e) {
             return ApiResponseBuilder.internalError("Lỗi " + e.getMessage());
@@ -1132,7 +1130,7 @@ public class CertificateController {
     //từ chối xác nhận 1 list chứng chỉ
     @PreAuthorize("hasAuthority('READ')")
     @PostMapping("/pdt/reject-a-list-of-certificate")
-    public ResponseEntity<?> rejectAListOfCertificate(@RequestBody ListValidationRequest request) {
+    public ResponseEntity<?> rejectAListOfCertificate(@RequestBody ListValidationAndNoteRequest request) {
         try {
             if (request == null || request.getIds() == null || request.getIds().isEmpty()) {
                 return ApiResponseBuilder.badRequest("Vui lòng chọn chứng chỉ cần từ chối xác nhận!");
@@ -1159,7 +1157,7 @@ public class CertificateController {
             User user = userService.findByUser(username);
 
 
-            certificateService.rejectCertificates(ids,user);
+            certificateService.rejectCertificates(ids,user, request.getNote());
             return ApiResponseBuilder.success("Từ chối xác nhận danh sách chứng chỉ thành công", null);
         } catch (Exception e) {
             return ApiResponseBuilder.internalError("Lỗi: " + e.getMessage());

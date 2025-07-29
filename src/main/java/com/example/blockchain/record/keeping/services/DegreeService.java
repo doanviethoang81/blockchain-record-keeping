@@ -144,6 +144,7 @@ public class DegreeService implements IDegreeService{
                 notificationReceivers.getId(),
                 notifications.getTitle(),
                 notifications.getContent(),
+                notifications.getRejectedNote(),
                 notifications.getType(),
                 false,
                 notifications.getDocumentType(),
@@ -540,6 +541,7 @@ public class DegreeService implements IDegreeService{
                     notificationReceivers.getId(),
                     notifications.getTitle(),
                     notifications.getContent(),
+                    null,
                     notifications.getType(),
                     false,
                     notifications.getDocumentType(),
@@ -630,6 +632,7 @@ public class DegreeService implements IDegreeService{
                     notificationReceivers.getId(),
                     notifications.getTitle(),
                     notifications.getContent(),
+                    null,
                     notifications.getType(),
                     false,
                     notifications.getDocumentType(),
@@ -657,7 +660,7 @@ public class DegreeService implements IDegreeService{
     //từ chối xác nhận van bang
     @Transactional
     @Auditable(action = ActionType.REJECTED, entity = Entity.degrees)
-    public Degree degreeRejected (Long degreeId, User user) throws Exception {
+    public Degree degreeRejected (Long degreeId, User user, RejectedNoteRequest request) throws Exception {
         try {
             ZonedDateTime vietnamTime = ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
 
@@ -670,8 +673,9 @@ public class DegreeService implements IDegreeService{
 
             Notifications notifications = new Notifications();
             notifications.setUser(user);
-            notifications.setTitle(NotificationType.CERTIFICATE_REJECTED.getName());
+            notifications.setTitle(NotificationType.DEGREE_REJECTED.getName());
             notifications.setContent("Phòng đào tạo đã từ chối xác nhận văn bằng có số hiệu: "+ degree.getDiplomaNumber());
+            notifications.setRejectedNote(request.getNote());
             notifications.setType(NotificationType.CERTIFICATE_REJECTED);
             notifications.setDocumentType("DEGREE");
             notifications.setDocumentId(degree.getId());
@@ -690,6 +694,7 @@ public class DegreeService implements IDegreeService{
                     notificationReceivers.getId(),
                     notifications.getTitle(),
                     notifications.getContent(),
+                    request.getNote(),
                     notifications.getType(),
                     false,
                     notifications.getDocumentType(),
@@ -706,7 +711,7 @@ public class DegreeService implements IDegreeService{
 
     //từ chối 1 list van bang
     @Transactional
-    public void rejectDegreeList(List<Long> ids, User user) throws Exception {
+    public void rejectDegreeList(List<Long> ids, User user,String note) throws Exception {
         ZonedDateTime vietnamTime = ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
 
         List<Degree> degrees = degreeRepository.findAllById(ids);
@@ -718,6 +723,7 @@ public class DegreeService implements IDegreeService{
             notifications.setUser(user);
             notifications.setTitle(NotificationType.DEGREE_REJECTED.getName());
             notifications.setContent("Phòng đào tạo đã từ chối xác nhận văn bằng có số hiệu: "+ degree.getDiplomaNumber());
+            notifications.setRejectedNote(note);
             notifications.setType(NotificationType.DEGREE_REJECTED);
             notifications.setDocumentType("DEGREE");
             notifications.setDocumentId(degree.getId());
@@ -737,6 +743,7 @@ public class DegreeService implements IDegreeService{
                     notificationReceivers.getId(),
                     notifications.getTitle(),
                     notifications.getContent(),
+                    note,
                     notifications.getType(),
                     false,
                     notifications.getDocumentType(),

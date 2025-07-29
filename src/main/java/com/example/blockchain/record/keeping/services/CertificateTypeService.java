@@ -104,7 +104,7 @@ public class CertificateTypeService implements ICertificateTypeService{
 
         certificateType.setStatus(Status.DELETED);
         certificateType.setUpdatedAt(vietnamTime.toLocalDateTime());
-        AuditingContext.setDescription("Xóa loại chứng chỉ:" + certificateType.getName());
+        AuditingContext.setDescription("Xóa loại chứng chỉ: " + certificateType.getName());
         return certificateTypeRepository.save(certificateType);
     }
 

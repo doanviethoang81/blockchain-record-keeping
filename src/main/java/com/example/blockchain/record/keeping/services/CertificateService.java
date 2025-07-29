@@ -453,6 +453,7 @@ public class CertificateService implements ICertificateService{
                 notificationReceivers.getId(),
                 notifications.getTitle(),
                 notifications.getContent(),
+                null,
                 notifications.getType(),
                 false,
                 notifications.getDocumentType(),
@@ -546,6 +547,7 @@ public class CertificateService implements ICertificateService{
                     notificationReceivers.getId(),
                     notifications.getTitle(),
                     notifications.getContent(),
+                    null,
                     notifications.getType(),
                     false,
                     notifications.getDocumentType(),
@@ -637,6 +639,7 @@ public class CertificateService implements ICertificateService{
                     notificationReceivers.getId(),
                     notifications.getTitle(),
                     notifications.getContent(),
+                    null,
                     notifications.getType(),
                     false,
                     notifications.getDocumentType(),
@@ -666,7 +669,7 @@ public class CertificateService implements ICertificateService{
     // từ chối xác nhận chứng chỉ
     @Transactional
     @Auditable(action = ActionType.REJECTED, entity = Entity.certificates)
-    public Certificate certificateRejected (Long idCertificate, User user) throws Exception {
+    public Certificate certificateRejected (Long idCertificate, User user, RejectedNoteRequest request) throws Exception {
         try {
             ZonedDateTime vietnamTime = ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
 
@@ -681,6 +684,7 @@ public class CertificateService implements ICertificateService{
             notifications.setUser(user);
             notifications.setTitle(NotificationType.CERTIFICATE_REJECTED.getName());
             notifications.setContent("Phòng đào tạo đã từ chối xác nhận chứng chỉ có số hiệu: "+ certificate.getDiplomaNumber());
+            notifications.setRejectedNote(request.getNote());
             notifications.setType(NotificationType.CERTIFICATE_REJECTED);
             notifications.setDocumentType("CERTIFICATE");
             notifications.setDocumentId(certificate.getId());
@@ -699,6 +703,7 @@ public class CertificateService implements ICertificateService{
                     notificationReceivers.getId(),
                     notifications.getTitle(),
                     notifications.getContent(),
+                    request.getNote(),
                     notifications.getType(),
                     false,
                     notifications.getDocumentType(),
@@ -706,7 +711,6 @@ public class CertificateService implements ICertificateService{
                     notificationReceivers.getCreatedAt()
             );
             notificationWebSocketSender.sendNotification(userDepartment.getId(), response);
-
 
             return certificate;
         } catch (Exception e) {
@@ -716,7 +720,7 @@ public class CertificateService implements ICertificateService{
 
     // từ chối 1 list
     @Transactional
-    public void rejectCertificates(List<Long> ids, User user) {
+    public void rejectCertificates(List<Long> ids, User user, String note) {
         ZonedDateTime vietnamTime = ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
 
         List<Certificate> certificates = certificateRepository.findAllById(ids);
@@ -728,6 +732,7 @@ public class CertificateService implements ICertificateService{
             notifications.setUser(user);
             notifications.setTitle(NotificationType.CERTIFICATE_REJECTED.getName());
             notifications.setContent("Phòng đào tạo đã từ chối xác nhận chứng chỉ có số hiệu: "+ cert.getDiplomaNumber());
+            notifications.setRejectedNote(note);
             notifications.setType(NotificationType.CERTIFICATE_REJECTED);
             notifications.setDocumentType("CERTIFICATE");
             notifications.setDocumentId(cert.getId());
@@ -746,6 +751,7 @@ public class CertificateService implements ICertificateService{
                     notificationReceivers.getId(),
                     notifications.getTitle(),
                     notifications.getContent(),
+                    note,
                     notifications.getType(),
                     false,
                     notifications.getDocumentType(),
