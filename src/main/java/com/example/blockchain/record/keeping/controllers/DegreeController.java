@@ -5,10 +5,7 @@ import com.example.blockchain.record.keeping.configs.Constants;
 import com.example.blockchain.record.keeping.dtos.CertificateExcelDTO;
 import com.example.blockchain.record.keeping.dtos.DegreeExcelDTO;
 import com.example.blockchain.record.keeping.dtos.request.*;
-import com.example.blockchain.record.keeping.enums.ActionType;
-import com.example.blockchain.record.keeping.enums.Entity;
-import com.example.blockchain.record.keeping.enums.LogTemplate;
-import com.example.blockchain.record.keeping.enums.Status;
+import com.example.blockchain.record.keeping.enums.*;
 import com.example.blockchain.record.keeping.models.*;
 import com.example.blockchain.record.keeping.repositorys.LogRepository;
 import com.example.blockchain.record.keeping.response.*;
@@ -1037,7 +1034,12 @@ public class DegreeController {
             return ApiResponseBuilder.badRequest("Không tìm thấy văn bằng có id ="+ id);
         }
         DegreeDetailResponse degreeDetailResponse = new DegreeDetailResponse();
-
+        Notifications notifications= notificateService.findByTypeAndDocumentId(NotificationType.DEGREE_REJECTED, id);
+        if(notifications != null) {
+            degreeDetailResponse.setRejectedNote(notifications.getRejectedNote());
+        } else {
+            degreeDetailResponse.setRejectedNote(null);
+        }
         String ipfsUrl = degree.getIpfsUrl() != null ? Constants.IPFS_URL + degree.getIpfsUrl() : null;
 
         degreeDetailResponse.setId(degree.getId());

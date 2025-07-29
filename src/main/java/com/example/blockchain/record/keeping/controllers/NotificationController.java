@@ -1,6 +1,7 @@
 package com.example.blockchain.record.keeping.controllers;
 
 import com.example.blockchain.record.keeping.configs.Constants;
+import com.example.blockchain.record.keeping.enums.NotificationType;
 import com.example.blockchain.record.keeping.models.*;
 import com.example.blockchain.record.keeping.response.*;
 import com.example.blockchain.record.keeping.services.*;
@@ -28,6 +29,7 @@ public class NotificationController {
     private final UserService userService;
     private final CertificateService certificateService;
     private final DegreeService degreeService;
+    private final NotificateService notificateService;
 
 
     @PreAuthorize("(hasAnyRole('PDT', 'KHOA')) and hasAuthority('READ')")
@@ -130,6 +132,12 @@ public class NotificationController {
     public ResponseEntity<?> handleCertificateDetail(Long documentId){
         try {
             Certificate certificate = certificateService.findById(documentId);
+            Notifications notifications =notificateService.findByTypeAndDocumentId(NotificationType.CERTIFICATE_REJECTED, documentId);
+            if( notifications == null) {
+                notifications = new Notifications();
+                notifications.setRejectedNote(null);
+            }
+
             String ipfsUrl = certificate.getIpfsUrl() != null ? Constants.IPFS_URL + certificate.getIpfsUrl() : null;
             CertificateDetailResponse certificateDetailResponse = new CertificateDetailResponse(
                     certificate.getId(),
@@ -153,7 +161,8 @@ public class NotificationController {
                     ipfsUrl,
                     certificate.getQrCodeUrl(),
                     certificate.getBlockchainTxHash(),
-                    certificate.getUpdatedAt()
+                    certificate.getUpdatedAt(),
+                    notifications.getRejectedNote()
             );
             return ApiResponseBuilder.success("Chi tiết chứng chỉ", certificateDetailResponse);
         } catch (IllegalArgumentException e) {
@@ -169,10 +178,17 @@ public class NotificationController {
             if (degree == null) {
                 return ApiResponseBuilder.badRequest("Không tìm thấy văn bằng có id =" + documentId);
             }
+
+
             DegreeDetailResponse degreeDetailResponse = new DegreeDetailResponse();
+            Notifications notifications= notificateService.findByTypeAndDocumentId(NotificationType.DEGREE_REJECTED, documentId);
+            if(notifications != null) {
+                degreeDetailResponse.setRejectedNote(notifications.getRejectedNote());
+            } else {
+                degreeDetailResponse.setRejectedNote(null);
+            }
 
             String ipfsUrl = degree.getIpfsUrl() != null ? Constants.IPFS_URL + degree.getIpfsUrl() : null;
-
             degreeDetailResponse.setId(degree.getId());
             degreeDetailResponse.setStudentId(degree.getStudent().getId());
             degreeDetailResponse.setNameStudent(degree.getStudent().getName());

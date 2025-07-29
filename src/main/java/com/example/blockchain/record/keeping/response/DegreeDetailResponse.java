@@ -1,6 +1,7 @@
 package com.example.blockchain.record.keeping.response;
 
 import com.example.blockchain.record.keeping.enums.Status;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -9,6 +10,7 @@ import java.time.LocalDateTime;
 
 @Getter
 @Setter
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class DegreeDetailResponse {
     private Long id;
     private Long studentId;
@@ -37,4 +39,5 @@ public class DegreeDetailResponse {
     private String diplomaNumber;
     private String lotteryNumber;
     private LocalDateTime createdAt;
+    private String rejectedNote;
 }

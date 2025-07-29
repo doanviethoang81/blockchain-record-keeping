@@ -139,6 +139,11 @@ public class CertificateController {
         try {
             Certificate certificate= certificateService.findById(id);
             String ipfsUrl = certificate.getIpfsUrl() != null ? Constants.IPFS_URL + certificate.getIpfsUrl() : null;
+            Notifications notifications =notificateService.findByTypeAndDocumentId(NotificationType.CERTIFICATE_REJECTED, id);
+            if( notifications == null) {
+                notifications = new Notifications();
+                notifications.setRejectedNote(null);
+            }
             CertificateDetailResponse certificateDetailResponse = new CertificateDetailResponse(
                     certificate.getId(),
                     certificate.getStudent().getId(),
@@ -161,7 +166,8 @@ public class CertificateController {
                     ipfsUrl,
                     certificate.getQrCodeUrl(),
                     certificate.getBlockchainTxHash(),
-                    certificate.getUpdatedAt()
+                    certificate.getUpdatedAt(),
+                    notifications.getRejectedNote()
             );
             return ApiResponseBuilder.success("Chi tiết chứng chỉ", certificateDetailResponse);
         } catch (IllegalArgumentException e) {
@@ -568,6 +574,7 @@ public class CertificateController {
                     degreeDetailResponse.setDiplomaNumber(degree.getDiplomaNumber());
                     degreeDetailResponse.setLotteryNumber(degree.getLotteryNumber());
                     degreeDetailResponse.setCreatedAt(degree.getUpdatedAt());
+                    degreeDetailResponse.setRejectedNote(null);
                     return ApiResponseBuilder.success("Chi tiết văn bằng", degreeDetailResponse);
                 case "certificate":
                     Certificate certificate = certificateService.findByIpfsUrl(ipfsUrl);
@@ -595,7 +602,8 @@ public class CertificateController {
                             Constants.IPFS_URL + ipfsUrl,
                             certificate.getQrCodeUrl(),
                             certificate.getBlockchainTxHash(),
-                            certificate.getUpdatedAt()
+                            certificate.getUpdatedAt(),
+                            null
                     );
                     return ApiResponseBuilder.success("Chi tiết chứng chỉ", certificateDetailResponse);
                 default:

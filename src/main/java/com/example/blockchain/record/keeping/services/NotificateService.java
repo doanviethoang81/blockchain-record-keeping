@@ -1,5 +1,6 @@
 package com.example.blockchain.record.keeping.services;
 
+import com.example.blockchain.record.keeping.enums.NotificationType;
 import com.example.blockchain.record.keeping.models.Notifications;
 import com.example.blockchain.record.keeping.repositorys.NotificationRepository;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +23,16 @@ public class NotificateService implements INotificateService{
     @Override
     public List<Notifications> saveAll(List<Notifications> list) {
         return notificationRepository.saveAll(list);
+    }
+
+    @Override
+    public Notifications findByDocumentId(Long id) {
+        return notificationRepository.findById(id).orElse(null);
+    }
+
+    @Override
+    public Notifications findByTypeAndDocumentId(NotificationType notificationType, Long documentId) {
+        return notificationRepository.findByTypeAndDocumentId(notificationType, documentId);
     }
 
 }

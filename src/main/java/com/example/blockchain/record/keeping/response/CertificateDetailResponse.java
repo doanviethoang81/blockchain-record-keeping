@@ -1,5 +1,6 @@
 package com.example.blockchain.record.keeping.response;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -10,6 +11,7 @@ import java.time.LocalDateTime;
 @Setter
 @Getter
 @AllArgsConstructor
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class CertificateDetailResponse {
     private Long id;
     private Long studentId;
@@ -33,4 +35,5 @@ public class CertificateDetailResponse {
     private String qrCodeUrl;
     private String transactionHash;
     private LocalDateTime createdAt;
+    private String rejectedNote;
 }
