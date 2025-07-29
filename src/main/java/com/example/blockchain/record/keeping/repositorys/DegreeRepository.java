@@ -17,7 +17,9 @@ import java.util.*;
 
 @Repository
 public interface DegreeRepository extends JpaRepository<Degree,Long> {
-    boolean existsByStudentAndStatusNot(Student student, Status status);
+
+    boolean existsByStudentAndStatusNotIn(Student student, Collection<Status> statuses);
+
     boolean existsByIdAndStatus(Long id, Status status);
 
     // list mssv thêm van bang excel

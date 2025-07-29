@@ -1169,7 +1169,7 @@ public class DegreeController {
                 .doWrite(data);
     }
 
-    //xóa 1 ch ch
+    //xóa 1 vb
     @PreAuthorize("hasAuthority('READ')")
     @DeleteMapping("/khoa/delete-degree/{id}")
     public ResponseEntity<?> deleteDegree(

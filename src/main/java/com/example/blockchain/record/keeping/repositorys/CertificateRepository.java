@@ -26,7 +26,7 @@ public interface CertificateRepository extends JpaRepository<Certificate,Long> {
             WHERE  c.student_id = :studentId
             and ct.id = :certificateTypeId
             and ct.status ='ACTIVE'
-            AND c.status IN ('PENDING', 'APPROVED', 'DELETED')
+            AND c.status IN ('PENDING', 'APPROVED')
             """,nativeQuery = true)
     Optional<Certificate> existingStudentOfCertificate(@Param("studentId") Long studentId,
                                                        @Param("certificateTypeId") Long certificateTypeId);

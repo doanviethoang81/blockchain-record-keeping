@@ -164,7 +164,8 @@ public class DegreeService implements IDegreeService{
 
     @Override
     public boolean existsByStudent(Student student) {
-        return degreeRepository.existsByStudentAndStatusNot(student, Status.REJECTED);
+        List<Status> allowedToIgnore = List.of(Status.REJECTED, Status.DELETED);
+        return degreeRepository.existsByStudentAndStatusNotIn(student,allowedToIgnore);
     }
 
     @Override
