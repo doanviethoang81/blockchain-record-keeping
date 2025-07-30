@@ -31,5 +31,13 @@ public interface CertificateTypeRepository extends JpaRepository<CertificateType
     List<CertificateType> searchByUniversityAndName(@Param("universityId") Long universityId,
                                                     @Param("name") String name);
 
-
+    //kiem tra xem có loại ch ch nay da cap cho ai chưa (delete)
+    @Query(value = """
+        select count(c.university_certificate_type_id) as total from certificate_types ct
+        join university_certificate_types uct on ct.id = uct.certificate_type_id
+        join certificates c on uct.id = c.university_certificate_type_id
+        where ct.id = :id
+        and c.status = 'APPROVED'
+        """,nativeQuery = true)
+    long countCertificateType(@Param("id") Long id);
 }

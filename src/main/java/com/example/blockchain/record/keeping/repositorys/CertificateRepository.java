@@ -97,7 +97,7 @@ public interface CertificateRepository extends JpaRepository<Certificate,Long> {
         AND (:studentCode IS NULL OR s.student_code LIKE CONCAT('%', :studentCode, '%'))
         AND (:studentName IS NULL OR s.name LIKE CONCAT('%', :studentName, '%'))
         AND (:diplomaNumber IS NULL OR c.diploma_number LIKE CONCAT('%', :diplomaNumber, '%'))
-        ORDER BY c.updated_at DESC   
+        ORDER BY c.updated_at DESC
         """, nativeQuery = true)
     long countCertificatesOfDepartmentAndStatus(@Param("departmentId") Long departmentId,
                                                 @Param("className") String className,
@@ -613,5 +613,7 @@ public interface CertificateRepository extends JpaRepository<Certificate,Long> {
         ORDER BY y.year;
         """,nativeQuery = true)
     List<Object[]> getCertificateClassificationByDepartmentAndLast5Years(@Param("departmentId") Long departmentId);
+
+
 }
 

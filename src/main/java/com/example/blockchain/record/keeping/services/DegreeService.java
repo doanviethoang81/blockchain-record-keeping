@@ -441,6 +441,21 @@ public class DegreeService implements IDegreeService{
         return degree;
     }
 
+    @Override
+    public boolean existsByRatingIdAndStatusIn(Long ratingId, List<Status> statuses) {
+        return degreeRepository.existsByRatingIdAndStatusIn(ratingId, statuses);
+    }
+
+    @Override
+    public boolean existsByEducationModeIdAndStatusIn(Long id, List<Status> statuses) {
+        return degreeRepository.existsByEducationModeIdAndStatusIn(id, statuses);
+    }
+
+    @Override
+    public boolean existsByDegreeTitleIdAndStatusIn(Long id, List<Status> statuses) {
+        return degreeRepository.existsByDegreeTitleIdAndStatusIn(id, statuses);
+    }
+
     public Map<String, Boolean> checkStudentsGrantedDegree(Set<String> studentCodes) {
         List<String> existingCodes = degreeRepository.findStudentCodesWithDegree(studentCodes);
         Map<String, Boolean> result = new HashMap<>();

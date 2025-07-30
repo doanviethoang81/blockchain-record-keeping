@@ -54,88 +54,88 @@ public class AuthenticationController {
     private final UniversityService universityService;
     private final StudentService studentService;
 
-    @PostMapping("/api/auth/register")
-    public ResponseEntity<?> register(@Valid @ModelAttribute RegisterRequest request, BindingResult bindingResult) {
-        if (bindingResult.hasErrors()) {
-            // Lấy danh sách lỗi và trả về
-            List<String> errors = bindingResult.getFieldErrors().stream()
-                    .map(fieldError -> fieldError.getField() + ": " + fieldError.getDefaultMessage())
-                    .collect(Collectors.toList());
-            return ApiResponseBuilder.listBadRequest("Dữ liệu không hợp lệ!", errors);
-        }
-        if (request.getLogo() == null || request.getLogo().isEmpty()) {
-            return ApiResponseBuilder.badRequest("Logo không được để trống!");
-        }
-        if (request.getSealImageUrl() == null || request.getSealImageUrl().isEmpty()) {
-            return ApiResponseBuilder.badRequest("Dấu mộc không được để trống!");
-        }
-        try{
-            ZonedDateTime vietnamTime = ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
-
-            Optional<University> existingUniversity = universityRepository.findByEmail(request.getEmail());
-            if (existingUniversity.isPresent()) {
-                return ApiResponseBuilder.badRequest("Email đã được đăng ký!");
-            }
-            String normalizedName = request.getName().trim().toLowerCase();
-            List<University> universities = universityRepository.findAll();
-            boolean nameExists = universities.stream()
-                    .anyMatch(u -> u.getName() != null && u.getName().trim().toLowerCase().equals(normalizedName));
-            if (nameExists) {
-                return ApiResponseBuilder.badRequest("Tên trường đã tồn tại!");
-            }
-
-            // Tạo user mới
-            University university = new University();
-            university.setName(request.getName());
-            university.setAddress(request.getAddress());
-            university.setEmail(request.getEmail());
-            university.setTaxCode(request.getTaxCode());
-            university.setWebsite(request.getWebsite());
-            if (request.getLogo() != null && !request.getLogo().isEmpty()) {
-                String contentType = request.getLogo().getContentType();
-                if (!contentType.startsWith("image/")) {
-                    return ApiResponseBuilder.badRequest("Logo tải lên không phải là ảnh!");
-                }
-                String imageUrl = imageUploadService.uploadImage(request.getLogo());
-                university.setLogo(imageUrl);
-            }
-
-            if (request.getSealImageUrl() != null && !request.getSealImageUrl().isEmpty()) {
-                String contentType = request.getSealImageUrl().getContentType();
-                if (!contentType.startsWith("image/")) {
-                    return ApiResponseBuilder.badRequest("Dấu mộc tải lên không phải là ảnh!");
-                }
-                String sealImageUrl = imageUploadService.uploadImage(request.getSealImageUrl());
-                university.setSealImageUrl(sealImageUrl);
-            }
-
-            university.setCreatedAt(vietnamTime.toLocalDateTime());
-            university.setUpdatedAt(vietnamTime.toLocalDateTime());
-            universityRepository.save(university);
-
-            Optional<Role> userRole = roleRepository.findByName("PDT");
-
-            User user = new User();
-            user.setRole(userRole.get());
-            user.setDepartment(null);
-            user.setUniversity(university);
-            user.setPassword(passwordEncoder.encode(request.getPassword()));
-            user.setEmail(request.getEmail());
-            user.setLocked(false);
-            user.setVerified(false);
-            user.setCreatedAt(vietnamTime.toLocalDateTime());
-            user.setUpdatedAt(vietnamTime.toLocalDateTime());
-            userRepository.save(user);
-
-            //tạo random 6 số
-            String otp = String.format("%06d", new Random().nextInt(999999));
-            otpService.saveOtp(request.getEmail(), otp);
-            brevoApiEmailService.sendActivationEmail(request.getEmail(), otp);
-            return ApiResponseBuilder.success("Đăng ký thành công, Vui lòng kiểm tra email để kích hoạt tài khoản", null);
-        } catch (Exception e) {
-            return ApiResponseBuilder.internalError("Đã xảy ra lỗi trong quá trình đăng ký!");
-        }
-    }
+//    @PostMapping("/api/auth/register")
+//    public ResponseEntity<?> register(@Valid @ModelAttribute RegisterRequest request, BindingResult bindingResult) {
+//        if (bindingResult.hasErrors()) {
+//            // Lấy danh sách lỗi và trả về
+//            List<String> errors = bindingResult.getFieldErrors().stream()
+//                    .map(fieldError -> fieldError.getField() + ": " + fieldError.getDefaultMessage())
+//                    .collect(Collectors.toList());
+//            return ApiResponseBuilder.listBadRequest("Dữ liệu không hợp lệ!", errors);
+//        }
+//        if (request.getLogo() == null || request.getLogo().isEmpty()) {
+//            return ApiResponseBuilder.badRequest("Logo không được để trống!");
+//        }
+//        if (request.getSealImageUrl() == null || request.getSealImageUrl().isEmpty()) {
+//            return ApiResponseBuilder.badRequest("Dấu mộc không được để trống!");
+//        }
+//        try{
+//            ZonedDateTime vietnamTime = ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
+//
+//            Optional<University> existingUniversity = universityRepository.findByEmail(request.getEmail());
+//            if (existingUniversity.isPresent()) {
+//                return ApiResponseBuilder.badRequest("Email đã được đăng ký!");
+//            }
+//            String normalizedName = request.getName().trim().toLowerCase();
+//            List<University> universities = universityRepository.findAll();
+//            boolean nameExists = universities.stream()
+//                    .anyMatch(u -> u.getName() != null && u.getName().trim().toLowerCase().equals(normalizedName));
+//            if (nameExists) {
+//                return ApiResponseBuilder.badRequest("Tên trường đã tồn tại!");
+//            }
+//
+//            // Tạo user mới
+//            University university = new University();
+//            university.setName(request.getName());
+//            university.setAddress(request.getAddress());
+//            university.setEmail(request.getEmail());
+//            university.setTaxCode(request.getTaxCode());
+//            university.setWebsite(request.getWebsite());
+//            if (request.getLogo() != null && !request.getLogo().isEmpty()) {
+//                String contentType = request.getLogo().getContentType();
+//                if (!contentType.startsWith("image/")) {
+//                    return ApiResponseBuilder.badRequest("Logo tải lên không phải là ảnh!");
+//                }
+//                String imageUrl = imageUploadService.uploadImage(request.getLogo());
+//                university.setLogo(imageUrl);
+//            }
+//
+//            if (request.getSealImageUrl() != null && !request.getSealImageUrl().isEmpty()) {
+//                String contentType = request.getSealImageUrl().getContentType();
+//                if (!contentType.startsWith("image/")) {
+//                    return ApiResponseBuilder.badRequest("Dấu mộc tải lên không phải là ảnh!");
+//                }
+//                String sealImageUrl = imageUploadService.uploadImage(request.getSealImageUrl());
+//                university.setSealImageUrl(sealImageUrl);
+//            }
+//
+//            university.setCreatedAt(vietnamTime.toLocalDateTime());
+//            university.setUpdatedAt(vietnamTime.toLocalDateTime());
+//            universityRepository.save(university);
+//
+//            Optional<Role> userRole = roleRepository.findByName("PDT");
+//
+//            User user = new User();
+//            user.setRole(userRole.get());
+//            user.setDepartment(null);
+//            user.setUniversity(university);
+//            user.setPassword(passwordEncoder.encode(request.getPassword()));
+//            user.setEmail(request.getEmail());
+//            user.setLocked(false);
+//            user.setVerified(false);
+//            user.setCreatedAt(vietnamTime.toLocalDateTime());
+//            user.setUpdatedAt(vietnamTime.toLocalDateTime());
+//            userRepository.save(user);
+//
+//            //tạo random 6 số
+//            String otp = String.format("%06d", new Random().nextInt(999999));
+//            otpService.saveOtp(request.getEmail(), otp);
+//            brevoApiEmailService.sendActivationEmail(request.getEmail(), otp);
+//            return ApiResponseBuilder.success("Đăng ký thành công, Vui lòng kiểm tra email để kích hoạt tài khoản", null);
+//        } catch (Exception e) {
+//            return ApiResponseBuilder.internalError("Đã xảy ra lỗi trong quá trình đăng ký!");
+//        }
+//    }
 
     //không đc để trống request
     @PostMapping("/api/auth/login")

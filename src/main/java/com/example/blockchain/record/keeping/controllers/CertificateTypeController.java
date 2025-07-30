@@ -168,6 +168,10 @@ public class CertificateTypeController {
     {
         try {
             CertificateType certificateType = certificateTypeService.findById(id);
+            if(certificateTypeService.countCertificateType(id) > 0){
+                return ApiResponseBuilder.badRequest("Không thể xóa loại chứng chỉ này vì đã có chứng chỉ tồn tại!");
+            }
+
             certificateTypeService.delete(certificateType);
             return ApiResponseBuilder.success("Xóa loại chứng chỉ thành công", null);
         } catch (Exception e) {

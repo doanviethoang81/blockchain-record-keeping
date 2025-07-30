@@ -98,4 +98,10 @@ public interface IDegreeService {
             String status);
 
     Degree delete(Long id);
+
+    boolean existsByRatingIdAndStatusIn(Long id, List<Status> statuses);
+
+    boolean existsByEducationModeIdAndStatusIn(Long id, List<Status> statuses);
+
+    boolean existsByDegreeTitleIdAndStatusIn(Long id, List<Status> statuses);
 }

@@ -9,6 +9,8 @@ import com.example.blockchain.record.keeping.response.ApiResponseBuilder;
 import com.example.blockchain.record.keeping.response.PaginatedData;
 import com.example.blockchain.record.keeping.response.PaginationMeta;
 import com.example.blockchain.record.keeping.response.RatingResponse;
+import com.example.blockchain.record.keeping.services.CertificateService;
+import com.example.blockchain.record.keeping.services.DegreeService;
 import com.example.blockchain.record.keeping.services.RatingService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +32,7 @@ import java.util.List;
 @SecurityRequirement(name = "bearerAuth")
 public class RatingController {
     private final RatingService ratingService;
+    private final DegreeService degreeService;
 
     @PreAuthorize("(hasAnyRole('PDT', 'KHOA')) and hasAuthority('READ')")
     @GetMapping("/rating")
@@ -115,6 +118,9 @@ public class RatingController {
     {
         try {
             Rating rating = ratingService.findById(id);
+            if(degreeService.existsByRatingIdAndStatusIn(id, List.of(Status.APPROVED, Status.PENDING,Status.REJECTED))){
+                return ApiResponseBuilder.badRequest("Không thể xóa xếp loại này vì đã có văn bằng sử dụng");
+            }
             if(rating.getStatus().equals(Status.DELETED)){
                 return ApiResponseBuilder.badRequest("Xếp loại này đã bị xóa rồi");
             }

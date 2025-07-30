@@ -112,4 +112,9 @@ public class CertificateTypeService implements ICertificateTypeService{
     public boolean existsByNameAndStatus(String name) {
         return certificateTypeRepository.existsByNameAndStatus(name, Status.ACTIVE);
     }
+
+    @Override
+    public long countCertificateType(Long id) {
+        return certificateTypeRepository.countCertificateType(id);
+    }
 }

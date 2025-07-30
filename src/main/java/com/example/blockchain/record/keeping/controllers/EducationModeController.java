@@ -6,6 +6,7 @@ import com.example.blockchain.record.keeping.enums.Status;
 import com.example.blockchain.record.keeping.models.EducationMode;
 import com.example.blockchain.record.keeping.models.Rating;
 import com.example.blockchain.record.keeping.response.*;
+import com.example.blockchain.record.keeping.services.DegreeService;
 import com.example.blockchain.record.keeping.services.EducationModelSevice;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +25,7 @@ import java.util.List;
 public class EducationModeController {
 
     private final EducationModelSevice educationModelSevice;
+    private final DegreeService degreeService;
 
     @PreAuthorize("(hasAnyRole('PDT', 'KHOA')) and hasAuthority('READ')")
     @GetMapping("/education-mode")
@@ -110,6 +112,9 @@ public class EducationModeController {
     {
         try {
             EducationMode educationMode = educationModelSevice.findById(id);
+            if(degreeService.existsByEducationModeIdAndStatusIn(id, List.of(Status.APPROVED, Status.PENDING,Status.REJECTED))){
+                return ApiResponseBuilder.badRequest("Không thể xóa hình thức đào tạo này vì đã có văn bằng sử dụng");
+            }
             if(educationMode.getStatus().equals(Status.DELETED)){
                 return ApiResponseBuilder.badRequest("Hình thức đào tạo này đã bị xóa rồi");
             }

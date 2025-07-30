@@ -6,6 +6,7 @@ import com.example.blockchain.record.keeping.enums.Status;
 import com.example.blockchain.record.keeping.models.DegreeTitle;
 import com.example.blockchain.record.keeping.models.EducationMode;
 import com.example.blockchain.record.keeping.response.*;
+import com.example.blockchain.record.keeping.services.DegreeService;
 import com.example.blockchain.record.keeping.services.DegreeTitleSevice;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +24,7 @@ import java.util.List;
 @SecurityRequirement(name = "bearerAuth")
 public class DegreeTitleController {
     private final DegreeTitleSevice degreeTitleSevice;
+    private final DegreeService degreeService;
 
     @PreAuthorize("(hasAnyRole('PDT', 'KHOA')) and hasAuthority('READ')")
     @GetMapping("/degree-title")
@@ -110,6 +112,9 @@ public class DegreeTitleController {
     {
         try {
             DegreeTitle degreeTitle = degreeTitleSevice.findById(id);
+            if(degreeService.existsByDegreeTitleIdAndStatusIn(id, List.of(Status.APPROVED, Status.PENDING,Status.REJECTED))){
+                return ApiResponseBuilder.badRequest("Không thể xóa danh hiệu này vì đã có văn bằng sử dụng");
+            }
             if(degreeTitle.getStatus().equals(Status.DELETED)){
                 return ApiResponseBuilder.badRequest("Danh hiệu này đã bị xóa rồi");
             }

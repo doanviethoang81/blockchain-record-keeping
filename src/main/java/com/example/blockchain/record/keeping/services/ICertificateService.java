@@ -83,4 +83,6 @@ public interface ICertificateService {
     List<DegreeClassificationByYearResponse> getCertificateClassificationByUniversityAndLast5Years(Long universityId);
 
     List<DegreeClassificationByYearResponse> getCertificateClassificationByDepartmentAndLast5Years(Long universityId);
+
+
 }

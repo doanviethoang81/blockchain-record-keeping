@@ -21,4 +21,5 @@ public interface RatingRepository extends JpaRepository<Rating,Long> {
     boolean existsByNameAndStatus(String name, Status status);
 
     boolean existsByNameAndStatusAndIdNot(String name, Status status, Long id);
+
 }

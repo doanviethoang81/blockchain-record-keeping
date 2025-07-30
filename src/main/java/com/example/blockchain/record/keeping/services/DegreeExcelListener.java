@@ -250,7 +250,7 @@ public class DegreeExcelListener extends AnalysisEventListener<DegreeExcelRowReq
             }
             DegreeTitle degreeTitle = degreeTitleSevice.findByName(row.getDegreeTitleName());
             if(degreeTitle == null){
-                errors.add("Dòng " + rowIndex + ": Không tìm thấy loại văn bằng này!");
+                errors.add("Dòng " + rowIndex + ": Không tìm danh hiệu văn bằng này!");
                 continue;
             }
             EducationMode educationMode = educationModelSevice.findByName(row.getEducationModeName());

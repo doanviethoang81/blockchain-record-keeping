@@ -554,7 +554,12 @@ public interface DegreeRepository extends JpaRepository<Degree,Long> {
             """,nativeQuery = true)
     Map<String, Object> getTopClassWithMostDegreesOfDepartment(@Param("departmentId") Long departmentId);
 
+    //kiểm tra rating của chung chỉ
+    boolean existsByRatingIdAndStatusIn(Long ratingId, List<Status> statuses);
 
+    //kiểm tra education mode của chung chỉ
+    boolean existsByEducationModeIdAndStatusIn(Long ratingId, List<Status> statuses);
 
-
+    //kiểm tra degree title của chung chỉ
+    boolean existsByDegreeTitleIdAndStatusIn(Long ratingId, List<Status> statuses);
 }

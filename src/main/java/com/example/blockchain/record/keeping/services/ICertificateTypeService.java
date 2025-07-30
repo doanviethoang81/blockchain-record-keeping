@@ -28,4 +28,6 @@ public interface ICertificateTypeService {
 
     boolean existsByNameAndStatus(String name);
 
+    long countCertificateType(Long id);
+
 }
