@@ -1,12 +1,14 @@
 package com.example.blockchain.record.keeping.exceptions;
 
 import com.example.blockchain.record.keeping.response.ApiResponseBuilder;
+import io.jsonwebtoken.ExpiredJwtException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.nio.file.AccessDeniedException;
+import java.util.Map;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -30,5 +32,12 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(NotFoundRequestException.class)
     public ResponseEntity<?> handleNotFoundRequestException(NotFoundRequestException ex) {
         return ApiResponseBuilder.notFound(ex.getMessage());
+    }
+
+    @ExceptionHandler(ExpiredJwtException.class)
+    public ResponseEntity<?> handleExpiredJwtException(ExpiredJwtException ex) {
+        return ResponseEntity
+                .status(HttpStatus.UNAUTHORIZED)
+                .body(Map.of("status", 401, "message", "Token expired"));
     }
 }

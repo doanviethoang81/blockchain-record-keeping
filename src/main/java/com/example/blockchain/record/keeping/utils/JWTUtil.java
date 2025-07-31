@@ -18,6 +18,7 @@ public class JWTUtil {
     private final Key SECRET_KEY = Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
 
     private final long EXPIRATION_TIME = 1000 * 60 * 60 * 10; // 10 tiếng
+//    private final long EXPIRATION_TIME = 1000 * 10 * 1; // 10 tiếng
     // Tạo token
     public String generateToken(String email, List<String> roles, List<String> permissions) {
         Map<String, Object> claims = new HashMap<>();
@@ -101,5 +102,4 @@ public class JWTUtil {
                 .parseClaimsJws(token)
                 .getBody();
     }
-
 }

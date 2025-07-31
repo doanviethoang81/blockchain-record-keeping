@@ -16,7 +16,7 @@ public class LogResponse {
     private Long id;
     private Long userId;
     private ActionType actionType;
-    private Entity entityName;
+    private String entityName;
     private Long entityId;
     private String description;
     private String ipAddress;

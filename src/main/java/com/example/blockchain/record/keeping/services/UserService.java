@@ -236,14 +236,11 @@ public class UserService implements IUserService{
         List<UserResponse> userRepons = new ArrayList<>();
 
         for (User user : listUser) {
-            List<UserPermission> userPermissions = userPermissionRepository.findByUser(user);
-
             List<String> permissions = Optional.ofNullable(userPermissionRepository.findByUser(user))
                     .orElse(Collections.emptyList())
                     .stream()
                     .map(up -> up.getPermission().getAction())
                     .collect(Collectors.toList());
-
 
             UserResponse userResponse = new UserResponse(
                     user.getId(),

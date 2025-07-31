@@ -40,7 +40,7 @@ public enum LogTemplate {
     EXPORT_EXCEL_DEGREE_LIST("Xuất văn bằng ra file excel"),
 
     CREATE_CERTIFICATE("Tạo chứng chỉ cho sinh viên, số hiệu chứng chỉ: %s"),
-    UPDATE_CERTIFICATE("Cập nhật chứng chỉ có số hệu: %s"),
+    UPDATE_CERTIFICATE("Cập nhật chứng chỉ có số hiệu: %s"),
     IMPORT_CERTIFICATE("Tải lên %d chứng chỉ từ Excel"),
     REJECTED_CERTIFICATE("Từ chối danh sách %d chứng chỉ"),
     VERIFIED_CERTIFICATE("Xác nhận danh sách %d chứng chỉ");

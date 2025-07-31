@@ -206,7 +206,7 @@ public class AuthenticationController {
             }
             return ApiResponseBuilder.success("Đăng nhập thành công!", response);
         } catch (Exception e) {
-            return ApiResponseBuilder.unauthorized("Email hoặc mật khẩu không đúng!");
+            return ApiResponseBuilder.badRequest("Email hoặc mật khẩu không đúng!");
         }
     }
 

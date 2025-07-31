@@ -271,7 +271,7 @@ public class CertificateService implements ICertificateService{
     @Auditable(action = ActionType.DELETED, entity = Entity.certificates)
     public Certificate delete(Long id) {
         Certificate certificate = certificateRepository.findById(id).orElse(null);
-        AuditingContext.setDescription("Xóa chứng chỉ có số hệu :" + certificate.getDiplomaNumber());
+        AuditingContext.setDescription("Xóa chứng chỉ có số hiệu :" + certificate.getDiplomaNumber());
         certificateRepository.delete(id);
         return certificate;
     }

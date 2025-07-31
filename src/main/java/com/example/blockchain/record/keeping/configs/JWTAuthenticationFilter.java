@@ -43,6 +43,12 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter {
                                     HttpServletResponse response,
                                     FilterChain filterChain)
             throws ServletException, IOException {
+        // Bỏ qua yêu cầu OPTIONS
+        if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
+            response.setStatus(HttpServletResponse.SC_OK);
+            filterChain.doFilter(request, response);
+            return;
+        }
         try{
             String path = request.getRequestURI();
             //bỏ qua các URL không cần kiểm tra token

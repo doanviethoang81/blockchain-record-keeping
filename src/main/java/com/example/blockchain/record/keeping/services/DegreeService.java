@@ -436,7 +436,7 @@ public class DegreeService implements IDegreeService{
     @Auditable(action = ActionType.DELETED, entity = Entity.degrees)
     public Degree delete(Long id) {
         Degree degree = degreeRepository.findById(id).orElse(null);
-        AuditingContext.setDescription("Xóa văn bằng có số hệu :" + degree.getDiplomaNumber());
+        AuditingContext.setDescription("Xóa văn bằng có số hiệu :" + degree.getDiplomaNumber());
         degreeRepository.delete(id);
         return degree;
     }

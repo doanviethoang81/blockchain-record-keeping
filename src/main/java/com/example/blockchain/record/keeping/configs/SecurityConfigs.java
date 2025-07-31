@@ -1,45 +1,26 @@
 package com.example.blockchain.record.keeping.configs;
-
-
-import com.example.blockchain.record.keeping.models.University;
 import com.example.blockchain.record.keeping.repositorys.RoleRepository;
-import com.example.blockchain.record.keeping.repositorys.UniversityRepository;
 import com.example.blockchain.record.keeping.response.ApiResponse;
-import com.example.blockchain.record.keeping.response.ApiResponseBuilder;
 import com.example.blockchain.record.keeping.services.CustomUserDetailService;
 import com.example.blockchain.record.keeping.services.StudentAuthenticationProvider;
 import com.example.blockchain.record.keeping.utils.JWTUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
-import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
-import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.AccessDeniedHandler;
-import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
-import org.springframework.security.web.authentication.Http403ForbiddenEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfigurationSource;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -94,10 +75,31 @@ public class SecurityConfigs {
     public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
-                .cors(Customizer.withDefaults())
+                .cors(cors -> cors.configurationSource(corsConfigurationSource))
                 .exceptionHandling(exception -> exception
+                        .authenticationEntryPoint((request, response, authException) -> {
+                            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                            response.setContentType("application/json");
+                            response.setCharacterEncoding("UTF-8");
+
+                            //thêm header CORS khi bị 401
+                            String origin = request.getHeader("Origin");
+                            if ("http://localhost:3000".equals(origin) || "https://www.certx.space".equals(origin)) {
+                                response.setHeader("Access-Control-Allow-Origin", origin);
+                                response.setHeader("Access-Control-Allow-Credentials", "true");
+                            }
+                            response.setHeader("Access-Control-Allow-Credentials", "true");
+
+                            ApiResponse<?> apiResponse = ApiResponse.builder()
+                                    .status(HttpStatus.UNAUTHORIZED.value())
+                                    .message("Chưa đăng nhập hoặc token hết hạn!")
+                                    .data(null)
+                                    .build();
+
+                            String json = new ObjectMapper().writeValueAsString(apiResponse);
+                            response.getWriter().write(json);
+                        })
                         .accessDeniedHandler(customAccessDeniedHandler())
-                        .authenticationEntryPoint(new Http403ForbiddenEntryPoint()) // nếu không đăng nhập
                 )
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(

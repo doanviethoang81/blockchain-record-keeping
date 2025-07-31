@@ -20,7 +20,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/ws") // endpoint websocket
 //                .setAllowedOrigins("*")
-                .setAllowedOrigins("http://127.0.0.1:5500", "http://localhost:5500","http://localhost:3000")
+                .setAllowedOrigins("http://127.0.0.1:5500", "http://localhost:5500","https://www.certx.space","http://localhost:3000")
                 .withSockJS(); // fallback nếu browser không hỗ trợ websocket
     }
 }
