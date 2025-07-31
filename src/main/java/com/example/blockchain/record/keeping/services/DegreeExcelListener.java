@@ -212,11 +212,11 @@ public class DegreeExcelListener extends AnalysisEventListener<DegreeExcelRowReq
             try {
                 LocalDate localDate = LocalDate.parse(row.getIssueDate(), formatter);
                 issueDate = localDate.atStartOfDay(ZoneId.of("Asia/Ho_Chi_Minh"));
-                ZonedDateTime oneYearAgo = now.minusYears(1);
+//                ZonedDateTime oneYearAgo = now.minusYears(1);
                 ZonedDateTime oneYearLater = now.plusYears(1);
 
-                if (issueDate.isBefore(oneYearAgo) || issueDate.isAfter(oneYearLater)) {
-                    errors.add("Dòng " + rowIndex + ": Ngày cấp văn bằng phải trong vòng 1 năm trước và 1 năm sau kể từ hôm nay");
+                if (issueDate.isBefore(now) || issueDate.isAfter(oneYearLater)) {
+                    errors.add("Dòng " + rowIndex + ": Ngày cấp văn bằng chỉ được phép từ hôm nay đến trong vòng 1 năm tới");
                     continue;
                 }
             } catch (DateTimeParseException e) {

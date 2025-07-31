@@ -77,16 +77,6 @@ public class DegreeController {
             ) {
                 return ApiResponseBuilder.badRequest("Vui lòng nhập đầy đủ thông tin!");
             }
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-            LocalDate localDate = LocalDate.parse(request.getIssueDate(), formatter);
-            ZonedDateTime issueDate = localDate.atStartOfDay(ZoneId.of("Asia/Ho_Chi_Minh"));
-            ZonedDateTime now = ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
-            ZonedDateTime oneYearAgo = now.minusYears(1);
-            ZonedDateTime oneYearLater = now.plusYears(1);
-
-            if (issueDate.isBefore(oneYearAgo) || issueDate.isAfter(oneYearLater)) {
-                return ApiResponseBuilder.badRequest("Ngày cấp văn bằng phải trong vòng 1 năm trước và 1 năm sau kể từ hôm nay");
-            }
             Student student = studentService.findById(request.getStudentId());
             if(student == null ){
                 return ApiResponseBuilder.badRequest("Không tìm thấy sinh viên!");
@@ -97,6 +87,16 @@ public class DegreeController {
             Authentication authentication= SecurityContextHolder.getContext().getAuthentication();
             String username = authentication.getName();
             User user = userService.findByUser(username);
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+            LocalDate localDate = LocalDate.parse(request.getIssueDate(), formatter);
+            ZonedDateTime issueDate = localDate.atStartOfDay(ZoneId.of("Asia/Ho_Chi_Minh"));
+            ZonedDateTime now = ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
+//            ZonedDateTime oneYearAgo = now.minusYears(1);
+            ZonedDateTime oneYearLater = now.plusYears(1);
+
+            if (issueDate.isBefore(now) || issueDate.isAfter(oneYearLater)) {
+                return ApiResponseBuilder.badRequest("Ngày cấp văn bằng chỉ được phép từ hôm nay đến trong vòng 1 năm tới");
+            }
 
             if(degreeService.existByDiplomanumber(user.getUniversity().getId(), request.getDiplomaNumber())){
                 return ApiResponseBuilder.badRequest("Số hiệu văn bằng đã tồn tại!");

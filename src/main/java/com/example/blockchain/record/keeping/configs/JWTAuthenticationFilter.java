@@ -122,24 +122,30 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter {
                 }
             }
 
-
             filterChain.doFilter(request, response);
         } catch (Exception ex) {
-            if (!response.isCommitted()) {
-                response.reset();
-
-                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                response.setContentType("application/json");
-                response.setCharacterEncoding("UTF-8");
-
-                String errorJson = new ObjectMapper().writeValueAsString(
-                        ApiResponseBuilder.unauthorized(ex.getMessage()).getBody()
-                );
-
-                response.getWriter().write(errorJson);
-                response.getWriter().flush();
+            String origin = request.getHeader("Origin");
+            if (origin != null && !origin.isEmpty()) {
+                response.setHeader("Access-Control-Allow-Origin", origin);
+            } else {
+                response.setHeader("Access-Control-Allow-Origin", "*");
             }
-            return;
+            response.setHeader("Access-Control-Allow-Credentials", "true");
+            response.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+            response.setHeader("Access-Control-Allow-Headers", "Origin, Content-Type, Accept, Authorization, X-Requested-With");
+
+            response.resetBuffer();
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setContentType("application/json");
+            response.setCharacterEncoding("UTF-8");
+
+            String errorJson = new ObjectMapper().writeValueAsString(
+                    ApiResponseBuilder.unauthorized(ex.getMessage()).getBody()
+            );
+
+            response.getWriter().write(errorJson);
+            response.getWriter().flush();
         }
+        return;
     }
 }
