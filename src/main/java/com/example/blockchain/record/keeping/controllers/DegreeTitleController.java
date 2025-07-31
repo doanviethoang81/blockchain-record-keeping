@@ -60,7 +60,7 @@ public class DegreeTitleController {
     }
 
     //thêm
-    @PreAuthorize("hasAuthority('WRITE')")
+    @PreAuthorize("hasAuthority('CREATE')")
     @PostMapping("/pdt/degree-title")
     public ResponseEntity<?> createCertificateType(@RequestBody DegreeTitleRequest request) {
         try {
@@ -78,6 +78,7 @@ public class DegreeTitleController {
     }
 
     //sửa
+    @PreAuthorize("hasAuthority('UPDATE')")
     @PostMapping("/pdt/degree-title/{id}")
     public ResponseEntity<?> update(
             @PathVariable("id")  Long id,
@@ -105,7 +106,7 @@ public class DegreeTitleController {
     }
 
     //xóa
-    @PreAuthorize("hasAuthority('READ')")
+    @PreAuthorize("hasAuthority('DELETE')")
     @DeleteMapping("/pdt/degree-title/{id}")
     public ResponseEntity<?> delete(
             @PathVariable("id")  Long id)

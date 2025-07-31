@@ -137,7 +137,6 @@ public class AuthenticationController {
 //        }
 //    }
 
-    //không đc để trống request
     @PostMapping("/api/auth/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request) {
         try {

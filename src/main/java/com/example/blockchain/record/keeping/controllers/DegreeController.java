@@ -58,7 +58,7 @@ public class DegreeController {
 
     //---------------------------- KHOA -------------------------------------------------------
     // tạo văn bằng
-    @PreAuthorize("hasAuthority('WRITE')")
+    @PreAuthorize("hasAuthority('CREATE')")
     @PostMapping("/khoa/degree/create")
     public ResponseEntity<?> createDegree(
             @RequestBody DegreeRequest request
@@ -116,7 +116,7 @@ public class DegreeController {
     }
 
     // excel
-    @PreAuthorize("hasAuthority('WRITE')")
+    @PreAuthorize("hasAuthority('CREATE')")
     @PostMapping("/khoa/degree/create-excel")
     public ResponseEntity<?> uploadExcel(
             @RequestParam("file") MultipartFile file) throws IOException
@@ -163,7 +163,7 @@ public class DegreeController {
     }
 
     // sửa
-    @PreAuthorize("hasAuthority('READ')")
+    @PreAuthorize("hasAuthority('UPDATE')")
     @PutMapping("/khoa/update-degree/{id}")
     public ResponseEntity<?> updateCertificateType(
             @PathVariable("id")  Long id,
@@ -916,7 +916,7 @@ public class DegreeController {
     }
 
     //xác nhận 1 văn bằng
-    @PreAuthorize("hasAuthority('READ')")
+    @PreAuthorize("hasAuthority('CREATE')")
     @PostMapping("/pdt/degree-validation/{id}")
     public ResponseEntity<?> degreeValidation(@PathVariable("id") Long id){
         try{
@@ -935,7 +935,7 @@ public class DegreeController {
     }
 
     //từ chối xac nhận 1 văn bằng
-    @PreAuthorize("hasAuthority('READ')")
+    @PreAuthorize("hasAuthority('CREATE')")
     @PostMapping("/pdt/degree-rejected/{id}")
     public ResponseEntity<?> degreeRejected(@PathVariable("id") Long id,
                 @RequestBody RejectedNoteRequest request)
@@ -957,7 +957,7 @@ public class DegreeController {
     }
 
     //xác nhận 1 list văn bằng
-    @PreAuthorize("hasAuthority('READ')")
+    @PreAuthorize("hasAuthority('CREATE')")
     @PostMapping("/pdt/confirm-degree-list")
     public ResponseEntity<?> confirmDegreeList(@RequestBody ListValidationRequest request) {
         try {
@@ -994,7 +994,7 @@ public class DegreeController {
     }
 
     //từ chối xác nhận 1 list văn bằng
-    @PreAuthorize("hasAuthority('READ')")
+    @PreAuthorize("hasAuthority('CREATE')")
     @PostMapping("/pdt/reject-a-list-of-degree")
     public ResponseEntity<?> rejectAListOfDegree (@RequestBody ListValidationAndNoteRequest request) {
         try {
@@ -1109,6 +1109,7 @@ public class DegreeController {
     }
 
     //xuat excel
+    @PreAuthorize("hasAuthority('CREATE')")
     @GetMapping("/pdt/export-degree")
     public void exportDegree(
             @RequestParam(name = "type", required = false) String type,
@@ -1170,7 +1171,7 @@ public class DegreeController {
     }
 
     //xóa 1 vb
-    @PreAuthorize("hasAuthority('READ')")
+    @PreAuthorize("hasAuthority('DELETE')")
     @DeleteMapping("/khoa/delete-degree/{id}")
     public ResponseEntity<?> deleteDegree(
             @PathVariable("id")  Long id)
@@ -1188,7 +1189,7 @@ public class DegreeController {
     }
 
     //xóa 1 list ch ch
-    @PreAuthorize("hasAuthority('READ')")
+    @PreAuthorize("hasAuthority('DELETE')")
     @DeleteMapping("/khoa/delete-degree-list")
     public ResponseEntity<?> deleteDegreeList(@RequestBody ListValidationRequest request) {
         try {
@@ -1224,6 +1225,7 @@ public class DegreeController {
     }
 
     //xuất excel khi chọn
+    @PreAuthorize("hasAuthority('CREATE')")
     @PostMapping("/pdt/export-degree-list")
     public void exportDegreesList(
             @RequestBody ListValidationRequest request,

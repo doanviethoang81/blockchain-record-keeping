@@ -16,6 +16,7 @@ import com.example.blockchain.record.keeping.utils.EnvUtil;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
@@ -34,6 +35,7 @@ public class WalletController {
     private final WalletService walletService;
     private final EtherscanService etherscanService;
 
+    @PreAuthorize("hasAuthority('READ')")
     @GetMapping("/pdt/transactions")
     public ResponseEntity<?> getTransactions(
             @RequestParam(defaultValue = "all") String type,
@@ -70,6 +72,7 @@ public class WalletController {
     }
 
     //thông tin ví trường
+    @PreAuthorize("hasAuthority('READ')")
     @GetMapping("/pdt/wallet-info")
     public ResponseEntity<?> getWalletInfo() {
         String address = EnvUtil.get("METAMASK_ADDRESS");
@@ -82,6 +85,7 @@ public class WalletController {
     }
 
     //số STU coin
+    @PreAuthorize("hasAuthority('READ')")
     @GetMapping("/pdt/wallet-info-stu")
     public ResponseEntity<?> getWalletSTUInfo() {
         String address = EnvUtil.get("METAMASK_ADDRESS");

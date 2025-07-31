@@ -39,6 +39,7 @@ public class UserController {
 
     //---------------------------- ADMIN -------------------------------------------------------
     // khóa/Mở tài khoản của 1 trường
+    @PreAuthorize("hasAuthority('CREATE')")
     @PutMapping("/admin/unlock-university/{id}")
     public ResponseEntity<?> lockUniversity(@PathVariable("id") Long id) {
         try {
@@ -62,7 +63,7 @@ public class UserController {
     }
 
     //đổi mật khẩu tài khoản admin
-    @PreAuthorize("hasAuthority('WRITE')")
+    @PreAuthorize("hasAuthority('UPDATE')")
     @PutMapping("/admin/change-password")
     public ResponseEntity<?> changePasswordAdmin(
             @RequestBody ChangePasswordRequest changePasswordRequest
@@ -119,7 +120,7 @@ public class UserController {
     }
 
     //đổi mật khẩu tài khoản pdt
-    @PreAuthorize("hasAuthority('WRITE')")
+    @PreAuthorize("hasAuthority('UPDATE')")
     @PutMapping("/pdt/change-password")
     public ResponseEntity<?> changePasswordUniversity(
             @RequestBody ChangePasswordRequest changePasswordRequest
@@ -169,7 +170,6 @@ public class UserController {
 //    }
 
     //chi tiet tai khoan khoa dang nhap
-    @PreAuthorize("hasAuthority('READ')")
     @GetMapping("/khoa/user-detail")
     public ResponseEntity<?> userDetailDepartment() {
         try {
@@ -198,7 +198,7 @@ public class UserController {
     }
 
     //xác nhận password để xem private key
-    @PreAuthorize("hasAuthority('WRITE')")
+    @PreAuthorize("hasAuthority('READ')")
     @PostMapping("/pdt/private-key")
     public ResponseEntity<?> verifyPassword(@RequestBody VerifyPasswordRequest request) {
         try {
@@ -227,7 +227,6 @@ public class UserController {
     }
 
     //chi tiet tai khoan sinh viên dang nhap
-    @PreAuthorize("hasAuthority('READ')")
     @GetMapping("/student/user-detail")
     public ResponseEntity<?> userDetailStudent() {
         try {

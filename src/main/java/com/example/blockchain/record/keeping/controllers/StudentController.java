@@ -186,7 +186,7 @@ public class StudentController {
     }
 
     // thêm sinh viên
-    @PreAuthorize("hasAuthority('WRITE')")
+    @PreAuthorize("hasAuthority('CREATE')")
     @PostMapping("/pdt/create-student")
     public ResponseEntity<?> createStudent(
             @Valid @RequestBody StudentRequest studentRequest,
@@ -229,7 +229,7 @@ public class StudentController {
     }
 
     // thêm sinh viên bằng excel
-    @PreAuthorize("hasAuthority('WRITE')")
+    @PreAuthorize("hasAuthority('CREATE')")
     @PostMapping("/pdt/create-student-excel")
     public ResponseEntity<?> createStudentExcel(
             @RequestParam("file") MultipartFile file) throws IOException {
@@ -266,7 +266,7 @@ public class StudentController {
     }
 
     //sửa
-    @PreAuthorize("hasAuthority('READ')")
+    @PreAuthorize("hasAuthority('UPDATE')")
     @PutMapping("/pdt/update-student/{id}")
     public ResponseEntity<?> updateStudent(
              @Valid @PathVariable("id")  Long id,
@@ -309,7 +309,7 @@ public class StudentController {
     }
 
     //xóa
-    @PreAuthorize("hasAuthority('READ')")
+    @PreAuthorize("hasAuthority('DELETE')")
     @DeleteMapping("/pdt/delete-student/{id}")
     public ResponseEntity<?> deleteStudent(
             @PathVariable("id")  Long id)
@@ -436,6 +436,7 @@ public class StudentController {
     }
 
     //số coin của sinh viên
+    @PreAuthorize("hasAuthority('READ')")
     @GetMapping("/student/wallet-coin")
     public ResponseEntity<?> getWalletSTUStudent() {
         try {
@@ -561,5 +562,4 @@ public class StudentController {
             return ApiResponseBuilder.internalError("Lỗi: " + e.getMessage());
         }
     }
-
 }

@@ -98,7 +98,7 @@ public class DepartmentController {
     }
 
     //tạo khoa
-    @PreAuthorize("hasAuthority('WRITE')")
+    @PreAuthorize("hasAuthority('CREATE')")
     @PostMapping("/pdt/create-user")
     public ResponseEntity<?> createDepartment(@RequestBody UserDepartmentRequest request) {
         try{
@@ -124,7 +124,7 @@ public class DepartmentController {
     }
 
     //cap lai mk cho khoa
-    @PreAuthorize("hasAuthority('WRITE')")
+    @PreAuthorize("hasAuthority('CREATE')")
     @PutMapping("/pdt/change-password-of-department/{id}")
     public ResponseEntity<?> changePasswordDerpartment(
             @PathVariable("id") Long id,
@@ -147,7 +147,7 @@ public class DepartmentController {
             boolean isPasswordChanged = userService.changePasswordDepartment(id, changePassword);
             if (isPasswordChanged) {
                 // gửi gmail thông báo
-                brevoApiEmailService.sendPasswordChange(id, changePassword.getNewPassword());
+//                brevoApiEmailService.sendPasswordChange(id, changePassword.getNewPassword());
                 return ApiResponseBuilder.success("Thay đổi mật khẩu thành công.",null);
 
             } else {
@@ -159,7 +159,7 @@ public class DepartmentController {
     }
 
     //cấp quyền thu hồi quyền
-    @PreAuthorize("hasAuthority('WRITE')")
+    @PreAuthorize("hasAuthority('CREATE')")
     @PutMapping("/pdt/open-lock-department/{id}")
     public ResponseEntity<?> lockedDepartment(@PathVariable Long id){
         try{
@@ -181,37 +181,37 @@ public class DepartmentController {
             log.setCreatedAt(vietnamTime.toLocalDateTime());
             logRepository.save(log);
 
-            brevoApiEmailService.sendPermissionToDepartment(id, message);
+//            brevoApiEmailService.sendPermissionToDepartment(id, message);
             return ApiResponseBuilder.success(message, null);
         } catch (Exception e) {
             return ApiResponseBuilder.internalError("Lỗi "+ e.getMessage());
         }
     }
 
-    // mở khóa quyền write của khoa
-    @PreAuthorize("hasAuthority('WRITE')")
+    // mở khóa quyền create của khoa
+    @PreAuthorize("hasAuthority('CREATE')")
     @PutMapping("/pdt/unlock-permission-write/{id}")
-    public ResponseEntity<?> unlockPermissionWrite(@PathVariable Long id){
+    public ResponseEntity<?> unlockPermissionCreate(@PathVariable Long id){
         try {
-            String active = "WRITE";
+            String active = "CREATE";
             boolean granted = userService.togglePermission(id,active);
-            String message = granted ? "Đã cấp quyền WRITE cho khoa" : "Đã thu hồi quyền WRITE của khoa";
-            String actionType = granted ? "được cấp quyền WRITE ":" bị thu hồi quyền WRITE";
+            String message = granted ? "Đã cấp quyền CREATE của khoa" : "Đã thu hồi quyền CREATE của khoa";
+            String actionType = granted ? "được cấp quyền CREATE ":" bị thu hồi quyền CREATE";
             User user =userService.finbById(id);
             //log
             ZonedDateTime vietnamTime = ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
             String ipAdress = auditLogService.getClientIp(httpServletRequest);
             Log log = new Log();
             log.setUser(auditLogService.getCurrentUser());
-            log.setActionType(granted ? ActionType.UNLOCK_WRITE : ActionType.LOCK_WRITE);
+            log.setActionType(granted ? ActionType.UNLOCK_CREATE : ActionType.LOCK_CREATE);
             log.setEntityName(Entity.departments);
             log.setEntityId(id);
-            log.setDescription((granted ? ActionType.UNLOCK_WRITE.getLabel() : ActionType.LOCK_WRITE.getLabel()) + " khoa: " + user.getDepartment().getName());
+            log.setDescription((granted ? ActionType.UNLOCK_CREATE.getLabel() : ActionType.LOCK_CREATE.getLabel()) + " khoa: " + user.getDepartment().getName());
             log.setIpAddress(ipAdress);
             log.setCreatedAt(vietnamTime.toLocalDateTime());
             logRepository.save(log);
             // Gửi email
-            brevoApiEmailService.sendPermissionNotification(id, actionType);
+//            brevoApiEmailService.sendPermissionNotification(id, actionType);
             return ApiResponseBuilder.success(message, null);
         } catch (Exception e) {
             return ApiResponseBuilder.internalError("Đã xảy ra lỗi: " + e.getMessage());
@@ -219,13 +219,13 @@ public class DepartmentController {
     }
 
     // mở khóa quyền read của khoa
-    @PreAuthorize("hasAuthority('WRITE')")
+    @PreAuthorize("hasAuthority('CREATE')")
     @PutMapping("/pdt/unlock-permission-read/{id}")
     public ResponseEntity<?> unlockPermissionRead(@PathVariable Long id){
         try {
             String active = "READ";
             boolean granted = userService.togglePermission(id,active);
-            String message = granted ? "Đã cấp quyền READ cho khoa" : "Đã thu hồi quyền READ của khoa";
+            String message = granted ? "Đã cấp quyền READ của khoa" : "Đã thu hồi quyền READ của khoa";
             String actionType = granted ? "được cấp quyền READ ":" bị thu hồi quyền READ";
             User user =userService.finbById(id);
 
@@ -242,7 +242,69 @@ public class DepartmentController {
             log.setCreatedAt(vietnamTime.toLocalDateTime());
             logRepository.save(log);
             // Gửi email
-            brevoApiEmailService.sendPermissionNotification(id, actionType);
+//            brevoApiEmailService.sendPermissionNotification(id, actionType);
+            return ApiResponseBuilder.success(message, null);
+        } catch (Exception e) {
+            return ApiResponseBuilder.internalError("Đã xảy ra lỗi: " + e.getMessage());
+        }
+    }
+
+    // mở khóa quyền update của khoa
+    @PreAuthorize("hasAuthority('CREATE')")
+    @PutMapping("/pdt/unlock-permission-update/{id}")
+    public ResponseEntity<?> unlockPermissionUpdate(@PathVariable Long id){
+        try {
+            String active = "UPDATE";
+            boolean granted = userService.togglePermission(id,active);
+            String message = granted ? "Đã cấp quyền UPDATE của khoa" : "Đã thu hồi quyền UPDATE của khoa";
+            String actionType = granted ? "được cấp quyền UPDATE ":" bị thu hồi quyền UPDATE";
+            User user =userService.finbById(id);
+
+            //log
+            ZonedDateTime vietnamTime = ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
+            String ipAdress = auditLogService.getClientIp(httpServletRequest);
+            Log log = new Log();
+            log.setUser(auditLogService.getCurrentUser());
+            log.setActionType(granted ? ActionType.UNLOCK_UPDATE : ActionType.LOCK_UPDATE);
+            log.setEntityName(Entity.departments);
+            log.setEntityId(id);
+            log.setDescription((granted ? ActionType.UNLOCK_UPDATE.getLabel() : ActionType.LOCK_UPDATE.getLabel()) + " khoa: " + user.getDepartment().getName());
+            log.setIpAddress(ipAdress);
+            log.setCreatedAt(vietnamTime.toLocalDateTime());
+            logRepository.save(log);
+            // Gửi email
+//            brevoApiEmailService.sendPermissionNotification(id, actionType);
+            return ApiResponseBuilder.success(message, null);
+        } catch (Exception e) {
+            return ApiResponseBuilder.internalError("Đã xảy ra lỗi: " + e.getMessage());
+        }
+    }
+
+    // mở khóa quyền delete của khoa
+    @PreAuthorize("hasAuthority('CREATE')")
+    @PutMapping("/pdt/unlock-permission-delete/{id}")
+    public ResponseEntity<?> unlockPermissionDelete(@PathVariable Long id){
+        try {
+            String active = "DELETE";
+            boolean granted = userService.togglePermission(id,active);
+            String message = granted ? "Đã cấp quyền DELETE của khoa" : "Đã thu hồi quyền DELETE của khoa";
+            String actionType = granted ? "được cấp quyền DELETE ":" bị thu hồi quyền DELETE";
+            User user =userService.finbById(id);
+
+            //log
+            ZonedDateTime vietnamTime = ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
+            String ipAdress = auditLogService.getClientIp(httpServletRequest);
+            Log log = new Log();
+            log.setUser(auditLogService.getCurrentUser());
+            log.setActionType(granted ? ActionType.UNLOCK_DELETE : ActionType.LOCK_DELETE);
+            log.setEntityName(Entity.departments);
+            log.setEntityId(id);
+            log.setDescription((granted ? ActionType.UNLOCK_DELETE.getLabel() : ActionType.LOCK_DELETE.getLabel()) + " khoa: " + user.getDepartment().getName());
+            log.setIpAddress(ipAdress);
+            log.setCreatedAt(vietnamTime.toLocalDateTime());
+            logRepository.save(log);
+            // Gửi email
+//            brevoApiEmailService.sendPermissionNotification(id, actionType);
             return ApiResponseBuilder.success(message, null);
         } catch (Exception e) {
             return ApiResponseBuilder.internalError("Đã xảy ra lỗi: " + e.getMessage());
@@ -250,7 +312,7 @@ public class DepartmentController {
     }
 
     //sửa khoa
-    @PreAuthorize("hasAuthority('WRITE')")
+    @PreAuthorize("hasAuthority('UPDATE')")
     @PutMapping("/pdt/update-department/{id}")
     public ResponseEntity<?> updateDepartment(@PathVariable Long id, @RequestBody DepartmentRequest departmentRequest) {
         try {
@@ -276,7 +338,7 @@ public class DepartmentController {
     }
 
     //xóa khoa
-    @PreAuthorize("hasAuthority('WRITE')")
+    @PreAuthorize("hasAuthority('DELETE')")
     @DeleteMapping("/pdt/delete-department/{id}")
     public ResponseEntity<?> deleteDepartment(@PathVariable Long id){
         try {
@@ -332,7 +394,7 @@ public class DepartmentController {
     }
 
     // đổi coin thành tiền cho sinh viên
-    @PreAuthorize("hasAuthority('WRITE')")
+    @PreAuthorize("hasAuthority('CREATE')")
     @PostMapping("/khoa/payments/exchange-token")
     public ResponseEntity<?> exchangeToken(
             @RequestParam Long id,
@@ -458,7 +520,7 @@ public class DepartmentController {
     }
 
     //excel theo id
-    @PreAuthorize("hasAuthority('WRITE')")
+    @PreAuthorize("hasAuthority('CREATE')")
     @PostMapping("/pdt/department/create-excel")
     public ResponseEntity<?> uploadExcel(
             @RequestParam("file") MultipartFile file) throws IOException
