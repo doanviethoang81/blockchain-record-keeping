@@ -68,7 +68,7 @@ public class RatingController {
     }
 
     //thêm
-    @PreAuthorize("hasAuthority('CREATE')")
+    @PreAuthorize("@permissionService.hasPermission(authentication, 'CREATE')")
     @PostMapping("/pdt/rating")
     public ResponseEntity<?> createCertificateType(@RequestBody RatingRequest request) {
         try {
@@ -86,7 +86,7 @@ public class RatingController {
     }
 
     //sửa
-    @PreAuthorize("hasAuthority('UPDATE')")
+    @PreAuthorize("@permissionService.hasPermission(authentication, 'UPDATE')")
     @PostMapping("/pdt/rating/{id}")
     public ResponseEntity<?> update(
             @PathVariable("id")  Long id,
@@ -112,7 +112,7 @@ public class RatingController {
     }
 
     //xóa
-    @PreAuthorize("hasAuthority('DELETE')")
+    @PreAuthorize("@permissionService.hasPermission(authentication, 'DELETE')")
     @DeleteMapping("/pdt/rating/{id}")
     public ResponseEntity<?> delete(
             @PathVariable("id")  Long id)

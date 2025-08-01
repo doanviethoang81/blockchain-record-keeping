@@ -186,7 +186,7 @@ public class StudentController {
     }
 
     // thêm sinh viên
-    @PreAuthorize("hasAuthority('CREATE')")
+    @PreAuthorize("@permissionService.hasPermission(authentication, 'CREATE')")
     @PostMapping("/pdt/create-student")
     public ResponseEntity<?> createStudent(
             @Valid @RequestBody StudentRequest studentRequest,
@@ -229,7 +229,7 @@ public class StudentController {
     }
 
     // thêm sinh viên bằng excel
-    @PreAuthorize("hasAuthority('CREATE')")
+    @PreAuthorize("@permissionService.hasPermission(authentication, 'CREATE')")
     @PostMapping("/pdt/create-student-excel")
     public ResponseEntity<?> createStudentExcel(
             @RequestParam("file") MultipartFile file) throws IOException {
@@ -266,7 +266,7 @@ public class StudentController {
     }
 
     //sửa
-    @PreAuthorize("hasAuthority('UPDATE')")
+    @PreAuthorize("@permissionService.hasPermission(authentication, 'UPDATE')")
     @PutMapping("/pdt/update-student/{id}")
     public ResponseEntity<?> updateStudent(
              @Valid @PathVariable("id")  Long id,
@@ -309,7 +309,7 @@ public class StudentController {
     }
 
     //xóa
-    @PreAuthorize("hasAuthority('DELETE')")
+    @PreAuthorize("@permissionService.hasPermission(authentication, 'DELETE')")
     @DeleteMapping("/pdt/delete-student/{id}")
     public ResponseEntity<?> deleteStudent(
             @PathVariable("id")  Long id)

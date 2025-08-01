@@ -78,7 +78,7 @@ public class StudentClassController {
     }
 
     //tạo lớp
-    @PreAuthorize("hasAuthority('CREATE')")
+    @PreAuthorize("@permissionService.hasPermission(authentication, 'CREATE')")
     @PostMapping("/pdt/create-class")
     public ResponseEntity<?> createClassOfDepartment(
             HttpServletRequest request) {
@@ -107,7 +107,7 @@ public class StudentClassController {
     }
 
     //update
-    @PreAuthorize("hasAuthority('UPDATE')")
+    @PreAuthorize("@permissionService.hasPermission(authentication, 'UPDATE')")
     @PutMapping("/pdt/update-class/{id}")
     public ResponseEntity<?> updateClass(@PathVariable Long id, HttpServletRequest request){
         try {
@@ -127,7 +127,7 @@ public class StudentClassController {
     }
 
     //xóa
-    @PreAuthorize("hasAuthority('DELETE')")
+    @PreAuthorize("@permissionService.hasPermission(authentication, 'DELETE')")
     @DeleteMapping("/pdt/delete-class/{id}")
     public ResponseEntity<?> deleteClass(@PathVariable Long id){
         try {
@@ -219,7 +219,7 @@ public class StudentClassController {
     }
 
     //excel
-    @PreAuthorize("hasAuthority('CREATE')")
+    @PreAuthorize("@permissionService.hasPermission(authentication, 'CREATE')")
     @PostMapping("/pdt/create-class-excel")
     public ResponseEntity<?> uploadExcel(
             @RequestParam(name = "departmentId", required = false) Long departmentId,

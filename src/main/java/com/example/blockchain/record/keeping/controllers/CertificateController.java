@@ -481,7 +481,7 @@ public class CertificateController {
     }
 
     // xác nhận chứng chỉ
-    @PreAuthorize("hasAuthority('CREATE')")
+    @PreAuthorize("@permissionService.hasPermission(authentication, 'CREATE')")
     @PostMapping("/pdt/certificate-validation/{id}")
     public ResponseEntity<?> certificateValidation(@PathVariable("id") Long id){
         try{
@@ -501,7 +501,7 @@ public class CertificateController {
     }
 
     //xác nhận 1 list chứng chỉ
-    @PreAuthorize("hasAuthority('CREATE')")
+    @PreAuthorize("@permissionService.hasPermission(authentication, 'CREATE')")
     @PostMapping("/pdt/confirm-certificate-list")
     public ResponseEntity<?> confirmCertificateList(@RequestBody ListValidationRequest request) {
         try {
@@ -970,7 +970,7 @@ public class CertificateController {
     }
 
     //tạo chung chi
-    @PreAuthorize("hasAuthority('CREATE')")
+    @PreAuthorize("@permissionService.hasPermission(authentication, 'CREATE')")
     @PostMapping("/khoa/create-certificate")
     public ResponseEntity<?> createCertificate(
             @RequestParam("data") String dataJson,
@@ -1022,7 +1022,7 @@ public class CertificateController {
     }
 
     //excel
-    @PreAuthorize("hasAuthority('CREATE')")
+    @PreAuthorize("@permissionService.hasPermission(authentication, 'CREATE')")
     @PostMapping("/khoa/certificate/create-excel")
     public ResponseEntity<?> uploadExcel(
             @RequestParam("file") MultipartFile file,
@@ -1071,7 +1071,7 @@ public class CertificateController {
     }
 
     // sửa chung chi
-    @PreAuthorize("hasAuthority('UPDATE')")
+    @PreAuthorize("@permissionService.hasPermission(authentication, 'UPDATE')")
     @PutMapping("/khoa/update-certificate/{id}")
     public ResponseEntity<?> updateCertificateType(
             @PathVariable("id")  Long id,
@@ -1116,7 +1116,7 @@ public class CertificateController {
     }
 
     // từ chối 1 chứng chỉ
-    @PreAuthorize("hasAuthority('CREATE')")
+    @PreAuthorize("@permissionService.hasPermission(authentication, 'CREATE')")
     @PostMapping("/pdt/certificate-rejected/{id}")
     public ResponseEntity<?> certificateRejected(@PathVariable("id") Long id, @RequestBody RejectedNoteRequest request){
         try{
@@ -1136,7 +1136,7 @@ public class CertificateController {
     }
 
     //từ chối xác nhận 1 list chứng chỉ
-    @PreAuthorize("hasAuthority('CREATE')")
+    @PreAuthorize("@permissionService.hasPermission(authentication, 'CREATE')")
     @PostMapping("/pdt/reject-a-list-of-certificate")
     public ResponseEntity<?> rejectAListOfCertificate(@RequestBody ListValidationAndNoteRequest request) {
         try {
@@ -1212,7 +1212,7 @@ public class CertificateController {
     }
 
     //xuất excel
-    @PreAuthorize("hasAuthority('CREATE')")
+    @PreAuthorize("@permissionService.hasPermission(authentication, 'CREATE')")
     @GetMapping("/pdt/export-certificates")
     public void exportCertificates(
             @RequestParam(name = "type", required = false) String type,
@@ -1275,7 +1275,7 @@ public class CertificateController {
     }
 
     //xóa 1 ch ch
-    @PreAuthorize("hasAuthority('DELETE')")
+    @PreAuthorize("@permissionService.hasPermission(authentication, 'DELETE')")
     @DeleteMapping("/khoa/delete-certificate/{id}")
     public ResponseEntity<?> deleteCertificate(
             @PathVariable("id")  Long id)
@@ -1293,7 +1293,7 @@ public class CertificateController {
     }
 
     //xóa 1 list ch ch
-    @PreAuthorize("hasAuthority('DELETE')")
+    @PreAuthorize("@permissionService.hasPermission(authentication, 'DELETE')")
     @DeleteMapping("/khoa/delete-certificate-list")
     public ResponseEntity<?> deleteCertificateList(@RequestBody ListValidationRequest request) {
         try {
@@ -1329,7 +1329,7 @@ public class CertificateController {
     }
 
     //xuất excel khi chọn
-    @PreAuthorize("hasAuthority('CREATE')")
+    @PreAuthorize("@permissionService.hasPermission(authentication, 'CREATE')")
     @PostMapping("/pdt/export-certificates-list")
     public void exportCertificatesList(
             @RequestBody ListValidationRequest request,

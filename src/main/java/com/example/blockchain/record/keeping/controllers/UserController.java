@@ -39,7 +39,7 @@ public class UserController {
 
     //---------------------------- ADMIN -------------------------------------------------------
     // khóa/Mở tài khoản của 1 trường
-    @PreAuthorize("hasAuthority('CREATE')")
+    @PreAuthorize("@permissionService.hasPermission(authentication, 'CREATE')")
     @PutMapping("/admin/unlock-university/{id}")
     public ResponseEntity<?> lockUniversity(@PathVariable("id") Long id) {
         try {
@@ -63,7 +63,7 @@ public class UserController {
     }
 
     //đổi mật khẩu tài khoản admin
-    @PreAuthorize("hasAuthority('UPDATE')")
+    @PreAuthorize("@permissionService.hasPermission(authentication, 'UPDATE')")
     @PutMapping("/admin/change-password")
     public ResponseEntity<?> changePasswordAdmin(
             @RequestBody ChangePasswordRequest changePasswordRequest
@@ -120,7 +120,7 @@ public class UserController {
     }
 
     //đổi mật khẩu tài khoản pdt
-    @PreAuthorize("hasAuthority('UPDATE')")
+    @PreAuthorize("@permissionService.hasPermission(authentication, 'UPDATE')")
     @PutMapping("/pdt/change-password")
     public ResponseEntity<?> changePasswordUniversity(
             @RequestBody ChangePasswordRequest changePasswordRequest

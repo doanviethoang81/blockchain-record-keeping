@@ -124,7 +124,7 @@ public class UniversityController {
     }
 
     //update tài khoản university
-    @PreAuthorize("hasAuthority('UPDATE')")
+    @PreAuthorize("@permissionService.hasPermission(authentication, 'UPDATE')")
     @PutMapping("/pdt/update")
     public ResponseEntity<?> updateUniversityInfo(
             @Valid @ModelAttribute UniversityRequest universityRequest,
@@ -162,7 +162,7 @@ public class UniversityController {
     }
 
     //logo
-    @PreAuthorize("hasAuthority('UPDATE')")
+    @PreAuthorize("@permissionService.hasPermission(authentication, 'UPDATE')")
     @PutMapping("/pdt/university/logo")
     public ResponseEntity<?> updateLogo(@RequestParam("logo") MultipartFile logo) {
         try {
@@ -206,7 +206,7 @@ public class UniversityController {
         }
     }
 
-    @PreAuthorize("hasAuthority('UPDATE')")
+    @PreAuthorize("@permissionService.hasPermission(authentication, 'UPDATE')")
     @PutMapping("/pdt/university/seal")
     public ResponseEntity<?> updateSeal(@RequestParam("seal") MultipartFile seal) {
         try {
@@ -252,7 +252,7 @@ public class UniversityController {
     }
 
     //tạo thêm coin
-    @PreAuthorize("hasAuthority('CREATE')")
+    @PreAuthorize("@permissionService.hasPermission(authentication, 'CREATE')")
     @PostMapping("/pdt/tokens/mint")
     public ResponseEntity<?> mintToken(
             @RequestParam String amount

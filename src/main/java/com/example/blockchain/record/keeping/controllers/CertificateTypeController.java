@@ -98,7 +98,7 @@ public class CertificateTypeController {
     }
 
     //tạo
-    @PreAuthorize("hasAuthority('CREATE')")
+    @PreAuthorize("@permissionService.hasPermission(authentication, 'CREATE')")
     @PostMapping("/pdt/certificate-type/create")
     public ResponseEntity<?> createCertificateType(@RequestBody CertificateTypeRequest certificateType) {
         try {
@@ -135,7 +135,7 @@ public class CertificateTypeController {
     }
 
     //sửa
-    @PreAuthorize("hasAuthority('UPDATE')")
+    @PreAuthorize("@permissionService.hasPermission(authentication, 'UPDATE')")
     @PutMapping("/pdt/update-certificate_type/{id}")
     public ResponseEntity<?> updateCertificateType(
             @PathVariable("id")  Long id,
@@ -161,7 +161,7 @@ public class CertificateTypeController {
     }
 
     //xóa
-    @PreAuthorize("hasAuthority('DELETE')")
+    @PreAuthorize("@permissionService.hasPermission(authentication, 'DELETE')")
     @DeleteMapping("/pdt/delete-certificate_type/{id}")
     public ResponseEntity<?> deleteCertificateType(
             @PathVariable("id")  Long id)

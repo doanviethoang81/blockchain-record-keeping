@@ -61,7 +61,7 @@ public class EducationModeController {
     }
 
     //thêm
-    @PreAuthorize("hasAuthority('CREATE')")
+    @PreAuthorize("@permissionService.hasPermission(authentication, 'CREATE')")
     @PostMapping("/pdt/education-mode")
     public ResponseEntity<?> createCertificateType(@RequestBody EducationModeRequest request) {
         try {
@@ -79,7 +79,7 @@ public class EducationModeController {
     }
 
     //sửa
-    @PreAuthorize("hasAuthority('UPDATE')")
+    @PreAuthorize("@permissionService.hasPermission(authentication, 'UPDATE')")
     @PostMapping("/pdt/education-mode/{id}")
     public ResponseEntity<?> update(
             @PathVariable("id")  Long id,
@@ -106,7 +106,7 @@ public class EducationModeController {
     }
 
     //xóa
-    @PreAuthorize("hasAuthority('DELETE')")
+    @PreAuthorize("@permissionService.hasPermission(authentication, 'DELETE')")
     @DeleteMapping("/pdt/education-mode/{id}")
     public ResponseEntity<?> delete(
             @PathVariable("id")  Long id)

@@ -98,7 +98,7 @@ public class DepartmentController {
     }
 
     //tạo khoa
-    @PreAuthorize("hasAuthority('CREATE')")
+    @PreAuthorize("@permissionService.hasPermission(authentication, 'CREATE')")
     @PostMapping("/pdt/create-user")
     public ResponseEntity<?> createDepartment(@RequestBody UserDepartmentRequest request) {
         try{
@@ -124,7 +124,7 @@ public class DepartmentController {
     }
 
     //cap lai mk cho khoa
-    @PreAuthorize("hasAuthority('CREATE')")
+    @PreAuthorize("@permissionService.hasPermission(authentication, 'CREATE')")
     @PutMapping("/pdt/change-password-of-department/{id}")
     public ResponseEntity<?> changePasswordDerpartment(
             @PathVariable("id") Long id,
@@ -159,7 +159,7 @@ public class DepartmentController {
     }
 
     //cấp quyền thu hồi quyền
-    @PreAuthorize("hasAuthority('CREATE')")
+    @PreAuthorize("@permissionService.hasPermission(authentication, 'CREATE')")
     @PutMapping("/pdt/open-lock-department/{id}")
     public ResponseEntity<?> lockedDepartment(@PathVariable Long id){
         try{
@@ -189,7 +189,7 @@ public class DepartmentController {
     }
 
     // mở khóa quyền create của khoa
-    @PreAuthorize("hasAuthority('CREATE')")
+    @PreAuthorize("@permissionService.hasPermission(authentication, 'CREATE')")
     @PutMapping("/pdt/unlock-permission-write/{id}")
     public ResponseEntity<?> unlockPermissionCreate(@PathVariable Long id){
         try {
@@ -219,7 +219,7 @@ public class DepartmentController {
     }
 
     // mở khóa quyền read của khoa
-    @PreAuthorize("hasAuthority('CREATE')")
+    @PreAuthorize("@permissionService.hasPermission(authentication, 'CREATE')")
     @PutMapping("/pdt/unlock-permission-read/{id}")
     public ResponseEntity<?> unlockPermissionRead(@PathVariable Long id){
         try {
@@ -250,7 +250,7 @@ public class DepartmentController {
     }
 
     // mở khóa quyền update của khoa
-    @PreAuthorize("hasAuthority('CREATE')")
+    @PreAuthorize("@permissionService.hasPermission(authentication, 'CREATE')")
     @PutMapping("/pdt/unlock-permission-update/{id}")
     public ResponseEntity<?> unlockPermissionUpdate(@PathVariable Long id){
         try {
@@ -281,7 +281,7 @@ public class DepartmentController {
     }
 
     // mở khóa quyền delete của khoa
-    @PreAuthorize("hasAuthority('CREATE')")
+    @PreAuthorize("@permissionService.hasPermission(authentication, 'CREATE')")
     @PutMapping("/pdt/unlock-permission-delete/{id}")
     public ResponseEntity<?> unlockPermissionDelete(@PathVariable Long id){
         try {
@@ -312,7 +312,7 @@ public class DepartmentController {
     }
 
     //sửa khoa
-    @PreAuthorize("hasAuthority('UPDATE')")
+    @PreAuthorize("@permissionService.hasPermission(authentication, 'UPDATE')")
     @PutMapping("/pdt/update-department/{id}")
     public ResponseEntity<?> updateDepartment(@PathVariable Long id, @RequestBody DepartmentRequest departmentRequest) {
         try {
@@ -338,7 +338,7 @@ public class DepartmentController {
     }
 
     //xóa khoa
-    @PreAuthorize("hasAuthority('DELETE')")
+    @PreAuthorize("@permissionService.hasPermission(authentication, 'DELETE')")
     @DeleteMapping("/pdt/delete-department/{id}")
     public ResponseEntity<?> deleteDepartment(@PathVariable Long id){
         try {
@@ -394,7 +394,7 @@ public class DepartmentController {
     }
 
     // đổi coin thành tiền cho sinh viên
-    @PreAuthorize("hasAuthority('CREATE')")
+    @PreAuthorize("@permissionService.hasPermission(authentication, 'CREATE')")
     @PostMapping("/khoa/payments/exchange-token")
     public ResponseEntity<?> exchangeToken(
             @RequestParam Long id,
@@ -520,7 +520,7 @@ public class DepartmentController {
     }
 
     //excel theo id
-    @PreAuthorize("hasAuthority('CREATE')")
+    @PreAuthorize("@permissionService.hasPermission(authentication, 'CREATE')")
     @PostMapping("/pdt/department/create-excel")
     public ResponseEntity<?> uploadExcel(
             @RequestParam("file") MultipartFile file) throws IOException
