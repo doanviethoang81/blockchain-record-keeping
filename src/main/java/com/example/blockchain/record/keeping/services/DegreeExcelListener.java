@@ -10,6 +10,7 @@ import com.example.blockchain.record.keeping.exceptions.BadRequestException;
 import com.example.blockchain.record.keeping.exceptions.ListBadRequestException;
 import com.example.blockchain.record.keeping.models.*;
 import com.example.blockchain.record.keeping.repositorys.LogRepository;
+import com.example.blockchain.record.keeping.response.ApiResponseBuilder;
 import com.example.blockchain.record.keeping.response.NotificationResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.transaction.annotation.Transactional;
@@ -208,14 +209,14 @@ public class DegreeExcelListener extends AnalysisEventListener<DegreeExcelRowReq
                 continue;
             }
 
-            ZonedDateTime issueDate;
+            LocalDate issueDate;
             try {
-                LocalDate localDate = LocalDate.parse(row.getIssueDate(), formatter);
-                issueDate = localDate.atStartOfDay(ZoneId.of("Asia/Ho_Chi_Minh"));
-//                ZonedDateTime oneYearAgo = now.minusYears(1);
-                ZonedDateTime oneYearLater = now.plusYears(1);
+                issueDate = LocalDate.parse(row.getIssueDate(), formatter);
+                LocalDate today = LocalDate.now(ZoneId.of("Asia/Ho_Chi_Minh"));
+//            LocalDate oneYearAgo = today.minusYears(1);
+                LocalDate oneYearLater = today.plusYears(1);
 
-                if (issueDate.isBefore(now) || issueDate.isAfter(oneYearLater)) {
+                if (issueDate.isBefore(today) || issueDate.isAfter(oneYearLater)) {
                     errors.add("Dòng " + rowIndex + ": Ngày cấp văn bằng chỉ được phép từ hôm nay đến trong vòng 1 năm tới");
                     continue;
                 }
@@ -265,7 +266,7 @@ public class DegreeExcelListener extends AnalysisEventListener<DegreeExcelRowReq
             degree.setDegreeTitle(degreeTitle);
             degree.setEducationMode(educationMode);
             degree.setGraduationYear(row.getGraduationYear());
-            degree.setIssueDate(issueDate.toLocalDate());
+            degree.setIssueDate(issueDate);
             degree.setTrainingLocation(row.getTrainingLocation());
             degree.setSigner(row.getSigner());
             degree.setDiplomaNumber(row.getDiplomaNumber());

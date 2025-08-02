@@ -162,14 +162,14 @@ public class CertificateExcelListener extends AnalysisEventListener<CertificateE
                 continue;
             }
 
-            ZonedDateTime issueDate;
+            LocalDate issueDate;
             try {
-                LocalDate localDate = LocalDate.parse(row.getIssueDate(), formatter);
-                issueDate = localDate.atStartOfDay(ZoneId.of("Asia/Ho_Chi_Minh"));
-//                ZonedDateTime oneYearAgo = now.minusYears(1);
-                ZonedDateTime oneYearLater = now.plusYears(1);
+                issueDate = LocalDate.parse(row.getIssueDate(), formatter);
+                LocalDate today = LocalDate.now(ZoneId.of("Asia/Ho_Chi_Minh"));
+//            LocalDate oneYearAgo = today.minusYears(1);
+                LocalDate oneYearLater = today.plusYears(1);
 
-                if (issueDate.isBefore(now) || issueDate.isAfter(oneYearLater)) {
+                if (issueDate.isBefore(today) || issueDate.isAfter(oneYearLater)) {
                     errors.add("Dòng " + rowIndex + ": Ngày cấp chứng chỉ chỉ được phép từ hôm nay đến trong vòng 1 năm tới");
                     continue;
                 }
@@ -214,7 +214,7 @@ public class CertificateExcelListener extends AnalysisEventListener<CertificateE
             Certificate certificate = new Certificate();
             certificate.setStudent(student);
             certificate.setUniversityCertificateType(universityCertificateType);
-            certificate.setIssueDate(issueDate.toLocalDate());
+            certificate.setIssueDate(issueDate);
             certificate.setDiplomaNumber(row.getDiplomaNumber());
             certificate.setGrantor(row.getGrantor());
             certificate.setSigner(row.getSigner());

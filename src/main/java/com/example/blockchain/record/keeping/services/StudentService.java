@@ -14,6 +14,7 @@ import com.example.blockchain.record.keeping.repositorys.ActionChangeRepository;
 import com.example.blockchain.record.keeping.repositorys.LogRepository;
 import com.example.blockchain.record.keeping.repositorys.StudentClassRepository;
 import com.example.blockchain.record.keeping.repositorys.StudentRepository;
+import com.example.blockchain.record.keeping.response.ApiResponseBuilder;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -21,6 +22,7 @@ import org.springframework.stereotype.Service;
 import org.web3j.crypto.ECKeyPair;
 import org.web3j.crypto.Keys;
 
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -41,6 +43,7 @@ public class StudentService implements IStudentService{
     private final WalletService walletService;
     private final STUcoinService stUcoinService;
     private final UserService userService;
+    private final DepartmentService departmentService;
 
     // danh sách sv của các lớp của 1 khoa
     public List<Student> studentOfClassOfDepartmentList(Long idDepartment){
@@ -156,7 +159,7 @@ public class StudentService implements IStudentService{
 
     @Override
     @Auditable(action = ActionType.DELETED, entity = Entity.students)
-    public Student delete(Long id) {
+    public Student delete(Long id) throws Exception {
         ZonedDateTime vietnamTime = ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
 
         Student student = studentRepository.findByIdAndStatus(id, Status.ACTIVE )
@@ -164,6 +167,18 @@ public class StudentService implements IStudentService{
         student.setStatus(Status.DELETED);
         student.setUpdatedAt(vietnamTime.toLocalDateTime());
         AuditingContext.setDescription("Xóa sinh viên có mã số sinh viên: " + student.getStudentCode());
+
+        Wallet wallet = walletService.findByStudent(student);
+        String studentAddress = wallet.getWalletAddress();
+
+        //thu hồi lại STUcoin
+        String amount ="5";
+        BigInteger amountBI;
+        BigDecimal rawDecimal = new BigDecimal(amount);
+        amountBI = rawDecimal.multiply(BigDecimal.TEN.pow(18)).toBigIntegerExact();
+        departmentService.exchangeToken(studentAddress,amountBI, wallet);
+        departmentService.logSTUcoin(student, amount);
+
         return studentRepository.save(student);
     }
 

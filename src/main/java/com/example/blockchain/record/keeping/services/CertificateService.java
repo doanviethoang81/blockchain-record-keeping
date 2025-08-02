@@ -486,9 +486,7 @@ public class CertificateService implements ICertificateService{
 
             String qrBase64 = qrCodeUtil.generateQRCodeBase64(certificateUrl, 250, 250);
             certificate.setQrCodeUrl(qrBase64);
-
             certificate.setStatus(Status.APPROVED);
-            certificate.setUpdatedAt(vietnamTime.toLocalDateTime());
 
             CertificateBlockchainRequest request = new CertificateBlockchainRequest(
                     certificate.getStudent().getName(),
@@ -581,9 +579,7 @@ public class CertificateService implements ICertificateService{
             String certificateUrl = Constants.VERIFY_URL + ipfsUrl + "&type=certificate";
             String qrBase64 = qrCodeUtil.generateQRCodeBase64(certificateUrl, 250, 250);
             certificate.setQrCodeUrl(qrBase64);
-
             certificate.setStatus(Status.APPROVED);
-            certificate.setUpdatedAt(vietnamTime.toLocalDateTime());
 
             CertificateBlockchainRequest bcRequest = new CertificateBlockchainRequest(
                     certificate.getStudent().getName(),

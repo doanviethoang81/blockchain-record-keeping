@@ -108,7 +108,7 @@ public class CertificateController {
                             s.getStatus().getLabel(),
                             s.getDiplomaNumber(),
                             s.getUniversityCertificateType().getCertificateType().getName(),
-                            s.getCreatedAt()
+                            s.getUpdatedAt()
                     ))
                     .collect(Collectors.toList());
             int start = (page - 1) * size;
@@ -239,7 +239,7 @@ public class CertificateController {
                     s.getStatus().getLabel(),
                     s.getDiplomaNumber(),
                     s.getUniversityCertificateType().getCertificateType().getName(),
-                    s.getCreatedAt()
+                    s.getUpdatedAt()
             )).collect(Collectors.toList());
 
             int totalPages = (int) Math.ceil((double) totalItems / size);
@@ -315,7 +315,7 @@ public class CertificateController {
                     s.getStatus().getLabel(),
                     s.getDiplomaNumber(),
                     s.getUniversityCertificateType().getCertificateType().getName(),
-                    s.getCreatedAt()
+                    s.getUpdatedAt()
             )).collect(Collectors.toList());
 
             int totalPages = (int) Math.ceil((double) totalItems / size);
@@ -391,7 +391,7 @@ public class CertificateController {
                     s.getStatus().getLabel(),
                     s.getDiplomaNumber(),
                     s.getUniversityCertificateType().getCertificateType().getName(),
-                    s.getCreatedAt()
+                    s.getUpdatedAt()
             )).collect(Collectors.toList());
 
             int totalPages = (int) Math.ceil((double) totalItems / size);
@@ -467,7 +467,7 @@ public class CertificateController {
                     s.getStatus().getLabel(),
                     s.getDiplomaNumber(),
                     s.getUniversityCertificateType().getCertificateType().getName(),
-                    s.getCreatedAt()
+                    s.getUpdatedAt()
             )).collect(Collectors.toList());
 
             int totalPages = (int) Math.ceil((double) totalItems / size);
@@ -708,7 +708,7 @@ public class CertificateController {
                     s.getStatus().getLabel(),
                     s.getDiplomaNumber(),
                     s.getUniversityCertificateType().getCertificateType().getName(),
-                    s.getCreatedAt()
+                    s.getUpdatedAt()
             )).collect(Collectors.toList());
 
             int totalPages = (int) Math.ceil((double) totalItems / size);
@@ -780,7 +780,7 @@ public class CertificateController {
                     s.getStatus().getLabel(),
                     s.getDiplomaNumber(),
                     s.getUniversityCertificateType().getCertificateType().getName(),
-                    s.getCreatedAt()
+                    s.getUpdatedAt()
             )).collect(Collectors.toList());
 
             int totalPages = (int) Math.ceil((double) totalItems / size);
@@ -852,7 +852,7 @@ public class CertificateController {
                     s.getStatus().getLabel(),
                     s.getDiplomaNumber(),
                     s.getUniversityCertificateType().getCertificateType().getName(),
-                    s.getCreatedAt()
+                    s.getUpdatedAt()
             )).collect(Collectors.toList());
 
             int totalPages = (int) Math.ceil((double) totalItems / size);
@@ -924,7 +924,7 @@ public class CertificateController {
                     s.getStatus().getLabel(),
                     s.getDiplomaNumber(),
                     s.getUniversityCertificateType().getCertificateType().getName(),
-                    s.getCreatedAt()
+                    s.getUpdatedAt()
             )).collect(Collectors.toList());
 
             int totalPages = (int) Math.ceil((double) totalItems / size);
@@ -996,14 +996,13 @@ public class CertificateController {
             }
             try {
                 DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-                LocalDate localDate = LocalDate.parse(jsonNode.get("issueDate").asText(), formatter);
-                ZonedDateTime issueDate = localDate.atStartOfDay(ZoneId.of("Asia/Ho_Chi_Minh"));
-                ZonedDateTime now = ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
-//                ZonedDateTime oneYearAgo = now.minusYears(1);
-                ZonedDateTime oneYearLater = now.plusYears(1);
+                LocalDate issueDate = LocalDate.parse(jsonNode.get("issueDate").asText(), formatter);
+                LocalDate today = LocalDate.now(ZoneId.of("Asia/Ho_Chi_Minh"));
+//            LocalDate oneYearAgo = today.minusYears(1);
+                LocalDate oneYearLater = today.plusYears(1);
 
-                if (issueDate.isBefore(now) || issueDate.isAfter(oneYearLater)) {
-                    return ApiResponseBuilder.badRequest("Ngày cấp chứng chỉ, chỉ được phép từ hôm nay đến trong vòng 1 năm tới");
+                if (issueDate.isBefore(today) || issueDate.isAfter(oneYearLater)) {
+                    return ApiResponseBuilder.badRequest("Ngày cấp chứng chỉ chỉ được phép từ hôm nay đến trong vòng 1 năm tới");
                 }
             } catch (DateTimeParseException e) {
                 return ApiResponseBuilder.badRequest("Ngày cấp chứng chỉ không đúng định dạng dd/MM/yyyy");
@@ -1087,14 +1086,13 @@ public class CertificateController {
             }
             try {
                 DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-                LocalDate localDate = LocalDate.parse(request.getIssueDate(), formatter);
-                ZonedDateTime issueDate = localDate.atStartOfDay(ZoneId.of("Asia/Ho_Chi_Minh"));
-                ZonedDateTime now = ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
-                ZonedDateTime oneYearAgo = now.minusYears(1);
-                ZonedDateTime oneYearLater = now.plusYears(1);
+                LocalDate issueDate = LocalDate.parse(request.getIssueDate(), formatter);
+                LocalDate today = LocalDate.now(ZoneId.of("Asia/Ho_Chi_Minh"));
+//            LocalDate oneYearAgo = today.minusYears(1);
+                LocalDate oneYearLater = today.plusYears(1);
 
-                if (issueDate.isBefore(oneYearAgo) || issueDate.isAfter(oneYearLater)) {
-                    return ApiResponseBuilder.badRequest("Ngày cấp chứng chỉ phải trong vòng 1 năm trước và 1 năm sau kể từ hôm nay");
+                if (issueDate.isBefore(today) || issueDate.isAfter(oneYearLater)) {
+                    return ApiResponseBuilder.badRequest("Ngày cấp chứng chỉ chỉ được phép từ hôm nay đến trong vòng 1 năm tới");
                 }
             } catch (DateTimeParseException e) {
                 return ApiResponseBuilder.badRequest("Ngày cấp chứng chỉ không đúng định dạng dd/MM/yyyy");
@@ -1163,7 +1161,6 @@ public class CertificateController {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             String username = authentication.getName();
             User user = userService.findByUser(username);
-
 
             certificateService.rejectCertificates(ids,user, request.getNote());
             return ApiResponseBuilder.success("Từ chối xác nhận danh sách chứng chỉ thành công", null);

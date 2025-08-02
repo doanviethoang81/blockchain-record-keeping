@@ -31,7 +31,7 @@ public interface IStudentService {
 
     Student update(Long id , UpdateStudentRequest updateStudentRequest);
 
-    Student delete(Long id);
+    Student delete(Long id) throws Exception;
 
     Optional<StudentClass>  findByClassNameAndDepartmentId(Long id, String name);
 

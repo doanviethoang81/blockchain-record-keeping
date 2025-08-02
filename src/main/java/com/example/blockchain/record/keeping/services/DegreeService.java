@@ -497,7 +497,6 @@ public class DegreeService implements IDegreeService{
             String qrBase64 = qrCodeUtil.generateQRCodeBase64(certificateUrl, 250, 250);
             degree.setQrCode(qrBase64);
             degree.setStatus(Status.APPROVED);
-            degree.setUpdatedAt(vietnamTime.toLocalDateTime());
 
             // lấy thông tin vb lưu block
             DegreeBlockchainRequest request = new DegreeBlockchainRequest(
@@ -592,7 +591,6 @@ public class DegreeService implements IDegreeService{
             String qrBase64 = qrCodeUtil.generateQRCodeBase64(verifyUrl, 250, 250);
             degree.setQrCode(qrBase64);
             degree.setStatus(Status.APPROVED);
-            degree.setUpdatedAt(vietnamTime.toLocalDateTime());
 
             DegreeBlockchainRequest bcRequest = new DegreeBlockchainRequest(
                     degree.getStudent().getName(),
