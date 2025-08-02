@@ -814,7 +814,8 @@ public class CertificateService implements ICertificateService{
         dto.setStudentName(entity.getStudent().getName());
         dto.setStudentClass(entity.getStudent().getStudentClass().getName());
         dto.setDepartmentName(entity.getStudent().getStudentClass().getDepartment().getName());
-        dto.setIssueDate(entity.getIssueDate());
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+        dto.setIssueDate(entity.getIssueDate().format(formatter));
         dto.setGrantor(entity.getGrantor());
         dto.setSigner(entity.getSigner());
         dto.setDiplomaNumber(entity.getDiplomaNumber());

@@ -2,6 +2,8 @@ package com.example.blockchain.record.keeping.services;
 
 import com.example.blockchain.record.keeping.annotation.Auditable;
 import com.example.blockchain.record.keeping.aspect.AuditingContext;
+import com.example.blockchain.record.keeping.dtos.DegreeExcelDTO;
+import com.example.blockchain.record.keeping.dtos.StudentExcelDTO;
 import com.example.blockchain.record.keeping.dtos.request.ChangePasswordRequest;
 import com.example.blockchain.record.keeping.dtos.request.StudentRequest;
 import com.example.blockchain.record.keeping.dtos.request.UpdateStudentRequest;
@@ -26,9 +28,12 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Service
 @RequiredArgsConstructor
@@ -177,8 +182,6 @@ public class StudentService implements IStudentService{
         BigDecimal rawDecimal = new BigDecimal(amount);
         amountBI = rawDecimal.multiply(BigDecimal.TEN.pow(18)).toBigIntegerExact();
         departmentService.exchangeToken(studentAddress,amountBI, wallet);
-        departmentService.logSTUcoin(student, amount);
-
         return studentRepository.save(student);
     }
 
@@ -276,5 +279,35 @@ public class StudentService implements IStudentService{
         log.setIpAddress(ipAdress);
         log.setCreatedAt(vietnamTime.toLocalDateTime());
         logRepository.save(log);
+    }
+
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
+    public List<StudentExcelDTO> getStudentWithIdDTOs(List<Long> ids) {
+        List<Student> studentList = new ArrayList<>();
+        for (Long id :ids){
+            Student student = studentRepository.findById(id).orElse(null);
+            studentList.add(student);
+        }
+        AtomicInteger counter = new AtomicInteger(1);
+        return studentList.stream()
+                .map(student -> {
+                    StudentExcelDTO dto = convertToDTO(student);
+                    dto.setStt(counter.getAndIncrement());
+                    return dto;
+                })
+                .toList();
+    }
+
+    public StudentExcelDTO convertToDTO(Student entity) {
+        StudentExcelDTO dto = new StudentExcelDTO();
+        dto.setStudentCode(entity.getStudentCode());
+        dto.setStudentName(entity.getName());
+        dto.setStudentClass(entity.getStudentClass().getName());
+        dto.setDepartmentName(entity.getStudentClass().getDepartment().getName());
+        dto.setEmail(entity.getEmail());
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+        dto.setBirthDate(entity.getBirthDate().format(formatter));
+        dto.setCourse(entity.getCourse());
+        return dto;
     }
 }

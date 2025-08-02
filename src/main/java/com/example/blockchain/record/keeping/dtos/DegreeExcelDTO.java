@@ -35,7 +35,7 @@ public class DegreeExcelDTO {
 
     @ExcelProperty(value= "Ngày cấp")
     @ColumnWidth(15)
-    private LocalDate issueDate;
+    private String issueDate;
 
     @ExcelProperty(value= "Năm tốt nghiệp")
     @ColumnWidth(10)

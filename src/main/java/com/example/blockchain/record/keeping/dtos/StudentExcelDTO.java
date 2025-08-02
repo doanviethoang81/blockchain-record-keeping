@@ -2,18 +2,16 @@ package com.example.blockchain.record.keeping.dtos;
 
 import com.alibaba.excel.annotation.ExcelProperty;
 import com.alibaba.excel.annotation.write.style.ColumnWidth;
-import com.example.blockchain.record.keeping.enums.Status;
 import lombok.*;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
 @Setter
-public class CertificateExcelDTO {
+public class StudentExcelDTO {
 
     @ExcelProperty("STT")
     @ColumnWidth(5)
@@ -32,26 +30,18 @@ public class CertificateExcelDTO {
     private String studentClass;
 
     @ExcelProperty("Tên khoa")
-    @ColumnWidth(22)
+    @ColumnWidth(25)
     private String departmentName;
 
-    @ExcelProperty(value= "Ngày cấp")
+    @ExcelProperty(value= "Email")
     @ColumnWidth(15)
-    private String issueDate;
+    private String email;
 
-    @ExcelProperty("Chức vụ người cấp")
-    @ColumnWidth(20)
-    private String grantor;
+    @ExcelProperty(value= "Ngày sinh")
+    @ColumnWidth(15)
+    private String birthDate;
 
-    @ExcelProperty("Người ký")
-    @ColumnWidth(25)
-    private String signer;
-
-    @ExcelProperty("Số hiệu bằng")
+    @ExcelProperty("Khóa học")
     @ColumnWidth(13)
-    private String diplomaNumber;
-
-    @ExcelProperty("Trạng thái")
-    @ColumnWidth(12)
-    private String status;
+    private String course;
 }

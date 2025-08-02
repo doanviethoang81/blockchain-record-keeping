@@ -21,7 +21,8 @@ public enum LogTemplate {
 
     UPDATE_DEGREE_TITLE("Cập nhật thông tin danh hiệu văn bằng: %s"),
 
-    COIN("Đã đổi %s STUcoin thành tiền cho sinh viên: %s"),
+    COIN("Đã đổi %s STUcoin thành tiền cho sinh viên có mã số sinh viên: %s"),
+
     COIN_STUDENT("Sinh viên: %s đã chuyển %s STUcoin cho sinh viên: %s"),
 
     UPDATE_CERTIFICATE_TYPE("Cập nhật thông tin loại chứng chỉ: %s"),
@@ -36,8 +37,9 @@ public enum LogTemplate {
     UPDATE_UNIVERCITY_SEAL("Cập nhật dấu mộc của trường"),
 
     EXPORT_EXCEL("Xuất file excel: %s"),
-    EXPORT_EXCEL_CERTIFICATE_LIST("Xuất chứng chỉ ra file excel"),
-    EXPORT_EXCEL_DEGREE_LIST("Xuất văn bằng ra file excel"),
+    EXPORT_EXCEL_CERTIFICATE_LIST("Xuất danh sách chứng chỉ ra file excel"),
+    EXPORT_EXCEL_DEGREE_LIST("Xuất danh sách văn bằng ra file excel"),
+    EXPORT_EXCEL_STUDENT_LIST("Xuất danh sách sinh viên ra file excel"),
 
     CREATE_CERTIFICATE("Tạo chứng chỉ cho sinh viên, số hiệu chứng chỉ: %s"),
     UPDATE_CERTIFICATE("Cập nhật chứng chỉ có số hiệu: %s"),

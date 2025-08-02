@@ -1,14 +1,21 @@
 package com.example.blockchain.record.keeping.controllers;
 
 import com.alibaba.excel.EasyExcel;
+import com.example.blockchain.record.keeping.dtos.DegreeExcelDTO;
+import com.example.blockchain.record.keeping.dtos.StudentExcelDTO;
 import com.example.blockchain.record.keeping.dtos.request.*;
+import com.example.blockchain.record.keeping.enums.ActionType;
+import com.example.blockchain.record.keeping.enums.Entity;
+import com.example.blockchain.record.keeping.enums.LogTemplate;
 import com.example.blockchain.record.keeping.models.*;
 import com.example.blockchain.record.keeping.repositorys.LogRepository;
 import com.example.blockchain.record.keeping.repositorys.StudentRepository;
 import com.example.blockchain.record.keeping.response.*;
 import com.example.blockchain.record.keeping.services.*;
+import com.example.blockchain.record.keeping.utils.ExcelStyleUtil;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -24,8 +31,12 @@ import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.Period;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -396,7 +407,7 @@ public class StudentController {
     }
 
     // chi tiết 1 sinh viên
-    @PreAuthorize("(hasAnyRole('ADMIN', 'PDT', 'KHOA')) and hasAuthority('READ')")
+    @PreAuthorize("(hasAnyRole('PDT', 'KHOA')) and hasAuthority('READ')")
     @GetMapping("/detail-student/{id}")
     public ResponseEntity<?> getDetatilStudent(
             @PathVariable("id") Long id)
@@ -561,5 +572,47 @@ public class StudentController {
         } catch (Exception e) {
             return ApiResponseBuilder.internalError("Lỗi: " + e.getMessage());
         }
+    }
+
+    //xuất excel
+    @PreAuthorize("(hasAnyRole('PDT', 'KHOA')) and hasAuthority('READ')")
+    @PostMapping("/export-student-list")
+    public void exportDegreesList(
+            @RequestBody ListValidationRequest request,
+            HttpServletResponse response) throws IOException
+    {
+        if (request.getIds() == null || request.getIds().isEmpty()) {
+            throw new IllegalArgumentException("Vui lòng chọn sinh viên cần xuất file!");
+        }
+
+        List<Long> ids = request.getIds();
+
+        response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        response.setCharacterEncoding("UTF-8");
+
+        String fileName = URLEncoder.encode("sinh_vien"  , StandardCharsets.UTF_8)
+                .replaceAll("\\+", "%20");
+        response.setHeader("Content-Disposition", "attachment; filename=" + fileName + ".xlsx");
+
+        List<StudentExcelDTO> data = studentService.getStudentWithIdDTOs(ids);
+
+        ZonedDateTime vietnamTime = ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
+
+        // ghi log
+        String ipAdress = auditLogService.getClientIp(httpServletRequest);
+        Log log = new Log();
+        log.setUser(auditLogService.getCurrentUser());
+        log.setActionType(ActionType.EXPORT_EXCEL);
+        log.setEntityName(Entity.degrees);
+        log.setEntityId(null);
+        log.setDescription(LogTemplate.EXPORT_EXCEL_STUDENT_LIST.getName());
+        log.setCreatedAt(vietnamTime.toLocalDateTime());
+        log.setIpAddress(ipAdress);
+        logRepository.save(log);
+
+        EasyExcel.write(response.getOutputStream(), StudentExcelDTO.class)
+                .registerWriteHandler(ExcelStyleUtil.certificateStyleStrategy())
+                .sheet("Danh sách sinh viên")
+                .doWrite(data);
     }
 }
