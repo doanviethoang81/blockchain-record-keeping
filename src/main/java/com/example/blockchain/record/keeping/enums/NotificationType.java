@@ -5,9 +5,12 @@ public enum NotificationType {
     CERTIFICATE_APPROVED("Xác nhận chứng chỉ"),
     CERTIFICATE_REJECTED("Từ chối chứng chỉ"),
 
+    PERMISSION("Quyền truy cập"),
+
     DEGREE_CREATED("Tạo văn bằng"),
     DEGREE_APPROVED("Xác nhận văn bằng"),
     DEGREE_REJECTED("Từ chối văn bằng");
+
 
     private final String type;
 

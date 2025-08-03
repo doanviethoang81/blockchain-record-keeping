@@ -8,6 +8,7 @@ import com.example.blockchain.record.keeping.dtos.request.UserDepartmentRequest;
 import com.example.blockchain.record.keeping.dtos.request.WalletSTUInfoDTO;
 import com.example.blockchain.record.keeping.enums.ActionType;
 import com.example.blockchain.record.keeping.enums.Entity;
+import com.example.blockchain.record.keeping.enums.NotificationType;
 import com.example.blockchain.record.keeping.models.*;
 import com.example.blockchain.record.keeping.repositorys.LogRepository;
 import com.example.blockchain.record.keeping.repositorys.WalletRepository;
@@ -54,6 +55,9 @@ public class DepartmentController {
     private final UserPermissionService userPermissionService;
     private final PermissionService permissionService;
     private final RoleService roleService;
+    private final NotificateService notificateService;
+    private final NotificationReceiverService notificationReceiverService;
+    private final NotificationWebSocketSender notificationWebSocketSender;
 
     //---------------------------- PDT -------------------------------------------------------
     //các khoa của trường đại học
@@ -212,6 +216,36 @@ public class DepartmentController {
             logRepository.save(log);
             // Gửi email
 //            brevoApiEmailService.sendPermissionNotification(id, actionType);
+
+            Notifications notifications = new Notifications();
+            notifications.setUser(user);
+            notifications.setTitle(NotificationType.PERMISSION.getName());
+            notifications.setContent("Phòng đào tạo:  "+ message.toLowerCase());
+            notifications.setType(NotificationType.CERTIFICATE_CREATED);
+            notifications.setDocumentType("DEPARTMENT");
+            notifications.setDocumentId(null);
+            notificateService.save(notifications);
+
+            NotificationReceivers notificationReceivers = new NotificationReceivers();
+            notificationReceivers.setNotification(notifications);
+            notificationReceivers.setReceiverId(id);
+            notificationReceivers.setCreatedAt(vietnamTime.toLocalDateTime());
+            notificationReceiverService.save(notificationReceivers);
+
+            //gửi WebSocket
+            NotificationResponse response = new NotificationResponse(
+                    notificationReceivers.getId(),
+                    notifications.getTitle(),
+                    notifications.getContent(),
+                    null,
+                    notifications.getType(),
+                    false,
+                    notifications.getDocumentType(),
+                    notifications.getDocumentId(),
+                    notificationReceivers.getCreatedAt()
+            );
+            notificationWebSocketSender.sendNotification(id, response);
+
             return ApiResponseBuilder.success(message, null);
         } catch (Exception e) {
             return ApiResponseBuilder.internalError("Đã xảy ra lỗi: " + e.getMessage());
@@ -243,6 +277,7 @@ public class DepartmentController {
             logRepository.save(log);
             // Gửi email
 //            brevoApiEmailService.sendPermissionNotification(id, actionType);
+
             return ApiResponseBuilder.success(message, null);
         } catch (Exception e) {
             return ApiResponseBuilder.internalError("Đã xảy ra lỗi: " + e.getMessage());
@@ -274,6 +309,36 @@ public class DepartmentController {
             logRepository.save(log);
             // Gửi email
 //            brevoApiEmailService.sendPermissionNotification(id, actionType);
+
+            Notifications notifications = new Notifications();
+            notifications.setUser(user);
+            notifications.setTitle(NotificationType.PERMISSION.getName());
+            notifications.setContent("Phòng đào tạo:  "+ message.toLowerCase());
+            notifications.setType(NotificationType.CERTIFICATE_CREATED);
+            notifications.setDocumentType("DEPARTMENT");
+            notifications.setDocumentId(null);
+            notificateService.save(notifications);
+
+            NotificationReceivers notificationReceivers = new NotificationReceivers();
+            notificationReceivers.setNotification(notifications);
+            notificationReceivers.setReceiverId(id);
+            notificationReceivers.setCreatedAt(vietnamTime.toLocalDateTime());
+            notificationReceiverService.save(notificationReceivers);
+
+            //gửi WebSocket
+            NotificationResponse response = new NotificationResponse(
+                    notificationReceivers.getId(),
+                    notifications.getTitle(),
+                    notifications.getContent(),
+                    null,
+                    notifications.getType(),
+                    false,
+                    notifications.getDocumentType(),
+                    notifications.getDocumentId(),
+                    notificationReceivers.getCreatedAt()
+            );
+            notificationWebSocketSender.sendNotification(id, response);
+
             return ApiResponseBuilder.success(message, null);
         } catch (Exception e) {
             return ApiResponseBuilder.internalError("Đã xảy ra lỗi: " + e.getMessage());
@@ -305,6 +370,35 @@ public class DepartmentController {
             logRepository.save(log);
             // Gửi email
 //            brevoApiEmailService.sendPermissionNotification(id, actionType);
+
+            Notifications notifications = new Notifications();
+            notifications.setUser(user);
+            notifications.setTitle(NotificationType.PERMISSION.getName());
+            notifications.setContent("Phòng đào tạo:  "+ message.toLowerCase());
+            notifications.setType(NotificationType.CERTIFICATE_CREATED);
+            notifications.setDocumentType("DEPARTMENT");
+            notifications.setDocumentId(null);
+            notificateService.save(notifications);
+
+            NotificationReceivers notificationReceivers = new NotificationReceivers();
+            notificationReceivers.setNotification(notifications);
+            notificationReceivers.setReceiverId(id);
+            notificationReceivers.setCreatedAt(vietnamTime.toLocalDateTime());
+            notificationReceiverService.save(notificationReceivers);
+
+            //gửi WebSocket
+            NotificationResponse response = new NotificationResponse(
+                    notificationReceivers.getId(),
+                    notifications.getTitle(),
+                    notifications.getContent(),
+                    null,
+                    notifications.getType(),
+                    false,
+                    notifications.getDocumentType(),
+                    notifications.getDocumentId(),
+                    notificationReceivers.getCreatedAt()
+            );
+            notificationWebSocketSender.sendNotification(id, response);
             return ApiResponseBuilder.success(message, null);
         } catch (Exception e) {
             return ApiResponseBuilder.internalError("Đã xảy ra lỗi: " + e.getMessage());
