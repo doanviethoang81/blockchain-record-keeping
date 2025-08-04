@@ -209,7 +209,7 @@ public class DegreeExcelListener extends AnalysisEventListener<DegreeExcelRowReq
                 continue;
             }
 
-            LocalDate issueDate;
+            LocalDate issueDate =LocalDate.parse(row.getIssueDate(), formatter);
             try {
                 issueDate = LocalDate.parse(row.getIssueDate(), formatter);
                 LocalDate today = LocalDate.now(ZoneId.of("Asia/Ho_Chi_Minh"));

@@ -530,7 +530,7 @@ public interface DegreeRepository extends JpaRepository<Degree,Long> {
                     FROM student_class sc
                     JOIN departments d ON sc.department_id = d.id
                     LEFT JOIN students s ON s.student_class_id = sc.id
-                    LEFT JOIN certificates c ON c.student_id = s.id AND c.status = 'APPROVED'
+                    LEFT JOIN degrees c ON c.student_id = s.id AND c.status = 'APPROVED'
                     WHERE d.university_id = :universityId
                     GROUP BY sc.id, sc.name
                     ORDER BY total DESC

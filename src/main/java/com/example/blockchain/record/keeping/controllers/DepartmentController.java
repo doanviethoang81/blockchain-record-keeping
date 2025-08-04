@@ -151,7 +151,7 @@ public class DepartmentController {
             boolean isPasswordChanged = userService.changePasswordDepartment(id, changePassword);
             if (isPasswordChanged) {
                 // gửi gmail thông báo
-//                brevoApiEmailService.sendPasswordChange(id, changePassword.getNewPassword());
+                brevoApiEmailService.sendPasswordChange(id, changePassword.getNewPassword());
                 return ApiResponseBuilder.success("Thay đổi mật khẩu thành công.",null);
 
             } else {
@@ -185,7 +185,7 @@ public class DepartmentController {
             log.setCreatedAt(vietnamTime.toLocalDateTime());
             logRepository.save(log);
 
-//            brevoApiEmailService.sendPermissionToDepartment(id, message);
+            brevoApiEmailService.sendPermissionToDepartment(id, message);
             return ApiResponseBuilder.success(message, null);
         } catch (Exception e) {
             return ApiResponseBuilder.internalError("Lỗi "+ e.getMessage());
@@ -215,7 +215,7 @@ public class DepartmentController {
             log.setCreatedAt(vietnamTime.toLocalDateTime());
             logRepository.save(log);
             // Gửi email
-//            brevoApiEmailService.sendPermissionNotification(id, actionType);
+            brevoApiEmailService.sendPermissionNotification(id, actionType);
 
             Notifications notifications = new Notifications();
             notifications.setUser(user);
@@ -276,7 +276,7 @@ public class DepartmentController {
             log.setCreatedAt(vietnamTime.toLocalDateTime());
             logRepository.save(log);
             // Gửi email
-//            brevoApiEmailService.sendPermissionNotification(id, actionType);
+            brevoApiEmailService.sendPermissionNotification(id, actionType);
 
             return ApiResponseBuilder.success(message, null);
         } catch (Exception e) {
@@ -308,7 +308,7 @@ public class DepartmentController {
             log.setCreatedAt(vietnamTime.toLocalDateTime());
             logRepository.save(log);
             // Gửi email
-//            brevoApiEmailService.sendPermissionNotification(id, actionType);
+            brevoApiEmailService.sendPermissionNotification(id, actionType);
 
             Notifications notifications = new Notifications();
             notifications.setUser(user);
@@ -369,7 +369,7 @@ public class DepartmentController {
             log.setCreatedAt(vietnamTime.toLocalDateTime());
             logRepository.save(log);
             // Gửi email
-//            brevoApiEmailService.sendPermissionNotification(id, actionType);
+            brevoApiEmailService.sendPermissionNotification(id, actionType);
 
             Notifications notifications = new Notifications();
             notifications.setUser(user);

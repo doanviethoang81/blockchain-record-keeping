@@ -32,7 +32,7 @@ public enum LogTemplate {
     CREATE_DEPARTMENT_EXCEL("Tạo khoa: %s từ file excel"),
     CREATE_CLASS_EXCEL("Tạo lớp: %s từ file excel"),
 
-    UPDATE_UNIVERCITY("Cập nhật thông tin phòng đào tạo"),
+    UPDATE_UNIVERCITY("Cập nhật thông tin tài khoản"),
     UPDATE_UNIVERCITY_LOGO("Cập nhật logo của trường"),
     UPDATE_UNIVERCITY_SEAL("Cập nhật dấu mộc của trường"),
 

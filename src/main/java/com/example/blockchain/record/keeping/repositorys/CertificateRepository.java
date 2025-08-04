@@ -557,9 +557,9 @@ public interface CertificateRepository extends JpaRepository<Certificate,Long> {
             FROM departments d
             join student_class sc on d.id = sc.department_id
             join students s on sc.id = s.student_class_id
-            join degrees dg on s.id = dg.student_id
+            join certificates c on s.id = c.student_id
             WHERE d.id = :departmentId
-            and dg.status = 'APPROVED'
+            and c.status = 'APPROVED'
             GROUP BY sc.id, sc.name
             ORDER BY total DESC
             LIMIT 1
@@ -616,4 +616,47 @@ public interface CertificateRepository extends JpaRepository<Certificate,Long> {
 
 
 }
+
+//WITH month_range AS (
+//        SELECT month, year FROM (
+//                -- Tháng năm ngoái: từ (current_month + 1) đến 12
+//SELECT number AS month, YEAR(CURDATE()) - 1 AS year
+//FROM (
+//        SELECT 1 AS number UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4
+//                UNION ALL SELECT 5 UNION ALL SELECT 6 UNION ALL SELECT 7 UNION ALL SELECT 8
+//                UNION ALL SELECT 9 UNION ALL SELECT 10 UNION ALL SELECT 11 UNION ALL SELECT 12
+//) AS all_months
+//WHERE number >= MONTH(CURDATE()) + 1
+//
+//UNION ALL
+//
+//        -- Tháng năm nay: từ 1 đến current_month
+//SELECT number AS month, YEAR(CURDATE()) AS year
+//FROM (
+//        SELECT 1 AS number UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4
+//                UNION ALL SELECT 5 UNION ALL SELECT 6 UNION ALL SELECT 7 UNION ALL SELECT 8
+//                UNION ALL SELECT 9 UNION ALL SELECT 10 UNION ALL SELECT 11 UNION ALL SELECT 12
+//) AS all_months
+//WHERE number <= MONTH(CURDATE())
+//        ) AS combined
+//)
+//SELECT
+//m.month,
+//COALESCE(SUM(CASE WHEN c.status = 'PENDING' THEN 1 ELSE 0 END), 0) AS pending,
+//COALESCE(SUM(CASE WHEN c.status = 'APPROVED' THEN 1 ELSE 0 END), 0) AS approved,
+//COALESCE(SUM(CASE WHEN c.status = 'REJECTED' THEN 1 ELSE 0 END), 0) AS rejected
+//FROM month_range m
+//LEFT JOIN certificates c
+//ON MONTH(c.updated_at) = m.month AND YEAR(c.updated_at) = m.year
+//LEFT JOIN students s ON c.student_id = s.id AND s.status = 'ACTIVE'
+//LEFT JOIN student_class sc ON s.student_class_id = sc.id AND sc.status = 'ACTIVE'
+//LEFT JOIN departments d ON sc.department_id = d.id AND d.status = 'ACTIVE'
+//LEFT JOIN universitys u ON d.university_id = u.id AND u.id = 14
+//GROUP BY m.month, m.year
+//ORDER BY
+//CASE
+//WHEN m.month >= MONTH(CURDATE()) + 1 THEN m.month
+//ELSE m.month + 12
+//END
+
 
