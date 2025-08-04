@@ -268,7 +268,7 @@ public class AlchemyService {
 
             // Gọi balanceOf để lấy số dư STUcoin
             BigInteger tokenBalance = stucoi.balanceOf(address).send();
-            BigDecimal stuBalance = new BigDecimal(tokenBalance).divide(BigDecimal.TEN.pow(18), 6, RoundingMode.HALF_UP);
+            BigDecimal stuBalance = new BigDecimal(tokenBalance).divide(BigDecimal.TEN.pow(18), 6, RoundingMode.HALF_UP) .stripTrailingZeros();;
 
             WalletSTUInfoDTO dto = new WalletSTUInfoDTO();
             dto.setStuCoin(stuBalance.toString());
