@@ -25,6 +25,46 @@ A Java-based blockchain record-keeping system designed to ensure data integrity,
 - H2/PostgreSQL/MySQL (for off-chain storage, optional)
 - Web3j (for blockchain interaction, optional)
 
+## Project Structure
+
+```
+blockchain-record-keeping/
+├── src/
+│   ├── main/
+│   │   ├── java/
+│   │   │   └── com/
+│   │   │       └── example/
+│   │   │           └── blockchain/
+│   │   │               ├── BlockchainRecordKeepingApplication.java
+│   │   │               ├── config/         # Application configuration (security, DB, etc.)
+│   │   │               ├── controller/     # REST API and web controllers
+│   │   │               ├── model/          # Entity and DTO classes
+│   │   │               ├── repository/     # Data access layer (Spring Data, etc.)
+│   │   │               ├── security/       # Authentication and authorization logic
+│   │   │               ├── service/        # Business logic and services
+│   │   │               └── smartcontract/  # Blockchain and smart contract integration
+│   │   └── resources/
+│   │       ├── application.properties
+│   │       └── static/
+│   │       └── templates/
+│   └── test/
+│       └── java/
+│           └── com/
+│               └── example/
+│                   └── blockchain/
+├── pom.xml
+└── README.md
+```
+
+- `config/`: Application configuration such as security, database, and other settings.
+- `controller/`: Handles HTTP requests and defines REST API/web endpoints.
+- `model/`: Contains entity classes (database models) and DTOs (data transfer objects).
+- `repository/`: Interfaces for data access, typically using Spring Data JPA or similar.
+- `security/`: Manages authentication, authorization, and security-related logic.
+- `service/`: Implements business logic and coordinates between controllers and repositories.
+- `smartcontract/`: Integrates with blockchain networks and manages smart contract interactions.
+- `resources/`: Contains configuration files, static assets, and templates.
+
 ## Getting Started
 
 ### Prerequisites
@@ -38,3 +78,4 @@ A Java-based blockchain record-keeping system designed to ensure data integrity,
 ```bash
 mvn clean install
 mvn spring-boot:run
+```
