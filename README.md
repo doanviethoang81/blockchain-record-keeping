@@ -36,16 +36,22 @@ blockchain-record-keeping/
 │   │   │       └── example/
 │   │   │           └── blockchain/
 │   │   │               ├── BlockchainRecordKeepingApplication.java
-│   │   │               ├── config/         # Application configuration (security, DB, etc.)
-│   │   │               ├── controller/     # REST API and web controllers
-│   │   │               ├── model/          # Entity and DTO classes
-│   │   │               ├── repository/     # Data access layer (Spring Data, etc.)
-│   │   │               ├── security/       # Authentication and authorization logic
-│   │   │               ├── service/        # Business logic and services
-│   │   │               └── smartcontract/  # Blockchain and smart contract integration
+│   │   │               ├── annotation/     # Custom annotations for the project
+│   │   │               ├── aspect/         # Aspect classes for AOP (Aspect Oriented Programming)
+│   │   │               ├── blockchain/     # Blockchain logic and integration
+│   │   │               ├── config/         # Application configuration classes (Web, Swagger, etc.)
+│   │   │               ├── controllers/    # Controllers handling client/API requests
+│   │   │               ├── dtos/           # Data Transfer Object definitions
+│   │   │               ├── models/         # Entity/model classes mapped to the database
+│   │   │               ├── exceptions/     # Custom exception definitions and handlers
+│   │   │               ├── repositorys/    # Data access interfaces (Spring Data JPA)
+│   │   │               ├── service/        # Business logic and service layer
+│   │   │               └── util/           # Utility and helper classes
 │   │   └── resources/
-│   │       ├── application.properties
-│   │       └── static/
+│   │       ├── application.YAML
+│   │       ├── fonts/
+│   │       ├── static/
+│   │       ├── solidity/
 │   │       └── templates/
 │   └── test/
 │       └── java/
@@ -56,14 +62,18 @@ blockchain-record-keeping/
 └── README.md
 ```
 
-- `config/`: Application configuration such as security, database, and other settings.
-- `controller/`: Handles HTTP requests and defines REST API/web endpoints.
-- `model/`: Contains entity classes (database models) and DTOs (data transfer objects).
-- `repository/`: Interfaces for data access, typically using Spring Data JPA or similar.
-- `security/`: Manages authentication, authorization, and security-related logic.
-- `service/`: Implements business logic and coordinates between controllers and repositories.
-- `smartcontract/`: Integrates with blockchain networks and manages smart contract interactions.
-- `resources/`: Contains configuration files, static assets, and templates.
+- `annotation/`: Custom annotations supporting special functionalities.
+- `aspect/`: Aspect classes for AOP, e.g., logging, transactions, access control.
+- `blockchain/`: Blockchain logic, smart contract integration, and blockchain network communication.
+- `config/`: Application configuration classes such as security, Swagger, database, etc.
+- `controllers/`: Controllers handling requests from clients or APIs.
+- `dtos/`: Data Transfer Object definitions for data exchange between layers.
+- `models/`: Entity/model classes mapped to database tables.
+- `exceptions/`: Custom exception definitions and global exception handlers.
+- `repositorys/`: Data access interfaces, typically using Spring Data JPA.
+- `service/`: Business logic and main application services.
+- `util/`: Utility and helper classes used throughout the project.
+- `resources/`: Configuration files, static assets, templates, solidity contracts, etc.
 
 ## Getting Started
 
