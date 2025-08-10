@@ -34,4 +34,5 @@ public class BlockchainConfig {
         BigInteger gasLimit = BigInteger.valueOf(200_000);
         return new StaticGasProvider(gasPrice, gasLimit);
     }
+
 }
