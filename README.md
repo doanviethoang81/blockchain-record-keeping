@@ -19,7 +19,7 @@ A Java-based blockchain record-keeping system designed to ensure data integrity,
 
 ## Technologies
 
-- Java 17+
+- Java 21+
 - Maven
 - Spring Boot (optional, for REST API)
 - H2/PostgreSQL/MySQL (for off-chain storage, optional)
